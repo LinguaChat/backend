@@ -7,6 +7,12 @@ User = get_user_model()
 
 
 class ChatSerializer(serializers.ModelSerializer):
+    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    # members = UserSerializer()
 
     class Meta:
         model = Chat
+        fields = (
+            'slug', 'title', 'owner', 'private', 'allow_anonymous_access',
+            'members'
+        )
