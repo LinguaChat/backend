@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from core.models import CreatedModifiedModel
+from core.models import DateCreatedModel, DateEditedModel
 
 # from django.db import models
 
@@ -8,6 +8,6 @@ from core.models import CreatedModifiedModel
 User = get_user_model()
 
 
-class Chat(CreatedModifiedModel):
+class Chat(DateCreatedModel, DateEditedModel):
     '''Модель чата'''
     ...

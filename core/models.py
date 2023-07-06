@@ -2,9 +2,9 @@ from django.db import models
 from django.utils import timezone
 
 
-class CreatedModel(models.Model):
+class DateCreatedModel(models.Model):
     """Абстрактная модель. Добавляет дату создания."""
-    created = models.DateTimeField(
+    date_created = models.DateTimeField(
         'Дата создания',
         editable=False,
         auto_now_add=True,
@@ -15,9 +15,9 @@ class CreatedModel(models.Model):
         abstract = True
 
 
-class ModifiedModel(models.Model):
+class DateEditedModel(models.Model):
     """Абстрактная модель. Добавляет дату редактирования."""
-    modified = models.DateTimeField(
+    date_edited = models.DateTimeField(
         'Дата редактирования',
         blank=True,
         null=True
@@ -28,5 +28,5 @@ class ModifiedModel(models.Model):
 
     def save(self, *args, **kwargs):
         ''' При сохранении обновлять временную метку '''
-        self.modified = timezone.now()
-        return super(ModifiedModel, self).save(*args, **kwargs)
+        self.date_edited = timezone.now()
+        return super(DateEditedModel, self).save(*args, **kwargs)
