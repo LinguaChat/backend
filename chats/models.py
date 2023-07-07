@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-<<<<<<< HEAD
 from django.db import models
 from core.models import CreatedModifiedModel
 from django.contrib.auth.models import User
@@ -13,7 +12,7 @@ class Chat(CreatedModifiedModel):
         max_length=255,
         unique=True
     )
-    initiator = models.ForeignKey(
+    owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE
     )
@@ -51,12 +50,9 @@ class Message(CreatedModifiedModel):
         Chat,
         on_delete=models.CASCADE
     )
-    date_sent = models.DateTimeField()
-    date_edited = models.DateTimeField(
-        blank=True,
-        null=True
+    content = models.TextField(
+        max_length=5000
     )
-    content = models.TextField()
     responding_to = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
@@ -71,7 +67,10 @@ class Message(CreatedModifiedModel):
         default=False,
         verbose_name='Сообщение прочитано'
     )
-
+    is_pinned = models.BooleanField(
+        default=False,
+        verbose_name='Сообщение закреплено'
+    )
     def __str__(self):
         return f"Message {self.message_id}"
 
@@ -115,13 +114,22 @@ class Members(models.Model):
 
     chat = models.ForeignKey(
         Chat,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Чат'
     )
     member = models.ForeignKey(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Участник'
     )
-    created = models.DateTimeField(auto_now_add=True)
+    date_created = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания'
+    )
+    is_pinned = models.BooleanField(
+        default=False,
+        verbose_name='Закреплено'
+    )
 
     def __str__(self):
         return f"Member {self.pk}"
@@ -129,17 +137,3 @@ class Members(models.Model):
     class Meta:
         verbose_name = 'Member'
         verbose_name_plural = 'Members'
-=======
-
-from core.models import DateCreatedModel, DateEditedModel
-
-# from django.db import models
-
-
-User = get_user_model()
-
-
-class Chat(DateCreatedModel, DateEditedModel):
-    '''Модель чата'''
-    ...
->>>>>>> 1704e45df4fdc455a634bc00dcc4358f28489ea5
