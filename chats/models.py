@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+<<<<<<< HEAD
 from django.db import models
 from core.models import CreatedModifiedModel
 from django.contrib.auth.models import User
@@ -128,3 +129,17 @@ class Members(models.Model):
     class Meta:
         verbose_name = 'Member'
         verbose_name_plural = 'Members'
+=======
+
+from core.models import DateCreatedModel, DateEditedModel
+
+# from django.db import models
+
+
+User = get_user_model()
+
+
+class Chat(DateCreatedModel, DateEditedModel):
+    '''Модель чата'''
+    ...
+>>>>>>> 1704e45df4fdc455a634bc00dcc4358f28489ea5
