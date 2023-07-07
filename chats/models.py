@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from core.models import CreatedModifiedModel
-
+from django.contrib.auth.models import User
 User = get_user_model()
 
 
@@ -39,20 +39,6 @@ class Chat(CreatedModifiedModel):
         verbose_name = 'Chat'
         verbose_name_plural = 'Chats'
 
-
-class MessageReaders(models.Model):
-    """Модель для отслеживания прочитанных сообщений пользователем."""
-
-    message = models.ForeignKey(
-        'Message',
-        on_delete=models.CASCADE
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
-
-
 class Message(CreatedModifiedModel):
     """Модель для представления сообщения."""
 
@@ -61,7 +47,7 @@ class Message(CreatedModifiedModel):
         on_delete=models.CASCADE
     )
     chat = models.ForeignKey(
-        'Chat',
+        Chat,
         on_delete=models.CASCADE
     )
     date_sent = models.DateTimeField()
@@ -91,3 +77,54 @@ class Message(CreatedModifiedModel):
     class Meta:
         verbose_name = 'Message'
         verbose_name_plural = 'Messages'
+
+
+class MessageReaders(models.Model):
+    """Модель для отслеживания прочитанных сообщений пользователем."""
+
+    message = models.ForeignKey(
+        Message,
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+
+class Attachment(models.Model):
+    """Модель для представления вложений сообщений."""
+
+    name = models.CharField(max_length=255)
+    content = models.BinaryField()
+    message = models.ForeignKey(
+        Message,
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = 'Attachment'
+        verbose_name_plural = 'Attachments'
+
+class Members(models.Model):
+    """Модель для отслеживания участников чата."""
+
+    chat = models.ForeignKey(
+        Chat,
+        on_delete=models.CASCADE
+    )
+    member = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Member {self.pk}"
+
+    class Meta:
+        verbose_name = 'Member'
+        verbose_name_plural = 'Members'
