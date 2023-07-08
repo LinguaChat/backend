@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
+from chats.models import Chat
 from core.models import DateCreatedModel, DateEditedModel
 
 User = get_user_model()
