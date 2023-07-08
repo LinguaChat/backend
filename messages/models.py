@@ -7,41 +7,6 @@ from core.models import DateCreatedModel, DateEditedModel
 User = get_user_model()
 
 
-class Chat(DateCreatedModel, DateEditedModel):
-    """Модель для представления чата."""
-
-    title = models.CharField(
-        max_length=255,
-        unique=True
-    )
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
-    slug = models.SlugField(
-        blank=False,
-        null=False
-    )
-    allow_anonymous_access = models.BooleanField(
-        default=False
-    )
-    private = models.BooleanField(
-        default=False
-    )
-    password = models.CharField(
-        max_length=200,
-        blank=True,
-        null=True
-    )
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name = 'Chat'
-        verbose_name_plural = 'Chats'
-
-
 class Message(DateCreatedModel, DateEditedModel):
     """Модель для представления сообщения."""
 
@@ -118,33 +83,3 @@ class Attachment(models.Model):
     class Meta:
         verbose_name = 'Attachment'
         verbose_name_plural = 'Attachments'
-
-
-class Members(models.Model):
-    """Модель для отслеживания участников чата."""
-
-    chat = models.ForeignKey(
-        Chat,
-        on_delete=models.CASCADE,
-        verbose_name='Чат'
-    )
-    member = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Участник'
-    )
-    date_created = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания'
-    )
-    is_pinned = models.BooleanField(
-        default=False,
-        verbose_name='Закреплено'
-    )
-
-    def __str__(self):
-        return f"Member {self.pk}"
-
-    class Meta:
-        verbose_name = 'Member'
-        verbose_name_plural = 'Members'
