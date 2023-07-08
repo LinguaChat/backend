@@ -18,6 +18,7 @@ class CityNameField(serializers.RelatedField):
 
 
 class UserLanguageSerializer(serializers.ModelSerializer):
+    """Сериализатор для промежутоной модели Пользователь-Язык."""
     id = serializers.ReadOnlyField(source='language.id')
     language = serializers.ReadOnlyField(source='language.name')
 
@@ -28,6 +29,7 @@ class UserLanguageSerializer(serializers.ModelSerializer):
             'language',
             'skill_level'
         )
+
 
 class UserSerializer(DjoserSerializer):
     """Сериализатор для модели пользователя."""
@@ -73,31 +75,23 @@ class UserSerializer(DjoserSerializer):
             )
 
     def to_internal_value(self, data):
-        request = self.context.get('request', None)
-        if request.method == 'POST':
+        """Кастомный метод to_internal_value, учитывающий
+        наличие/отсутствие запроса на запись данных в through-таблицу."""
+        if 'foreign_languages' in data:
+            foreign_languages = data.pop('foreign_languages')
+            result = super().to_internal_value(data)
+            result['foreign_languages'] = foreign_languages
+            return result
+        else:
             return super().to_internal_value(data)
-        elif request.method == 'PATCH':
-            # другая логика работы метода, т.к. при update появляются M2M-связи
-            if 'foreign_languages' in data:
-                foreign_languages = data.pop('foreign_languages')
-                result = super().to_internal_value(data)
-                result['foreign_languages'] = foreign_languages
-                return result
-            else:
-                return super().to_internal_value(data)
 
     def update(self, instance, validated_data):
-        """Кастомные метод update, учитывающий through-таблицу"""
+        """Кастомные метод update, учитывающий
+        наличие/отсутствие запроса на обновление through-таблицы."""
         if 'foreign_languages' in validated_data:
             UserLanguage.objects.filter(user=instance).delete()
             self.create_foreign_languages(
                 user=instance,
                 foreign_languages=validated_data.pop('foreign_languages')
             )
-            super().update(instance, validated_data)
-            return instance
-        else:
-            return super().update(instance, validated_data)
-
-
-
+        return super().update(instance, validated_data)
