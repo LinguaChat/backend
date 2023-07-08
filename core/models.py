@@ -30,3 +30,14 @@ class DateEditedModel(models.Model):
         ''' При сохранении обновлять временную метку '''
         self.date_edited = timezone.now()
         return super(DateEditedModel, self).save(*args, **kwargs)
+
+
+class AbstractNameModel(models.Model):
+    """Модель, содержащее поле 'имя' для
+    уменьшения дублирования кода."""
+    name = models.CharField(max_length=255, verbose_name='Название')
+
+    class Meta:
+        abstract = True
+
+

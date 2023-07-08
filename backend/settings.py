@@ -1,5 +1,7 @@
 import os
+from datetime import timedelta
 from pathlib import Path
+
 
 from dotenv import load_dotenv
 
@@ -21,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_spectacular',
     'djoser',
     'chats.apps.ChatsConfig',
     'users.apps.UsersConfig',
@@ -68,6 +71,7 @@ DATABASES = {
     }
 }
 
+
 AUTH_USER_MODEL = "users.User"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -87,6 +91,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+DJOSER = {
+    # запрещаем djoser'у прятать пользователей, иначе - в ответ на GET-запрос
+    # будет приходить только аутентифицированный (текущий) пользователь
+    'HIDE_USERS': False,
+    'SERIALIZERS': {'user': 'users.serializers.UserSerializer',
+                    'user_create': 'users.serializers.UserSerializer',
+                    'user_update': 'users.serializers.UserSerializer'
+                    }
+    }
+
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
@@ -99,6 +114,21 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
+
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
+}
+
+SIMPLE_JWT = {
+    # Устанавливаем срок жизни токена
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
+    'AUTH_HEADER_TYPES': ('Bearer',)
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Lang_Exchange API',
+    'DESCRIPTION': 'API-endpoints for "Lang_Exchange" project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 LANGUAGE_CODE = 'en-us'
