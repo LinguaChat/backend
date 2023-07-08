@@ -24,7 +24,6 @@ INSTALLED_APPS = [
     'djoser',
     'chats.apps.ChatsConfig',
     'users.apps.UsersConfig',
-    'messages.apps.MessagesConfig',
     'core.apps.CoreConfig',
 ]
 
