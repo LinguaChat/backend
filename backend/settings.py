@@ -23,7 +23,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'chats.apps.ChatsConfig',
-    # 'users.apps.UsersConfig',
+    'users.apps.UsersConfig',
+    'messages.apps.MessagesConfig',
     'core.apps.CoreConfig',
 ]
 
@@ -68,7 +69,7 @@ DATABASES = {
     }
 }
 
-# AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "users.User"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
