@@ -25,11 +25,11 @@ class Chat(DateCreatedModel, DateEditedModel):
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='chats',
+        related_name='own_chats',
         verbose_name='Создатель',
         null=True
     )
-    private = models.BooleanField(
+    is_private = models.BooleanField(
         default=True
     )
     password = models.CharField(
@@ -43,10 +43,11 @@ class Chat(DateCreatedModel, DateEditedModel):
     )
     members = models.ManyToManyField(
         User,
+        through='Members',
         verbose_name='Участники',
         help_text='Добавьте в чат участников',
+        related_name='chats',
     )
-    # messages = ...
 
     def __str__(self) -> str:
         if self.private:
@@ -57,3 +58,22 @@ class Chat(DateCreatedModel, DateEditedModel):
         self.slug = self.slug or slugify(self.title)
         if self.password: self.password = make_password(self.password)
         return super().save(*args, **kwargs)
+
+
+class Members(DateCreatedModel):
+    '''Модель участников чата'''
+    chat = models.ForeignKey(
+        Chat,
+        on_delete=models.CASCADE,
+        related_name='members_info',
+        verbose_name='Чат'
+    )
+    member = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='chats_info',
+        verbose_name='Участник чата'
+    )
+    chat_is_pinned = models.BooleanField(
+        default=False
+    )
