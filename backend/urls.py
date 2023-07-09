@@ -11,4 +11,6 @@ router.register('chats', ChatViewSet, basename='chats')
 urlpatterns = [
     path('api/', include(router.urls)),
     path('admin/', admin.site.urls),
+    path('api/v1/auth/', include('djoser.urls')),
+    path('api/v1/auth/', include('djoser.urls.jwt')),
 ]
