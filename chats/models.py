@@ -9,7 +9,7 @@ User = get_user_model()
 
 
 class Chat(DateCreatedModel, DateEditedModel):
-    '''Модель чата'''
+    """Модель чата"""
     title = models.CharField(
         max_length=255,
         verbose_name='Название чата',
@@ -27,7 +27,8 @@ class Chat(DateCreatedModel, DateEditedModel):
         on_delete=models.CASCADE,
         related_name='own_chats',
         verbose_name='Создатель',
-        null=True
+        null=True,
+        blank=True
     )
     is_private = models.BooleanField(
         default=True
@@ -43,20 +44,23 @@ class Chat(DateCreatedModel, DateEditedModel):
     )
     members = models.ManyToManyField(
         User,
-        through='Members',
+        through='ChatMembers',
         verbose_name='Участники',
         help_text='Добавьте в чат участников',
         related_name='chats',
     )
 
     def __str__(self) -> str:
-        if self.private:
-            return f'Приватный чат `{self.title}`'
-        return f'Открытый чат `{self.title}`'
+        chat_string = f'Приватный чат' if self.is_private else f'Открытый чат'
+        if self.title:
+            chat_string += f' `{self.title}`'
+        # chat_string += f' с пользователями {self.members}'
+        return chat_string
 
     def save(self, *args, **kwargs):
         self.slug = self.slug or slugify(self.title)
-        if self.password: self.password = make_password(self.password)
+        if self.password:
+            self.password = make_password(self.password)
         return super().save(*args, **kwargs)
 
     class Meta:
@@ -65,8 +69,8 @@ class Chat(DateCreatedModel, DateEditedModel):
         verbose_name_plural = 'Чаты'
 
 
-class Members(DateCreatedModel):
-    '''Модель участников чата'''
+class ChatMembers(DateCreatedModel):
+    """Модель участников чата"""
     chat = models.ForeignKey(
         Chat,
         on_delete=models.CASCADE,
@@ -82,6 +86,14 @@ class Members(DateCreatedModel):
     chat_is_pinned = models.BooleanField(
         default=False
     )
+
+    def __str__(self) -> str:
+        chatmembers_string = (
+            f'Пользователь {self.member} - участник чата {self.chat}'
+        )
+        if self.chat_is_pinned:
+            chatmembers_string += f' (чат закреплён)'
+        return chatmembers_string
 
     class Meta:
         ordering = ['-date_created']
