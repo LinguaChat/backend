@@ -65,12 +65,7 @@ class Chat(DateCreatedModel, DateEditedModel):
         return chat_string
 
     def save(self, *args, **kwargs):
-<<<<<<< HEAD
-        # print(self.members)
-        self.slug = self.slug or slugify(self.title)  # *
-=======
         self.slug = self.slug or slugify(self.title)
->>>>>>> 2062f74e08bd7bb331309225eaf6c272ab33e04e
         if self.password:
             self.password = make_password(self.password)
         return super().save(*args, **kwargs)
