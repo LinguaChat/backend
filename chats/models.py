@@ -10,6 +10,13 @@ User = get_user_model()
 
 class Chat(DateCreatedModel, DateEditedModel):
     """Модель чата"""
+    image = models.FileField(
+        upload_to='chats/',
+        verbose_name='Картинка чата',
+        help_text='Загрузите картинку чата',
+        blank=True,
+        null=True
+    )
     title = models.CharField(
         max_length=255,
         verbose_name='Название чата',
@@ -58,7 +65,8 @@ class Chat(DateCreatedModel, DateEditedModel):
         return chat_string
 
     def save(self, *args, **kwargs):
-        self.slug = self.slug or slugify(self.title)
+        # print(self.members)
+        self.slug = self.slug or slugify(self.title)  # *
         if self.password:
             self.password = make_password(self.password)
         return super().save(*args, **kwargs)
