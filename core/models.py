@@ -29,4 +29,4 @@ class DateEditedModel(models.Model):
     def save(self, *args, **kwargs):
         ''' При сохранении обновлять временную метку '''
         self.date_edited = timezone.now()
-        return super(DateEditedModel, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
