@@ -35,7 +35,10 @@ class DateEditedModel(models.Model):
 class AbstractNameModel(models.Model):
     """Модель, содержащее поле 'имя' для
     уменьшения дублирования кода."""
-    name = models.CharField(max_length=255, verbose_name='Название')
+    name = models.CharField(
+        max_length=255,
+        verbose_name='Название'
+    )
 
     class Meta:
         abstract = True

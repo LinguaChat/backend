@@ -9,7 +9,7 @@ from core.models import AbstractNameModel, DateEditedModel
 class User(AbstractUser, DateEditedModel):
     """Кастомная модель пользователя."""
 
-    # исключаем из таблица стобец "last_name"
+    # исключаем из таблицы стобец "last_name"
     last_name = None
 
     country = models.CharField(
@@ -100,20 +100,17 @@ class UserLanguage(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Пользователь'
     )
-
     language = models.ForeignKey(
         Language,
         related_name='language',
         on_delete=models.CASCADE,
         verbose_name='Язык'
     )
-
     skill_level = models.CharField(
         max_length=30,
         choices=LANGUAGE_SKILL_LEVEL,
         verbose_name='Уровень владения'
     )
-
     class Meta:
         verbose_name = 'Пользователь -> изучаемый язык'
         verbose_name_plural = 'Пользователи -> изучаемые языки'
