@@ -13,6 +13,6 @@ class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
         fields = (
-            'slug', 'title', 'owner', 'private', 'allow_anonymous_access',
+            'slug', 'title', 'owner', 'is_private', 'allow_anonymous_access',
             'members'
         )
