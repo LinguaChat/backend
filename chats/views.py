@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
-from rest_framework import filters, viewsets
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from core.pagination import LimitPagination
 
@@ -30,7 +30,7 @@ class ChatViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.request.user.chats.all()
-    
+
     def get_permissions(self):
         if self.action == 'create':
             return (AllowAny(),)
