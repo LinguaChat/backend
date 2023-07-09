@@ -20,7 +20,8 @@ class UserViewSet(DjoserViewSet):
     )
     def hide_show_age(self, request):
         """Метод для отображения/скрытия возраста."""
-        request.user.age_is_hidden = 1 if not request.user.age_is_hidden else 0
+        user = request.user
+        user.age_is_hidden = 1 if not user.age_is_hidden else 0
         request.user.save()
         return Response(status=status.HTTP_200_OK)
 
@@ -33,8 +34,7 @@ class UserViewSet(DjoserViewSet):
     )
     def hide_show_gender(self, request):
         """Метод для отображения/скрытия пола."""
-        request.user.gender_is_hidden = 1 if not request.user.gender_is_hidden else 0
+        user = request.user
+        user.gender_is_hidden = 1 if not user.gender_is_hidden else 0
         request.user.save()
         return Response(status=status.HTTP_200_OK)
-
-

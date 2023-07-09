@@ -98,7 +98,7 @@ DJOSER = {
     'SERIALIZERS': {'user': 'users.serializers.UserSerializer',
                     'user_create': 'users.serializers.UserSerializer',
                     }
-    }
+}
 
 
 REST_FRAMEWORK = {

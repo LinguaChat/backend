@@ -56,7 +56,7 @@ class UserSerializer(DjoserSerializer):
             'foreign_languages',
             'gender',
             'phone_number',
-            )
+        )
 
     def get_age(self, obj):
         """Вычисляем возраст пользователя."""

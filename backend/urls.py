@@ -8,7 +8,7 @@ from users.views import UserViewSet
 
 router = routers.DefaultRouter()
 
-# router.register('chats', ChatViewSet, basename='chats')
+router.register('chats', ChatViewSet, basename='chats')
 router.register('users', UserViewSet, basename='users')
 
 urlpatterns = [
@@ -18,5 +18,6 @@ urlpatterns = [
     path('api/v1/auth/', include('djoser.urls.jwt')),
     # Конфигурация DRF_Spectacular для просмотра документации
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/v1/schema/docs/', SpectacularSwaggerView.as_view(url_name='schema'))
+    path('api/v1/schema/docs/',
+         SpectacularSwaggerView.as_view(url_name='schema'))
 ]

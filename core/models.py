@@ -42,5 +42,3 @@ class AbstractNameModel(models.Model):
 
     class Meta:
         abstract = True
-
-

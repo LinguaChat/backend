@@ -111,6 +111,7 @@ class UserLanguage(models.Model):
         choices=LANGUAGE_SKILL_LEVEL,
         verbose_name='Уровень владения'
     )
+
     class Meta:
         verbose_name = 'Пользователь -> изучаемый язык'
         verbose_name_plural = 'Пользователи -> изучаемые языки'
