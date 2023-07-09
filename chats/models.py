@@ -59,6 +59,11 @@ class Chat(DateCreatedModel, DateEditedModel):
         if self.password: self.password = make_password(self.password)
         return super().save(*args, **kwargs)
 
+    class Meta:
+        ordering = ['-date_created']
+        verbose_name = 'Чат'
+        verbose_name_plural = 'Чаты'
+
 
 class Members(DateCreatedModel):
     '''Модель участников чата'''
@@ -77,3 +82,14 @@ class Members(DateCreatedModel):
     chat_is_pinned = models.BooleanField(
         default=False
     )
+
+    class Meta:
+        ordering = ['-date_created']
+        verbose_name = 'Участник'
+        verbose_name_plural = 'Участники'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['chat', 'member'],
+                name='уникальные участники'
+            )
+        ]
