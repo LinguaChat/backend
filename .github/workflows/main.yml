@@ -3,7 +3,8 @@ name: Linter Tests
 on:
   push:
     branches:
-      - 'develop*'
+      - develop
+      - 'develop-**'
 
 jobs:
   tests:
