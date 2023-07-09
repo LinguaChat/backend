@@ -14,5 +14,5 @@ class ChatSerializer(serializers.ModelSerializer):
         model = Chat
         fields = (
             'slug', 'title', 'owner', 'is_private', 'allow_anonymous_access',
-            'members'
+            'members', 'image'
         )
