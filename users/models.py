@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.template.defaultfilters import slugify
 
 from django.db import models
 
@@ -12,11 +13,16 @@ class User(AbstractUser, DateEditedModel):
     # исключаем из таблицы стобец "last_name"
     last_name = None
 
+    slug = models.SlugField(
+        max_length=150,
+        verbose_name='Слаг'
+    )
     country = models.CharField(
         max_length=50,
         verbose_name='Страна',
         null=True
     )
+
     native_language = models.ForeignKey(
         'Language',
         related_name='native_users',
@@ -78,6 +84,12 @@ class User(AbstractUser, DateEditedModel):
                 name='уникальные пользователи'
             )
         ]
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            # Only set the slug when the object is created.
+            self.slug = slugify(self.username)
+        super().save(*args, **kwargs)
 
 
 class Language(AbstractNameModel):

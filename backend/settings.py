@@ -92,12 +92,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 DJOSER = {
-    # запрещаем djoser'у прятать пользователей, иначе - в ответ на GET-запрос
-    # будет приходить только аутентифицированный (текущий) пользователь
+
     'HIDE_USERS': False,
-    'SERIALIZERS': {'user': 'users.serializers.UserSerializer',
-                    'user_create': 'users.serializers.UserSerializer',
-                    }
+    'SERIALIZERS': {'user': 'users.serializers.UserSerializer'}
+
 }
 
 
