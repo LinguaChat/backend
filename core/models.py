@@ -1,14 +1,18 @@
+"""Файл c абстрактными моделями для всего проекта."""
+
 from django.db import models
 from django.utils import timezone
 
 
 class DateCreatedModel(models.Model):
     """Абстрактная модель. Добавляет дату создания."""
+
     date_created = models.DateTimeField(
         'Дата создания',
         editable=False,
         auto_now_add=True,
-        db_index=True
+        db_index=True,
+        help_text='Дата создания'
     )
 
     class Meta:
@@ -17,10 +21,12 @@ class DateCreatedModel(models.Model):
 
 class DateEditedModel(models.Model):
     """Абстрактная модель. Добавляет дату редактирования."""
+
     date_edited = models.DateTimeField(
         'Дата редактирования',
         blank=True,
-        null=True
+        null=True,
+        help_text='Дата изменения'
     )
 
     class Meta:
@@ -35,9 +41,11 @@ class DateEditedModel(models.Model):
 class AbstractNameModel(models.Model):
     """Модель, содержащее поле 'имя' для
     уменьшения дублирования кода."""
+
     name = models.CharField(
+        'Название',
         max_length=255,
-        verbose_name='Название'
+        help_text='Наименование'
     )
 
     class Meta:
