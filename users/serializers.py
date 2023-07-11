@@ -75,7 +75,7 @@ class UserSerializer(DjoserSerializer,):
         if obj.birthdate:
             age_days = (dt.datetime.now().date() - obj.birthdate).days
             return int(age_days / 365)
-        return
+        return None
 
     def create_foreign_languages(self, user, foreign_languages):
         """Создание объектов в промежуточной таблице."""
@@ -94,8 +94,8 @@ class UserSerializer(DjoserSerializer,):
             result = super().to_internal_value(data)
             result['foreign_languages'] = foreign_languages
             return result
-        else:
-            return super().to_internal_value(data)
+
+        return super().to_internal_value(data)
 
     def update(self, instance, validated_data):
         """Кастомные метод update, учитывающий

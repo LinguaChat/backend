@@ -9,7 +9,6 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from chats.urls import chat_router
 from users.urls import user_router
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(chat_router.urls)),
