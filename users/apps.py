@@ -1,3 +1,5 @@
+"""Файл конфигурации apps для приложения users."""
+
 from django.apps import AppConfig
 
 

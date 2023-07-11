@@ -1,4 +1,7 @@
+"""Файл с настройками проекта."""
+
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -25,6 +28,7 @@ INSTALLED_APPS = [
     'chats.apps.ChatsConfig',
     'users.apps.UsersConfig',
     'core.apps.CoreConfig',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -68,6 +72,7 @@ DATABASES = {
     }
 }
 
+
 AUTH_USER_MODEL = "users.User"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -87,6 +92,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+DJOSER = {
+
+    'HIDE_USERS': False,
+    'SERIALIZERS': {'user': 'users.serializers.UserSerializer'}
+
+}
+
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
@@ -99,6 +112,22 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
+
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
+}
+
+SIMPLE_JWT = {
+    # Устанавливаем срок жизни токена
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=45),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
+    'AUTH_HEADER_TYPES': ('Bearer',)
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Lang_Exchange API',
+    'DESCRIPTION': 'API-endpoints for "Lang_Exchange" project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 LANGUAGE_CODE = 'en-us'
