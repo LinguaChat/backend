@@ -51,7 +51,9 @@ class AdvUserAdmin(admin.ModelAdmin):
 
     def _foreign_languages(self, obj):
         """Изучаемые языки пользователя"""
-        return ", ".join([str(p) for p in obj.foreign_languages.all()])
+        return ", ".join(
+            [str(language) for language in obj.foreign_languages.all()]
+        )
 
 
 admin.site.register(City)
