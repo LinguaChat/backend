@@ -161,3 +161,7 @@ cython_debug/
 
 # Django apps migrations
 migrations/
+
+# local media & static files
+media/
+static/

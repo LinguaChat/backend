@@ -1,10 +1,11 @@
+"""View-функции для приложения users."""
+
+from djoser.views import UserViewSet as DjoserViewSet
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from drf_spectacular.utils import extend_schema
-from djoser.views import UserViewSet as DjoserViewSet
 
 
 @extend_schema(tags=['Users'])

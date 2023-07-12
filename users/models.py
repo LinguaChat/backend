@@ -1,7 +1,8 @@
-from django.contrib.auth.models import AbstractUser
-from django.template.defaultfilters import slugify
+"""Файл c моделями для приложения users."""
 
+from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.template.defaultfilters import slugify
 
 from core.constants import GENDERS, LANGUAGE_SKILL_LEVEL
 from core.models import AbstractNameModel, DateEditedModel
@@ -14,56 +15,69 @@ class User(AbstractUser, DateEditedModel):
     last_name = None
 
     slug = models.SlugField(
+        'Слаг',
         max_length=150,
-        verbose_name='Слаг'
+        help_text='Слаг'
     )
     country = models.CharField(
+        'Страна',
         max_length=50,
-        verbose_name='Страна',
-        null=True
+        null=True,
+        help_text='Страна проживания пользователя'
     )
-
     native_language = models.ForeignKey(
         'Language',
+        max_length=255,
         related_name='native_users',
         on_delete=models.SET_NULL,
-        max_length=255,
         verbose_name='Родной язык',
+        help_text='Родной язык пользователя',
         null=True
     )
     birthdate = models.DateField(
-        verbose_name='Дата рождения',
-        null=True
+        'Дата рождения',
+        null=True,
+        help_text='Дата рождения пользователя',
     )
     gender = models.CharField(
+        'Пол',
         max_length=10,
-        verbose_name='Пол',
         choices=GENDERS,
-        null=True
+        null=True,
+        help_text='Пол пользователя',
     )
     phone_number = models.CharField(
+        'Номер телефона',
         max_length=30,
-        verbose_name='Номер телефона',
-        null=True
+        null=True,
+        help_text='Номер телефона пользователя',
     )
     city = models.ForeignKey(
         'City',
+        max_length=255,
         related_name='users_in_this_city',
         on_delete=models.SET_NULL,
-        max_length=255,
         verbose_name='Город проживания',
-        null=True
+        null=True,
+        help_text='Город проживания пользователя'
     )
     foreign_languages = models.ManyToManyField(
         'Language',
         through='UserLanguage',
         related_name='users_who_learn',
+        verbose_name='Изучаемые языки',
+        help_text='Языки, которые изучает пользователь'
     )
     # image = ...
-    # булево поле для скрытия возраста
-    age_is_hidden = models.BooleanField(default=False)
+    age_is_hidden = models.BooleanField(
+        default=False,
+        help_text='Поле для скрытия/отображения возраста пользователя'
+    )
     # булево поле для скрытия пола
-    gender_is_hidden = models.BooleanField(default=False)
+    gender_is_hidden = models.BooleanField(
+        default=False,
+        help_text='Поле для скрытия/отображения пола пользователя'
+    )
 
     REQUIRED_FIELDS = [
         'email',
@@ -86,8 +100,8 @@ class User(AbstractUser, DateEditedModel):
         ]
 
     def save(self, *args, **kwargs):
+        """При создании объекта устанавливать слаг."""
         if not self.id:
-            # Only set the slug when the object is created.
             self.slug = slugify(self.username)
         super().save(*args, **kwargs)
 
@@ -106,6 +120,7 @@ class Language(AbstractNameModel):
 
 class UserLanguage(models.Model):
     """Промежуточная модель пользователь-язык."""
+
     user = models.ForeignKey(
         User,
         related_name='user',
@@ -119,9 +134,10 @@ class UserLanguage(models.Model):
         verbose_name='Язык'
     )
     skill_level = models.CharField(
+        'Уровень владения языком',
         max_length=30,
         choices=LANGUAGE_SKILL_LEVEL,
-        verbose_name='Уровень владения'
+        help_text='Укажите уровень вашего владения языком.'
     )
 
     class Meta:
@@ -134,6 +150,7 @@ class UserLanguage(models.Model):
 
 class City(AbstractNameModel):
     """Модель города проживания пользователя."""
+
     class Meta:
         ordering = ('name',)
         verbose_name = 'Город проживания'
