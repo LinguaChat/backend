@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'djoser',
-    'drf-spectacular',
+    'drf_spectacular',
     'chats.apps.ChatsConfig',
     'users.apps.UsersConfig',
     'core.apps.CoreConfig',
@@ -68,7 +68,7 @@ DATABASES = {
         'USER': os.getenv('DB_USER', default=''),
         'PASSWORD': os.getenv('DB_PASSWORD', default=''),
         'HOST': os.getenv('DB_HOST', default=''),
-        'PORT': os.getenv('DB_PORT', default='')
+        'PORT': os.getenv('DB_PORT', default=''),
     }
 }
 
@@ -95,7 +95,7 @@ AUTH_PASSWORD_VALIDATORS = [
 DJOSER = {
 
     'HIDE_USERS': False,
-    'SERIALIZERS': {'user': 'users.serializers.UserSerializer'}
+    'SERIALIZERS': {'user': 'users.serializers.UserSerializer'},
 
 }
 
@@ -113,14 +113,14 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
 
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
     # Устанавливаем срок жизни токена
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=45),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
-    'AUTH_HEADER_TYPES': ('Bearer',)
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 SPECTACULAR_SETTINGS = {
