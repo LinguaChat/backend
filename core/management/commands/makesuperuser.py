@@ -8,6 +8,8 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
+    """Команда для создания админа"""
+
     def handle(self, *args, **options):
         username = 'admin'
         email = 'admin@example.com'
