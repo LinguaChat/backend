@@ -9,10 +9,10 @@ class DateCreatedModel(models.Model):
 
     date_created = models.DateTimeField(
         'Дата создания',
+        help_text='Дата создания',
         editable=False,
         auto_now_add=True,
         db_index=True,
-        help_text='Дата создания'
     )
 
     class Meta:
@@ -24,16 +24,16 @@ class DateEditedModel(models.Model):
 
     date_edited = models.DateTimeField(
         'Дата редактирования',
+        help_text='Дата изменения',
         blank=True,
         null=True,
-        help_text='Дата изменения'
     )
 
     class Meta:
         abstract = True
 
     def save(self, *args, **kwargs):
-        ''' При сохранении обновлять временную метку '''
+        """ При сохранении обновлять временную метку."""
         self.date_edited = timezone.now()
         return super(DateEditedModel, self).save(*args, **kwargs)
 
@@ -44,8 +44,8 @@ class AbstractNameModel(models.Model):
 
     name = models.CharField(
         'Название',
+        help_text='Наименование',
         max_length=255,
-        help_text='Наименование'
     )
 
     class Meta:
