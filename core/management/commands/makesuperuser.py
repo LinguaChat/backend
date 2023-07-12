@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils.crypto import get_random_string
 
-User = get_user_model()  
+User = get_user_model()
 
 
 class Command(BaseCommand):
@@ -13,8 +13,10 @@ class Command(BaseCommand):
         email = 'admin@example.com'
         try:
             u = None
-            if (not User.objects.filter(username=username).exists()
-                and not User.objects.filter(is_superuser=True).exists()):
+            if (
+                not User.objects.filter(username=username).exists()
+                and not User.objects.filter(is_superuser=True).exists()
+            ):
                 print("admin user not found, creating one")
 
                 new_password = get_random_string(10)
@@ -22,12 +24,12 @@ class Command(BaseCommand):
                 u = User.objects.create_superuser(
                     username, email, new_password
                 )
-                print(f"===================================")
+                print("===================================")
                 print(
                     f"A superuser '{username}' was created with email "
                     f"'{email}' and password '{new_password}'"
                 )
-                print(f"===================================")
+                print("===================================")
             else:
                 print("admin user found. Skipping super user creation")
                 print(u)
