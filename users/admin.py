@@ -4,7 +4,7 @@ import datetime as dt
 
 from django.contrib import admin
 
-from .models import User, Language, City
+from .models import City, Language, User
 
 
 class LanguageInlineAdmin(admin.TabularInline):
@@ -49,16 +49,16 @@ class AdvUserAdmin(admin.ModelAdmin):
         if obj.birthdate:
             age_days = (dt.datetime.now().date() - obj.birthdate).days
             return int(age_days / 365)
-        return
-    
+        return None
+
     _age.short_description = 'Возраст'
 
     def _foreign_languages(self, obj):
-        """Изучаемые языки пользователя"""
+        """Изучаемые языки пользователя."""
         return ", ".join(
             [str(language) for language in obj.foreign_languages.all()]
         )
-    
+
     _foreign_languages.short_description = 'Изучаемые языки'
 
 
