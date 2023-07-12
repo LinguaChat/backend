@@ -1,3 +1,5 @@
+"""Сериализаторы для приложения users."""
+
 import datetime as dt
 
 from djoser.serializers import UserSerializer as DjoserSerializer
@@ -10,6 +12,7 @@ class CityNameField(serializers.RelatedField):
     """Кастомное поле, позволяющее делать update
     города по id и получать его строковое
     название при GET-запросе."""
+
     def to_representation(self, value):
         return value.name
 
@@ -21,6 +24,7 @@ class LanguageNameField(serializers.RelatedField):
     """Кастомное поле, позволяющее делать update
     языка по id и получать его строковое
     название при GET-запросе."""
+
     def to_representation(self, value):
         return value.name
 
@@ -30,6 +34,7 @@ class LanguageNameField(serializers.RelatedField):
 
 class UserLanguageSerializer(serializers.ModelSerializer):
     """Сериализатор для промежутоной модели Пользователь-Язык."""
+
     id = serializers.ReadOnlyField(source='language.id')
     language = serializers.ReadOnlyField(source='language.name')
 
@@ -44,6 +49,7 @@ class UserLanguageSerializer(serializers.ModelSerializer):
 
 class UserSerializer(DjoserSerializer,):
     """Сериализатор для модели пользователя."""
+
     age = serializers.SerializerMethodField()
     native_language = LanguageNameField(queryset=Language.objects.all())
     city = CityNameField(queryset=City.objects.all(), required=False)
@@ -94,7 +100,6 @@ class UserSerializer(DjoserSerializer,):
             result = super().to_internal_value(data)
             result['foreign_languages'] = foreign_languages
             return result
-
         return super().to_internal_value(data)
 
     def update(self, instance, validated_data):

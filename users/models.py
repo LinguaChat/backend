@@ -100,8 +100,8 @@ class User(AbstractUser, DateEditedModel):
         ]
 
     def save(self, *args, **kwargs):
+        """При создании объекта устанавливать слаг."""
         if not self.id:
-            # Only set the slug when the object is created.
             self.slug = slugify(self.username)
         super().save(*args, **kwargs)
 
