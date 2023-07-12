@@ -11,7 +11,8 @@ User = get_user_model()
 
 
 class Chat(DateCreatedModel, DateEditedModel):
-    """Модель чата"""
+    """Модель чата."""
+
     image = models.FileField(
         upload_to='chats/',
         verbose_name='Картинка чата',
@@ -79,7 +80,8 @@ class Chat(DateCreatedModel, DateEditedModel):
 
 
 class ChatMembers(DateCreatedModel):
-    """Модель участников чата"""
+    """Модель участников чата."""
+
     chat = models.ForeignKey(
         Chat,
         on_delete=models.CASCADE,
