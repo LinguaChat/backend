@@ -48,12 +48,16 @@ class AdvUserAdmin(admin.ModelAdmin):
             age_days = (dt.datetime.now().date() - obj.birthdate).days
             return int(age_days / 365)
         return
+    
+    _age.short_description = 'Возраст'
 
     def _foreign_languages(self, obj):
         """Изучаемые языки пользователя"""
         return ", ".join(
             [str(language) for language in obj.foreign_languages.all()]
         )
+    
+    _foreign_languages.short_description = 'Изучаемые языки'
 
 
 admin.site.register(City)
