@@ -6,6 +6,6 @@ from chats.views import ChatViewSet
 
 chat_router = routers.DefaultRouter()
 
-chat_router.register('users', ChatViewSet, basename='chats')
+chat_router.register('chats', ChatViewSet, basename='chats')
 
 urlpatterns = []
