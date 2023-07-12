@@ -79,12 +79,6 @@ class User(AbstractUser, DateEditedModel):
         help_text='Поле для скрытия/отображения пола пользователя'
     )
 
-    REQUIRED_FIELDS = [
-        'email',
-        'first_name',
-        'native_language',
-    ]
-
     def __str__(self):
         return f'Пользователь {self.first_name}'
 
