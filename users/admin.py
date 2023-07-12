@@ -1,3 +1,5 @@
+"""Файл административных настроек для приложения users."""
+
 import datetime as dt
 
 from django.contrib import admin
