@@ -21,7 +21,6 @@ class UserViewSet(DjoserViewSet):
     )
     def hide_show_age(self, request):
         """Метод для отображения/скрытия возраста."""
-
         user = request.user
         user.age_is_hidden = 1 if not user.age_is_hidden else 0
         request.user.save()
@@ -36,7 +35,6 @@ class UserViewSet(DjoserViewSet):
     )
     def hide_show_gender(self, request):
         """Метод для отображения/скрытия пола."""
-
         user = request.user
         user.gender_is_hidden = 1 if not user.gender_is_hidden else 0
         request.user.save()
