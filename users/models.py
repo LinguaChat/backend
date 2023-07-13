@@ -68,7 +68,11 @@ class User(AbstractUser, DateEditedModel):
         verbose_name='Изучаемые языки',
         help_text='Языки, которые изучает пользователь'
     )
-    # image = ...
+    image = models.ImageField(
+        'Изображение',
+        upload_to='user_photos/',
+        null=True
+    )
     age_is_hidden = models.BooleanField(
         default=False,
         help_text='Поле для скрытия/отображения возраста пользователя'

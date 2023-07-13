@@ -5,6 +5,7 @@ import datetime as dt
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
+from users.fields import Base64ImageField
 from users.models import City, Language, User, UserLanguage
 
 
@@ -51,6 +52,7 @@ class UserSerializer(DjoserSerializer,):
     """Сериализатор для модели пользователя."""
 
     age = serializers.SerializerMethodField()
+    image = Base64ImageField(required=False, allow_null=True)
     native_language = LanguageNameField(queryset=Language.objects.all())
     city = CityNameField(queryset=City.objects.all(), required=False)
     foreign_languages = UserLanguageSerializer(
@@ -66,6 +68,7 @@ class UserSerializer(DjoserSerializer,):
             'username',
             'password',
             'first_name',
+            'image',
             'age',
             'country',
             'city',
