@@ -1,5 +1,6 @@
 """View-функции для приложения users."""
 
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -7,10 +8,15 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from users.models import User
+
 
 @extend_schema(tags=['Users'])
 class UserViewSet(DjoserViewSet):
     """Вьюсет для модели пользователя."""
+    queryset = User.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('country', 'gender')
 
     @action(
         methods=('PATCH',),

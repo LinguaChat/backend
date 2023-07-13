@@ -46,9 +46,10 @@ class UserSerializer(DjoserSerializer,):
             'first_name',
             'image',
             'age',
+            'slug',
             'country',
             'city',
-            'birthdate',
+            'birth_date',
             'native_language',
             'foreign_languages',
             'gender',
@@ -57,8 +58,8 @@ class UserSerializer(DjoserSerializer,):
 
     def get_age(self, obj):
         """Вычисляем возраст пользователя."""
-        if obj.birthdate:
-            age_days = (dt.datetime.now().date() - obj.birthdate).days
+        if obj.birth_date:
+            age_days = (dt.datetime.now().date() - obj.birth_date).days
             return int(age_days / 365)
         return None
 

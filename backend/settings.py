@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'chats.apps.ChatsConfig',
     'users.apps.UsersConfig',
     'core.apps.CoreConfig',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
