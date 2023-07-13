@@ -46,6 +46,7 @@ class UserSerializer(DjoserSerializer,):
             'first_name',
             'image',
             'age',
+            'slug',
             'country',
             'city',
             'birthdate',
