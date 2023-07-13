@@ -16,7 +16,7 @@ class UserViewSet(DjoserViewSet):
     """Вьюсет для модели пользователя."""
     queryset = User.objects.all()
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('age', 'country', 'gender')
+    filterset_fields = ('country', 'gender')
 
     @action(
         methods=('PATCH',),

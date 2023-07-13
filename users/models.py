@@ -1,6 +1,7 @@
 """Файл c моделями для приложения users."""
 
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import validate_email
 from django.db import models
 from django.template.defaultfilters import slugify
 
@@ -13,6 +14,12 @@ class User(AbstractUser, DateEditedModel):
 
     # исключаем из таблицы стобец "last_name"
     last_name = None
+
+    email = models.EmailField(
+        'Электронная почта',
+        unique=True,
+        validators=(validate_email,)
+    )
 
     slug = models.SlugField(
         'Слаг',
@@ -34,10 +41,15 @@ class User(AbstractUser, DateEditedModel):
         help_text='Родной язык пользователя',
         null=True
     )
-    birthdate = models.DateField(
+    birth_date = models.DateField(
         'Дата рождения',
         null=True,
         help_text='Дата рождения пользователя',
+    )
+    about = models.TextField(
+        'О себе',
+        max_length=100,
+        null=True
     )
     gender = models.CharField(
         'Пол',
@@ -45,6 +57,11 @@ class User(AbstractUser, DateEditedModel):
         choices=GENDERS,
         null=True,
         help_text='Пол пользователя',
+    )
+    topics_for_discussion = models.TextField(
+        'Темы для разговора',
+        max_length=100,
+        null=True
     )
     phone_number = models.CharField(
         'Номер телефона',
@@ -68,7 +85,7 @@ class User(AbstractUser, DateEditedModel):
         verbose_name='Изучаемые языки',
         help_text='Языки, которые изучает пользователь'
     )
-    image = models.ImageField(
+    avatar = models.ImageField(
         'Изображение',
         upload_to='user_photos/',
         null=True
