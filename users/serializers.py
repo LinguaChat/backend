@@ -5,32 +5,8 @@ import datetime as dt
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
-from users.fields import Base64ImageField
+from users.fields import Base64ImageField, CityNameField, LanguageNameField
 from users.models import City, Language, User, UserLanguage
-
-
-class CityNameField(serializers.RelatedField):
-    """Кастомное поле, позволяющее делать update
-    города по id и получать его строковое
-    название при GET-запросе."""
-
-    def to_representation(self, value):
-        return value.name
-
-    def to_internal_value(self, data):
-        return City.objects.get(id=data)
-
-
-class LanguageNameField(serializers.RelatedField):
-    """Кастомное поле, позволяющее делать update
-    языка по id и получать его строковое
-    название при GET-запросе."""
-
-    def to_representation(self, value):
-        return value.name
-
-    def to_internal_value(self, data):
-        return Language.objects.get(id=data)
 
 
 class UserLanguageSerializer(serializers.ModelSerializer):
