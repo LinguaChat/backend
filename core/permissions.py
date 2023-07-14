@@ -12,6 +12,7 @@ class ActiveChatOrReceiverOnly(permissions.BasePermission):
         return (
             obj.members.filter(id=request.user.id).exists()
             and (
-            obj.is_active
-            or not obj.members_info.get(member=request.user).is_creator)
+                obj.is_active
+                or not obj.members_info.get(member=request.user).is_creator
+            )
         )

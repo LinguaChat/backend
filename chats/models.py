@@ -77,7 +77,7 @@ class ChatMembers(DateCreatedModel):
             f'Пользователь {self.member} - участник чата {self.chat}'
         )
         if self.chat_is_pinned:
-            chatmembers_string += f' (чат закреплён)'
+            chatmembers_string += ' (чат закреплён)'
         return chatmembers_string
 
     class Meta:

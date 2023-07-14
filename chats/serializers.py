@@ -2,11 +2,12 @@
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+# from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
-from rest_framework.exceptions import PermissionDenied
+
+from users.serializers import UserSerializer
 
 from .models import Chat, ChatMembers
-from users.serializers import UserSerializer
 
 User = get_user_model()
 
@@ -25,7 +26,7 @@ class ChatListSerializer(serializers.ModelSerializer):
             # 'unread',
             # 'unread_messages_count',
         )
-    
+
     def get_companion(self, obj):
         user = self.context.get('request').user
         return UserSerializer(
@@ -77,7 +78,7 @@ class ChatSerializer(serializers.ModelSerializer):
         ChatMembers.objects.create(
             chat=chat,
             member=creator,
-            is_creator = True
+            is_creator=True
         )
         ChatMembers.objects.create(
             chat=chat,
