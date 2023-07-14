@@ -6,11 +6,7 @@ from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
 from users.fields import Base64ImageField, CityNameField
-from users.models import (City,
-                          User,
-                          UserForeignLanguage,
-                          UserNativeLanguage
-                          )
+from users.models import City, User, UserForeignLanguage, UserNativeLanguage
 
 
 class UserLanguageBaseSerializer(serializers.ModelSerializer):
