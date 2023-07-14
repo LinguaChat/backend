@@ -150,7 +150,7 @@ class UserLanguage(models.Model):
         Language,
         on_delete=models.CASCADE,
         related_name='%(class)s',
-        verbose_name='Язык'
+        verbose_name='Язык',
         help_text='Язык',
 
     )
