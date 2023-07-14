@@ -1,7 +1,6 @@
 """Файл c моделями для приложения users."""
 
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import validate_email
 from django.db import models
 from django.template.defaultfilters import slugify
 
@@ -18,18 +17,18 @@ class User(AbstractUser, DateEditedModel):
     email = models.EmailField(
         'Электронная почта',
         unique=True,
-        validators=(validate_email,)
+        help_text='Адрес email',
     )
     slug = models.SlugField(
         'Слаг',
         max_length=150,
-        help_text='Слаг'
+        help_text='Слаг',
     )
     country = models.CharField(
         'Страна',
         max_length=50,
         null=True,
-        help_text='Страна проживания пользователя'
+        help_text='Страна проживания пользователя',
     )
     native_languages = models.ManyToManyField(
         'Language',
@@ -45,6 +44,7 @@ class User(AbstractUser, DateEditedModel):
         related_name='users_who_learn',
         verbose_name='Изучаемые языки',
         help_text='Языки, которые изучает пользователь'
+
     )
     birth_date = models.DateField(
         'Дата рождения',
@@ -54,7 +54,8 @@ class User(AbstractUser, DateEditedModel):
     about = models.TextField(
         'О себе',
         max_length=100,
-        null=True
+        null=True,
+        help_text='О себе',
     )
     gender = models.CharField(
         'Пол',
@@ -66,7 +67,8 @@ class User(AbstractUser, DateEditedModel):
     topics_for_discussion = models.TextField(
         'Темы для разговора',
         max_length=100,
-        null=True
+        null=True,
+        help_text='Темы для разговора',
     )
     phone_number = models.CharField(
         'Номер телефона',
@@ -81,21 +83,22 @@ class User(AbstractUser, DateEditedModel):
         on_delete=models.SET_NULL,
         verbose_name='Город проживания',
         null=True,
-        help_text='Город проживания пользователя'
+        help_text='Город проживания пользователя',
     )
     avatar = models.ImageField(
         'Изображение',
         upload_to='user_photos/',
-        null=True
+        null=True,
+        help_text='Аватар пользователя',
     )
     age_is_hidden = models.BooleanField(
         default=False,
-        help_text='Поле для скрытия/отображения возраста пользователя'
+        help_text='Поле для скрытия/отображения возраста пользователя',
     )
     # булево поле для скрытия пола
     gender_is_hidden = models.BooleanField(
         default=False,
-        help_text='Поле для скрытия/отображения пола пользователя'
+        help_text='Поле для скрытия/отображения пола пользователя',
     )
 
     def __str__(self):
@@ -140,13 +143,16 @@ class UserLanguage(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='%(class)s',
-        verbose_name='Пользователь'
+        verbose_name='Пользователь',
+        help_text='Пользователь',
     )
     language = models.ForeignKey(
         Language,
         on_delete=models.CASCADE,
         related_name='%(class)s',
         verbose_name='Язык'
+        help_text='Язык',
+
     )
 
     class Meta:
@@ -174,7 +180,7 @@ class UserForeignLanguage(UserLanguage):
         'Уровень владения языком',
         max_length=30,
         choices=LANGUAGE_SKILL_LEVEL,
-        help_text='Укажите уровень вашего владения языком.'
+        help_text='Укажите уровень вашего владения языком.',
     )
 
     class Meta:

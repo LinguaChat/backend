@@ -25,11 +25,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'djoser',
-    'drf_spectacular',
     'chats.apps.ChatsConfig',
     'users.apps.UsersConfig',
     'core.apps.CoreConfig',
     'django_filters',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [

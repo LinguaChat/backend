@@ -35,7 +35,7 @@ class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
         fields = (
             'id',
             'language',
-            'skill_level'
+            'skill_level',
         )
 
 
@@ -53,7 +53,7 @@ class UserSerializer(DjoserSerializer,):
     foreign_languages = UserForeignLanguageSerializer(
         source='userforeignlanguage',
         many=True,
-        read_only=True
+        read_only=True,
     )
 
     class Meta:
@@ -96,7 +96,7 @@ class UserSerializer(DjoserSerializer,):
             UserForeignLanguage.objects.create(
                 user=user,
                 language_id=language.get('id'),
-                skill_level=language.get('skill_level')
+                skill_level=language.get('skill_level'),
             )
 
     def to_internal_value(self, data):
@@ -131,6 +131,6 @@ class UserSerializer(DjoserSerializer,):
         if 'foreign_languages' in validated_data:
             self.create_foreign_languages(
                 user=instance,
-                foreign_languages=validated_data.pop('foreign_languages')
+                foreign_languages=validated_data.pop('foreign_languages'),
             )
         return super().update(instance, validated_data)
