@@ -18,19 +18,19 @@ class User(AbstractUser, DateEditedModel):
     email = models.EmailField(
         'Электронная почта',
         unique=True,
-        validators=(validate_email,)
+        help_text='Адрес email',
     )
 
     slug = models.SlugField(
         'Слаг',
         max_length=150,
-        help_text='Слаг'
+        help_text='Слаг',
     )
     country = models.CharField(
         'Страна',
         max_length=50,
         null=True,
-        help_text='Страна проживания пользователя'
+        help_text='Страна проживания пользователя',
     )
     native_language = models.ForeignKey(
         'Language',
@@ -39,7 +39,7 @@ class User(AbstractUser, DateEditedModel):
         on_delete=models.SET_NULL,
         verbose_name='Родной язык',
         help_text='Родной язык пользователя',
-        null=True
+        null=True,
     )
     birth_date = models.DateField(
         'Дата рождения',
@@ -49,7 +49,7 @@ class User(AbstractUser, DateEditedModel):
     about = models.TextField(
         'О себе',
         max_length=100,
-        null=True
+        null=True,
     )
     gender = models.CharField(
         'Пол',
@@ -76,28 +76,29 @@ class User(AbstractUser, DateEditedModel):
         on_delete=models.SET_NULL,
         verbose_name='Город проживания',
         null=True,
-        help_text='Город проживания пользователя'
+        help_text='Город проживания пользователя',
     )
     foreign_languages = models.ManyToManyField(
         'Language',
         through='UserLanguage',
         related_name='users_who_learn',
         verbose_name='Изучаемые языки',
-        help_text='Языки, которые изучает пользователь'
+        help_text='Языки, которые изучает пользователь',
     )
     avatar = models.ImageField(
         'Изображение',
         upload_to='user_photos/',
-        null=True
+        null=True,
+        help_text='Аватар пользователя',
     )
     age_is_hidden = models.BooleanField(
         default=False,
-        help_text='Поле для скрытия/отображения возраста пользователя'
+        help_text='Поле для скрытия/отображения возраста пользователя',
     )
     # булево поле для скрытия пола
     gender_is_hidden = models.BooleanField(
         default=False,
-        help_text='Поле для скрытия/отображения пола пользователя'
+        help_text='Поле для скрытия/отображения пола пользователя',
     )
 
     def __str__(self):
@@ -140,19 +141,21 @@ class UserLanguage(models.Model):
         User,
         related_name='user',
         on_delete=models.CASCADE,
-        verbose_name='Пользователь'
+        verbose_name='Пользователь',
+        help_text='Пользователь',
     )
     language = models.ForeignKey(
         Language,
         related_name='language',
         on_delete=models.CASCADE,
-        verbose_name='Язык'
+        verbose_name='Язык',
+        help_text='Язык',
     )
     skill_level = models.CharField(
         'Уровень владения языком',
         max_length=30,
         choices=LANGUAGE_SKILL_LEVEL,
-        help_text='Укажите уровень вашего владения языком.'
+        help_text='Укажите уровень вашего владения языком.',
     )
 
     class Meta:
