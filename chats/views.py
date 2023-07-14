@@ -12,8 +12,6 @@ from .serializers import ChatListSerializer, ChatSerializer
 
 # from rest_framework.decorators import action
 
-
-
 User = get_user_model()
 
 
