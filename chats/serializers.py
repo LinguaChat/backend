@@ -48,11 +48,22 @@ class MessageSerializer(serializers.ModelSerializer):
     Сериализатор для модели Message.
 
     """
-    voice_message = serializers.SerializerMethodField()
-    text = serializers.CharField(allow_null=True, max_length=5000)
-    # sender = UserSerializer(read_only=True)
-    chat = ChatSerializer(read_only=True)
-    message_readers = MessageReadersSerializer(many=True, read_only=True)
+    text = serializers.CharField(
+        allow_null=True,
+        max_length=5000
+    )
+    chat = ChatSerializer(
+        read_only=True
+    )
+    message_readers = MessageReadersSerializer(
+        many=True,
+        read_only=True
+    )
+    file_to_send = serializers.FileField(
+        write_only=True,
+        required=False,
+        allow_empty_file=True
+    )
 
     class Meta:
         model = Message
@@ -61,19 +72,42 @@ class MessageSerializer(serializers.ModelSerializer):
             'sender',
             'chat',
             'text',
-            'voice_message',
+            'file_to_send',
             'responding_to',
             'sender_keep',
             'is_read',
-            'is_pinned'
+            'is_pinned',
             'message_readers'
         ]
 
-    def get_voice_message(self, obj: Message):
-        """
-        Получает URL голосового сообщения.
+    def create(self, validated_data):
+        file_to_send = validated_data.pop('file_to_send', None)
 
-        """
-        if obj.voice_message:
-            return obj.voice_message.url
-        return None
+        message = Message.objects.create(**validated_data)
+
+        if file_to_send:
+            Attachment.objects.create(
+                name=file_to_send.name,
+                content=file_to_send.read(),
+                message=message
+            )
+
+        return message
+
+    def update(self, instance, validated_data):
+        file_to_send = validated_data.pop('file_to_send', None)
+
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+
+        if file_to_send:
+            Attachment.objects.create(
+                name=file_to_send.name,
+                content=file_to_send.read(),
+                message=instance
+            )
+
+        instance.save()
+
+        return instance
+
