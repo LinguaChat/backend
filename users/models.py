@@ -20,7 +20,6 @@ class User(AbstractUser, DateEditedModel):
         unique=True,
         validators=(validate_email,)
     )
-
     slug = models.SlugField(
         'Слаг',
         max_length=150,
@@ -80,7 +79,7 @@ class User(AbstractUser, DateEditedModel):
     )
     foreign_languages = models.ManyToManyField(
         'Language',
-        through='UserLanguage',
+        through='UserForeignLanguage',
         related_name='users_who_learn',
         verbose_name='Изучаемые языки',
         help_text='Языки, которые изучает пользователь'
@@ -134,7 +133,9 @@ class Language(AbstractNameModel):
 
 
 class UserLanguage(models.Model):
-    """Промежуточная модель пользователь-язык."""
+    """Абстрактная модель для создания
+     промежуточных моделей пользователь-родной язык
+     и пользователь - иностранный язык."""
 
     user = models.ForeignKey(
         User,
@@ -148,6 +149,14 @@ class UserLanguage(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Язык'
     )
+
+    class Meta:
+        abstract = True
+
+
+class UserForeignLanguage(UserLanguage):
+    """Промежуточная таблица для связи
+    пользователь-иностранный язык."""
     skill_level = models.CharField(
         'Уровень владения языком',
         max_length=30,
