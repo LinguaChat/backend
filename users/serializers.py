@@ -5,15 +5,34 @@ import datetime as dt
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
-from users.fields import Base64ImageField, CityNameField, LanguageNameField
-from users.models import City, Language, User, UserForeignLanguage
+from users.fields import Base64ImageField, CityNameField
+from users.models import (City,
+                          User,
+                          UserForeignLanguage,
+                          UserNativeLanguage
+                          )
 
 
-class UserForeignLanguageSerializer(serializers.ModelSerializer):
-    """Сериализатор для промежутоной модели Пользователь-иностранный язык."""
+class UserLanguageBaseSerializer(serializers.ModelSerializer):
+    """Общий сериализатор для двух промежуточных моделей."""
 
     id = serializers.ReadOnlyField(source='language.id')
     language = serializers.ReadOnlyField(source='language.name')
+
+
+class UserNativeLanguageSerializer(UserLanguageBaseSerializer):
+    """Сериализатор для промежутоной модели Пользователь-родной язык."""
+
+    class Meta:
+        model = UserNativeLanguage
+        fields = (
+            'id',
+            'language'
+        )
+
+
+class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
+    """Сериализатор для промежутоной модели Пользователь-иностранный язык."""
 
     class Meta:
         model = UserForeignLanguage
@@ -29,8 +48,12 @@ class UserSerializer(DjoserSerializer,):
 
     age = serializers.SerializerMethodField()
     image = Base64ImageField(required=False, allow_null=True)
-    native_language = LanguageNameField(queryset=Language.objects.all())
     city = CityNameField(queryset=City.objects.all(), required=False)
+    native_languages = UserNativeLanguageSerializer(
+        source='usernativelanguage',
+        many=True,
+        read_only=True
+    )
     foreign_languages = UserForeignLanguageSerializer(
         source='userforeignlanguage',
         many=True,
@@ -50,7 +73,7 @@ class UserSerializer(DjoserSerializer,):
             'country',
             'city',
             'birth_date',
-            'native_language',
+            'native_languages',
             'foreign_languages',
             'gender',
             'phone_number',
@@ -62,6 +85,14 @@ class UserSerializer(DjoserSerializer,):
             age_days = (dt.datetime.now().date() - obj.birth_date).days
             return int(age_days / 365)
         return None
+
+    def create_native_languages(self, user, native_languages):
+        """Создание объектов в промежуточной таблице."""
+        for language in native_languages:
+            UserNativeLanguage.objects.create(
+                user=user,
+                language_id=language.get('id'),
+            )
 
     def create_foreign_languages(self, user, foreign_languages):
         """Создание объектов в промежуточной таблице."""
@@ -76,7 +107,8 @@ class UserSerializer(DjoserSerializer,):
         """Кастомный метод to_internal_value, учитывающий
         наличие/отсутствие запроса на запись данных в through-таблицу."""
         fields = {
-            'foreign_languages': None
+            'foreign_languages': None,
+            'native_languages': None
         }
         for key in fields.keys():
             if key in data:
@@ -89,6 +121,13 @@ class UserSerializer(DjoserSerializer,):
                 result[key] = value
 
         return result
+
+    def create(self, validated_data):
+        print('вызван метод create')
+        native_languages = validated_data.pop('native_languages')
+        user = User.objects.create(**validated_data)
+        self.create_native_languages(user, native_languages)
+        return user
 
     def update(self, instance, validated_data):
         """Кастомные метод update, учитывающий
