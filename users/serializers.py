@@ -10,7 +10,7 @@ from users.models import City, Language, User, UserForeignLanguage
 
 
 class UserForeignLanguageSerializer(serializers.ModelSerializer):
-    """Сериализатор для промежутоной модели Пользователь-Язык."""
+    """Сериализатор для промежутоной модели Пользователь-иностранный язык."""
 
     id = serializers.ReadOnlyField(source='language.id')
     language = serializers.ReadOnlyField(source='language.name')
@@ -32,7 +32,7 @@ class UserSerializer(DjoserSerializer,):
     native_language = LanguageNameField(queryset=Language.objects.all())
     city = CityNameField(queryset=City.objects.all(), required=False)
     foreign_languages = UserForeignLanguageSerializer(
-        source='user',
+        source='userforeignlanguage',
         many=True,
         read_only=True
     )
