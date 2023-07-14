@@ -28,14 +28,14 @@ class UserSerializer(DjoserSerializer,):
     """Сериализатор для модели пользователя."""
 
     age = serializers.SerializerMethodField()
-    image = Base64ImageField(required=False, allow_null=True)
-    native_language = LanguageNameField(queryset=Language.objects.all())
-    city = CityNameField(queryset=City.objects.all(), required=False)
-    foreign_languages = UserLanguageSerializer(
-        source='user',
-        many=True,
-        read_only=True
-    )
+    # image = Base64ImageField(required=False, allow_null=True)
+    # native_language = LanguageNameField(queryset=Language.objects.all())
+    # city = CityNameField(queryset=City.objects.all(), required=False)
+    # foreign_languages = UserLanguageSerializer(
+    #     source='user',
+    #     many=True,
+    #     read_only=True
+    # )
 
     class Meta:
         model = User
@@ -44,16 +44,16 @@ class UserSerializer(DjoserSerializer,):
             'username',
             'password',
             'first_name',
-            'image',
+            # 'image',
             'age',
             'slug',
-            'country',
-            'city',
+            # 'country',
+            # 'city',
             'birth_date',
-            'native_language',
-            'foreign_languages',
+            # 'native_language',
+            # 'foreign_languages',
             'gender',
-            'phone_number',
+            # 'phone_number',
         )
 
     def get_age(self, obj):

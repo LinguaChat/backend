@@ -26,21 +26,21 @@ class User(AbstractUser, DateEditedModel):
         max_length=150,
         help_text='Слаг'
     )
-    country = models.CharField(
-        'Страна',
-        max_length=50,
-        null=True,
-        help_text='Страна проживания пользователя'
-    )
-    native_language = models.ForeignKey(
-        'Language',
-        max_length=255,
-        related_name='native_users',
-        on_delete=models.SET_NULL,
-        verbose_name='Родной язык',
-        help_text='Родной язык пользователя',
-        null=True
-    )
+    # country = models.CharField(
+    #     'Страна',
+    #     max_length=50,
+    #     null=True,
+    #     help_text='Страна проживания пользователя'
+    # )
+    # native_language = models.ForeignKey(
+    #     'Language',
+    #     max_length=255,
+    #     related_name='native_users',
+    #     on_delete=models.SET_NULL,
+    #     verbose_name='Родной язык',
+    #     help_text='Родной язык пользователя',
+    #     null=True
+    # )
     birth_date = models.DateField(
         'Дата рождения',
         null=True,
@@ -49,7 +49,8 @@ class User(AbstractUser, DateEditedModel):
     about = models.TextField(
         'О себе',
         max_length=100,
-        null=True
+        null=True,
+        blank=True
     )
     gender = models.CharField(
         'Пол',
@@ -58,34 +59,34 @@ class User(AbstractUser, DateEditedModel):
         null=True,
         help_text='Пол пользователя',
     )
-    topics_for_discussion = models.TextField(
-        'Темы для разговора',
-        max_length=100,
-        null=True
-    )
-    phone_number = models.CharField(
-        'Номер телефона',
-        max_length=30,
-        null=True,
-        help_text='Номер телефона пользователя',
-    )
-    city = models.ForeignKey(
-        'City',
-        max_length=255,
-        related_name='users_in_this_city',
-        on_delete=models.SET_NULL,
-        verbose_name='Город проживания',
-        null=True,
-        help_text='Город проживания пользователя'
-    )
-    foreign_languages = models.ManyToManyField(
-        'Language',
-        through='UserLanguage',
-        related_name='users_who_learn',
-        verbose_name='Изучаемые языки',
-        help_text='Языки, которые изучает пользователь'
-    )
-    avatar = models.ImageField(
+    # topics_for_discussion = models.TextField(
+    #     'Темы для разговора',
+    #     max_length=100,
+    #     null=True
+    # )
+    # phone_number = models.CharField(
+    #     'Номер телефона',
+    #     max_length=30,
+    #     null=True,
+    #     help_text='Номер телефона пользователя',
+    # )
+    # city = models.ForeignKey(
+    #     'City',
+    #     max_length=255,
+    #     related_name='users_in_this_city',
+    #     on_delete=models.SET_NULL,
+    #     verbose_name='Город проживания',
+    #     null=True,
+    #     help_text='Город проживания пользователя'
+    # )
+    # foreign_languages = models.ManyToManyField(
+    #     'Language',
+    #     through='UserLanguage',
+    #     related_name='users_who_learn',
+    #     verbose_name='Изучаемые языки',
+    #     help_text='Языки, которые изучает пользователь'
+    # )
+    image = models.ImageField(
         'Изображение',
         upload_to='user_photos/',
         null=True
