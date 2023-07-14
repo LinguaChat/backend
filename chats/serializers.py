@@ -110,4 +110,3 @@ class MessageSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
-
