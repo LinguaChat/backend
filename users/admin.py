@@ -1,3 +1,5 @@
+"""Файл административных настроек для приложения users."""
+
 from django.contrib import admin
 
 from .models import User
