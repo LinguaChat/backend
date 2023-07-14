@@ -7,6 +7,7 @@ from users.models import City, Language
 
 
 class Base64ImageField(serializers.ImageField):
+    """Поле изображения."""
 
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):

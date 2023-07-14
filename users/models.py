@@ -1,7 +1,6 @@
 """Файл c моделями для приложения users."""
 
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import validate_email
 from django.db import models
 from django.template.defaultfilters import slugify
 
@@ -50,6 +49,7 @@ class User(AbstractUser, DateEditedModel):
         'О себе',
         max_length=100,
         null=True,
+        help_text='О себе',
     )
     gender = models.CharField(
         'Пол',
@@ -61,7 +61,8 @@ class User(AbstractUser, DateEditedModel):
     topics_for_discussion = models.TextField(
         'Темы для разговора',
         max_length=100,
-        null=True
+        null=True,
+        help_text='Темы для разговора',
     )
     phone_number = models.CharField(
         'Номер телефона',
