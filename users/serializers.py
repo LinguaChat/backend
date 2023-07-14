@@ -5,31 +5,8 @@ import datetime as dt
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
+from users.fields import Base64ImageField, CityNameField, LanguageNameField
 from users.models import City, Language, User, UserLanguage
-
-
-class CityNameField(serializers.RelatedField):
-    """Кастомное поле, позволяющее делать update
-    города по id и получать его строковое
-    название при GET-запросе."""
-
-    def to_representation(self, value):
-        return value.name
-
-    def to_internal_value(self, data):
-        return City.objects.get(id=data)
-
-
-class LanguageNameField(serializers.RelatedField):
-    """Кастомное поле, позволяющее делать update
-    языка по id и получать его строковое
-    название при GET-запросе."""
-
-    def to_representation(self, value):
-        return value.name
-
-    def to_internal_value(self, data):
-        return Language.objects.get(id=data)
 
 
 class UserLanguageSerializer(serializers.ModelSerializer):
@@ -51,6 +28,7 @@ class UserSerializer(DjoserSerializer,):
     """Сериализатор для модели пользователя."""
 
     age = serializers.SerializerMethodField()
+    image = Base64ImageField(required=False, allow_null=True)
     native_language = LanguageNameField(queryset=Language.objects.all())
     city = CityNameField(queryset=City.objects.all(), required=False)
     foreign_languages = UserLanguageSerializer(
@@ -66,10 +44,12 @@ class UserSerializer(DjoserSerializer,):
             'username',
             'password',
             'first_name',
+            'image',
             'age',
+            'slug',
             'country',
             'city',
-            'birthdate',
+            'birth_date',
             'native_language',
             'foreign_languages',
             'gender',
@@ -78,8 +58,8 @@ class UserSerializer(DjoserSerializer,):
 
     def get_age(self, obj):
         """Вычисляем возраст пользователя."""
-        if obj.birthdate:
-            age_days = (dt.datetime.now().date() - obj.birthdate).days
+        if obj.birth_date:
+            age_days = (dt.datetime.now().date() - obj.birth_date).days
             return int(age_days / 365)
         return None
 
