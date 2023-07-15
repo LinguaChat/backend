@@ -98,37 +98,45 @@ class Message(DateCreatedModel, DateEditedModel):
 
     sender = models.ForeignKey(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        help_text='Отправитель сообщения'
     )
     chat = models.ForeignKey(
         Chat,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        help_text='Чат, к которому относится сообщение'
     )
     text = models.TextField(
-        max_length=5000
+        max_length=5000,
+        help_text='Текст сообщения'
     )
     file_to_send = models.FileField(
         upload_to='files_to_send/',
         blank=True,
-        null=True
+        null=True,
+        help_text='Файл для отправки'
     )
     responding_to = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
         blank=True,
-        null=True
+        null=True,
+        help_text='Ответ на другое сообщение'
     )
     sender_keep = models.BooleanField(
         default=False,
-        verbose_name='Сообщение отправлено'
+        verbose_name='Сообщение отправлено',
+        help_text='сообщение отправлено'
     )
     is_read = models.BooleanField(
         default=False,
-        verbose_name='Сообщение прочитано'
+        verbose_name='Сообщение прочитано',
+        help_text='сообщение прочитано'
     )
     is_pinned = models.BooleanField(
         default=False,
-        verbose_name='Сообщение закреплено'
+        verbose_name='Сообщение закреплено',
+        help_text='сообщение закреплено'
     )
 
     def __str__(self):
@@ -137,6 +145,12 @@ class Message(DateCreatedModel, DateEditedModel):
     class Meta:
         verbose_name = 'Message'
         verbose_name_plural = 'Messages'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['text', 'sender', 'chat'],
+                name='unique_message'
+            )
+        ]
 
 
 class MessageReaders(models.Model):
@@ -144,22 +158,30 @@ class MessageReaders(models.Model):
 
     message = models.ForeignKey(
         Message,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        help_text='Сообщение, которое было прочитано'
     )
     user = models.ForeignKey(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        help_text='Пользователь, который прочитал сообщение'
     )
 
 
 class Attachment(models.Model):
     """Модель для представления вложений сообщений."""
 
-    name = models.CharField(max_length=255)
-    content = models.BinaryField()
+    name = models.CharField(
+        max_length=255,
+        help_text='Название вложения'
+    )
+    content = models.BinaryField(
+        help_text='Содержимое вложения'
+    )
     message = models.ForeignKey(
         Message,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        help_text='Сообщение, к которому относится вложение'
     )
 
     def __str__(self):
