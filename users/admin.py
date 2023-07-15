@@ -4,4 +4,8 @@ from django.contrib import admin
 
 from .models import User
 
-admin.site.register(User)
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    """Админ-панель модели пользователя"""
+
+    prepopulated_fields = {'slug': ('username',)}
