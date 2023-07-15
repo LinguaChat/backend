@@ -21,7 +21,7 @@ class AdvUserAdmin(admin.ModelAdmin):
         'city',
         'native_language',
         '_foreign_languages',
-        'date_joined'
+        'date_joined',
     )
     search_fields = (
         'username',
@@ -29,25 +29,28 @@ class AdvUserAdmin(admin.ModelAdmin):
         'first_name',
         'country',
         'native_language__name',
-        'city__name'
+        'city__name',
     )
     fields = (
         ('username', 'email', 'slug'),
+        ('avatar'),
         ('first_name'),
-        ('country', 'native_language'),
-        ('birthdate', 'age_is_hidden'),
         ('gender', 'gender_is_hidden'),
         ('phone_number'),
+        ('country', 'native_language'),
         ('city'),
+        ('birth_date', 'age_is_hidden'),
+        ('about'),
+        ('topics_for_discussion'),
         ('is_staff', 'is_superuser'),
-        ('date_joined')
+        ('date_joined'),
     )
     inlines = (LanguageInlineAdmin,)
 
     def _age(self, obj):
         """Возраст пользователя."""
-        if obj.birthdate:
-            age_days = (dt.datetime.now().date() - obj.birthdate).days
+        if obj.birth_date:
+            age_days = (dt.datetime.now().date() - obj.birth_date).days
             return int(age_days / 365)
         return None
 
