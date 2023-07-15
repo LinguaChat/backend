@@ -96,7 +96,9 @@ AUTH_PASSWORD_VALIDATORS = [
 DJOSER = {
 
     'HIDE_USERS': False,
-    'SERIALIZERS': {'user': 'users.serializers.UserSerializer'},
+    'SERIALIZERS': {'user': 'users.serializers.UserSerializer',
+                    'user_create': 'users.serializers.UserSerializer'
+                    },
 
 }
 
@@ -130,6 +132,10 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 LANGUAGE_CODE = 'en-us'
 

@@ -19,7 +19,6 @@ class User(AbstractUser, DateEditedModel):
         unique=True,
         help_text='Адрес email',
     )
-
     slug = models.SlugField(
         'Слаг',
         max_length=150,
@@ -31,14 +30,21 @@ class User(AbstractUser, DateEditedModel):
         null=True,
         help_text='Страна проживания пользователя',
     )
-    native_language = models.ForeignKey(
+    native_languages = models.ManyToManyField(
         'Language',
-        max_length=255,
-        related_name='native_users',
-        on_delete=models.SET_NULL,
+        through='UserNativeLanguage',
+        related_name='users_for_whom_native',
         verbose_name='Родной язык',
         help_text='Родной язык пользователя',
-        null=True,
+
+    )
+    foreign_languages = models.ManyToManyField(
+        'Language',
+        through='UserForeignLanguage',
+        related_name='users_who_learn',
+        verbose_name='Изучаемые языки',
+        help_text='Языки, которые изучает пользователь'
+
     )
     birth_date = models.DateField(
         'Дата рождения',
@@ -78,13 +84,6 @@ class User(AbstractUser, DateEditedModel):
         verbose_name='Город проживания',
         null=True,
         help_text='Город проживания пользователя',
-    )
-    foreign_languages = models.ManyToManyField(
-        'Language',
-        through='UserLanguage',
-        related_name='users_who_learn',
-        verbose_name='Изучаемые языки',
-        help_text='Языки, которые изучает пользователь',
     )
     avatar = models.ImageField(
         'Изображение',
@@ -136,22 +135,47 @@ class Language(AbstractNameModel):
 
 
 class UserLanguage(models.Model):
-    """Промежуточная модель пользователь-язык."""
+    """Абстрактная модель для создания
+     промежуточных моделей пользователь-родной язык
+     и пользователь-иностранный язык."""
 
     user = models.ForeignKey(
         User,
-        related_name='user',
         on_delete=models.CASCADE,
+        related_name='%(class)s',
         verbose_name='Пользователь',
         help_text='Пользователь',
     )
     language = models.ForeignKey(
         Language,
-        related_name='language',
         on_delete=models.CASCADE,
+        related_name='%(class)s',
         verbose_name='Язык',
         help_text='Язык',
+
     )
+
+    class Meta:
+        abstract = True
+
+
+class UserNativeLanguage(UserLanguage):
+    """Промежуточная таблица для связи
+    пользователь-родной язык."""
+
+    class Meta:
+        verbose_name = 'Пользователь -> родной язык'
+        verbose_name_plural = 'Пользователи -> родные языки'
+
+    def __str__(self):
+        return f'{self.language} является родным для {self.user}'
+
+
+class UserForeignLanguage(UserLanguage):
+
+    """Промежуточная таблица для связи
+    пользователь-иностранный язык."""
+
     skill_level = models.CharField(
         'Уровень владения языком',
         max_length=30,
