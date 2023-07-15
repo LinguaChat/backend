@@ -9,4 +9,3 @@ admin.site.register(ChatMembers)
 admin.site.register(Attachment)
 admin.site.register(Message)
 admin.site.register(MessageReaders)
-
