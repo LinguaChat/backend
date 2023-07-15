@@ -174,6 +174,10 @@ class MessageReaders(models.Model):
         help_text='Пользователь, который прочитал сообщение'
     )
 
+    class Meta:
+        verbose_name = 'Читатель сообщения'
+        verbose_name_plural = 'Читатели сообщений'
+
 
 class Attachment(models.Model):
     """Модель для представления вложений сообщений."""
