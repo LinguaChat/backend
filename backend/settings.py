@@ -133,6 +133,10 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
