@@ -7,19 +7,23 @@ from django.contrib import admin
 from .models import City, Language, User
 
 
-class LanguageInlineAdmin(admin.TabularInline):
+class NativeLanguageInlineAdmin(admin.TabularInline):
+    model = User.native_languages.through
+
+
+class ForeignLanguageInlineAdmin(admin.TabularInline):
     model = User.foreign_languages.through
 
 
 @admin.register(User)
 class AdvUserAdmin(admin.ModelAdmin):
     list_display = (
-        '__str__',
+        'username',
         'email',
         '_age',
         'country',
         'city',
-        'native_language',
+        '_native_languages',
         '_foreign_languages',
         'date_joined',
     )
@@ -28,7 +32,7 @@ class AdvUserAdmin(admin.ModelAdmin):
         'email',
         'first_name',
         'country',
-        'native_language__name',
+        # 'native_language__name',
         'city__name',
     )
     fields = (
@@ -37,7 +41,7 @@ class AdvUserAdmin(admin.ModelAdmin):
         ('first_name'),
         ('gender', 'gender_is_hidden'),
         ('phone_number'),
-        ('country', 'native_language'),
+        ('country'),
         ('city'),
         ('birth_date', 'age_is_hidden'),
         ('about'),
@@ -45,7 +49,7 @@ class AdvUserAdmin(admin.ModelAdmin):
         ('is_staff', 'is_superuser'),
         ('date_joined'),
     )
-    inlines = (LanguageInlineAdmin,)
+    inlines = (NativeLanguageInlineAdmin, ForeignLanguageInlineAdmin)
 
     def _age(self, obj):
         """Возраст пользователя."""
@@ -55,6 +59,14 @@ class AdvUserAdmin(admin.ModelAdmin):
         return None
 
     _age.short_description = 'Возраст'
+
+    def _native_languages(self, obj):
+        """Родной язык пользователя."""
+        return ", ".join(
+            [str(language) for language in obj.native_languages.all()]
+        )
+
+    _native_languages.short_description = 'Родной язык'
 
     def _foreign_languages(self, obj):
         """Изучаемые языки пользователя."""
