@@ -41,8 +41,7 @@ class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
 
 class UserSerializer(DjoserSerializer,):
     """Сериализатор для модели пользователя."""
-
-    age = serializers.SerializerMethodField()
+    age = serializers.IntegerField()
     image = Base64ImageField(required=False, allow_null=True)
     city = CityNameField(queryset=City.objects.all(), required=False)
     native_languages = UserNativeLanguageSerializer(
@@ -63,24 +62,25 @@ class UserSerializer(DjoserSerializer,):
             'username',
             'password',
             'first_name',
-            # 'image',
-            'age',
+            'image',
             'slug',
-            # 'country',
-            # 'city',
+            'country',
+            'city',
             'birth_date',
             'native_languages',
             'foreign_languages',
             'gender',
-            # 'phone_number',
+            'phone_number',
+            'age'
         )
 
     def get_age(self, obj):
         """Вычисляем возраст пользователя."""
-        if obj.birth_date:
-            age_days = (dt.datetime.now().date() - obj.birth_date).days
-            return int(age_days / 365)
-        return None
+        # if obj.birth_date:
+        #     age_days = (dt.datetime.now().date() - obj.birth_date).days
+        #     return int(age_days / 365)
+        return obj.age
+
 
     def create_native_languages(self, user, native_languages):
         """Создание объектов в промежуточной таблице."""

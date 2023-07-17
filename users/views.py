@@ -1,5 +1,8 @@
 """View-функции для приложения users."""
+import datetime as dt
 
+from django.db.models import ExpressionWrapper, F, IntegerField
+from django.db.models.functions import ExtractYear
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
@@ -14,7 +17,13 @@ from users.models import User
 @extend_schema(tags=['Users'])
 class UserViewSet(DjoserViewSet):
     """Вьюсет для модели пользователя."""
-    queryset = User.objects.all()
+    # вычисляем возраст на уровне БД
+    queryset = User.objects.annotate(
+        birth_year=ExtractYear('birth_date')
+    ).annotate(
+        age=ExpressionWrapper(dt.datetime.now().year - F('birth_year'),
+                              output_field=IntegerField())
+    )
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('country', 'gender')
 
