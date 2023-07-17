@@ -11,21 +11,29 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from users.filters import UserAgeFilter
 from users.models import User
 
 
 @extend_schema(tags=['Users'])
 class UserViewSet(DjoserViewSet):
     """Вьюсет для модели пользователя."""
-    # вычисляем возраст на уровне БД
-    queryset = User.objects.annotate(
-        birth_year=ExtractYear('birth_date')
-    ).annotate(
-        age=ExpressionWrapper(dt.datetime.now().year - F('birth_year'),
-                              output_field=IntegerField())
-    )
+
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('country', 'gender')
+    filterset_class = UserAgeFilter
+
+    def get_queryset(self):
+        """Переопределенный метод - аннотирует
+        queryset поле 'age' - высчитывает возраст пользователя."""
+        # вычисляем возраст на уровне БД
+        queryset = User.objects.all().annotate(
+            birth_year=ExtractYear('birth_date')).annotate(
+                    age=ExpressionWrapper(
+                        dt.datetime.now().year - F('birth_year'),
+                        output_field=IntegerField())
+            )
+
+        return queryset
 
     @action(
         methods=('PATCH',),

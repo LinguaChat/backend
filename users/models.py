@@ -23,6 +23,7 @@ class User(AbstractUser, DateEditedModel):
         'Слаг',
         max_length=150,
         help_text='Слаг',
+        null=True
     )
     country = models.CharField(
         'Страна',

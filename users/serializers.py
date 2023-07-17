@@ -2,7 +2,7 @@
 
 import datetime as dt
 
-from djoser.serializers import UserSerializer as DjoserSerializer
+from djoser.serializers import UserSerializer as DjoserSerializer, UserCreateMixin
 from rest_framework import serializers
 
 from users.fields import Base64ImageField, CityNameField
@@ -39,9 +39,9 @@ class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
         )
 
 
-class UserSerializer(DjoserSerializer,):
+class UserSerializer(DjoserSerializer, UserCreateMixin):
     """Сериализатор для модели пользователя."""
-    age = serializers.IntegerField()
+    age = serializers.IntegerField(required=False)
     image = Base64ImageField(required=False, allow_null=True)
     city = CityNameField(queryset=City.objects.all(), required=False)
     native_languages = UserNativeLanguageSerializer(
@@ -73,14 +73,6 @@ class UserSerializer(DjoserSerializer,):
             'phone_number',
             'age'
         )
-
-    def get_age(self, obj):
-        """Вычисляем возраст пользователя."""
-        # if obj.birth_date:
-        #     age_days = (dt.datetime.now().date() - obj.birth_date).days
-        #     return int(age_days / 365)
-        return obj.age
-
 
     def create_native_languages(self, user, native_languages):
         """Создание объектов в промежуточной таблице."""
@@ -118,13 +110,6 @@ class UserSerializer(DjoserSerializer,):
 
         return result
 
-    def create(self, validated_data):
-        print('вызван метод create')
-        native_languages = validated_data.pop('native_languages')
-        user = User.objects.create(**validated_data)
-        self.create_native_languages(user, native_languages)
-        return user
-
     def update(self, instance, validated_data):
         """Кастомные метод update, учитывающий
         наличие/отсутствие запроса на обновление through-таблицы."""
@@ -132,5 +117,11 @@ class UserSerializer(DjoserSerializer,):
             self.create_foreign_languages(
                 user=instance,
                 foreign_languages=validated_data.pop('foreign_languages'),
+            )
+
+        if 'native_languages' in validated_data:
+            self.create_native_languages(
+                user=instance,
+                native_languages=validated_data.pop('native_languages')
             )
         return super().update(instance, validated_data)
