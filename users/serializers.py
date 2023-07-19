@@ -63,16 +63,16 @@ class UserSerializer(DjoserSerializer,):
             'username',
             'password',
             'first_name',
-            # 'image',
+            'image',
             'age',
             'slug',
-            # 'country',
-            # 'city',
+            'country',
+            'city',
             'birth_date',
             'native_languages',
             'foreign_languages',
             'gender',
-            # 'phone_number',
+            'phone_number',
         )
 
     def get_age(self, obj):
