@@ -34,7 +34,7 @@ class User(AbstractUser, DateEditedModel):
     native_languages = models.ManyToManyField(
         'Language',
         through='UserNativeLanguage',
-        related_name='users_for_whom_native',
+        related_name='native_for',
         verbose_name='Родной язык',
         help_text='Родной язык пользователя',
 
@@ -42,7 +42,7 @@ class User(AbstractUser, DateEditedModel):
     foreign_languages = models.ManyToManyField(
         'Language',
         through='UserForeignLanguage',
-        related_name='users_who_learn',
+        related_name='learned_by',
         verbose_name='Изучаемые языки',
         help_text='Языки, которые изучает пользователь'
 

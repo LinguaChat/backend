@@ -11,5 +11,11 @@ class UserAgeFilter(df.FilterSet):
         fields = (
             'age',
             'country',
-            'gender'
+            'gender',
+            'foreign_languages',
         )
+
+
+
+
+
