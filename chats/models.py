@@ -145,7 +145,7 @@ class Message(DateCreatedModel, DateEditedModel):
     )
 
     def __str__(self):
-        return f"Message {self.message_id}"
+        return f"Message {self.id}"
 
     class Meta:
         verbose_name = 'Сообщение'
