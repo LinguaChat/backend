@@ -23,6 +23,7 @@ class User(AbstractUser, DateEditedModel):
         'Слаг',
         max_length=150,
         help_text='Слаг',
+        null=True
     )
     country = models.CharField(
         'Страна',
@@ -33,7 +34,7 @@ class User(AbstractUser, DateEditedModel):
     native_languages = models.ManyToManyField(
         'Language',
         through='UserNativeLanguage',
-        related_name='users_for_whom_native',
+        related_name='native_for',
         verbose_name='Родной язык',
         help_text='Родной язык пользователя',
 
@@ -41,7 +42,7 @@ class User(AbstractUser, DateEditedModel):
     foreign_languages = models.ManyToManyField(
         'Language',
         through='UserForeignLanguage',
-        related_name='users_who_learn',
+        related_name='learned_by',
         verbose_name='Изучаемые языки',
         help_text='Языки, которые изучает пользователь'
 
@@ -69,12 +70,6 @@ class User(AbstractUser, DateEditedModel):
         max_length=100,
         null=True,
         help_text='Темы для разговора',
-    )
-    phone_number = models.CharField(
-        'Номер телефона',
-        max_length=30,
-        null=True,
-        help_text='Номер телефона пользователя',
     )
     city = models.ForeignKey(
         'City',

@@ -1,22 +1,37 @@
 """View-функции для приложения users."""
+import datetime as dt
 
-from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import ExpressionWrapper, F, IntegerField
+from django.db.models.functions import ExtractYear
+from django_filters.rest_framework import DjangoFilterBackend, filters
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import filters, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from users.filters import UserAgeFilter
 from users.models import User
 
 
 @extend_schema(tags=['Users'])
 class UserViewSet(DjoserViewSet):
     """Вьюсет для модели пользователя."""
-    queryset = User.objects.all()
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('country', 'gender')
+
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_class = UserAgeFilter
+    search_fields = ('foreign_languages__name', )
+
+    def get_queryset(self):
+        """Переопределенный метод - аннотирует
+        queryset поле 'age' - высчитывает возраст пользователя."""
+        # вычисляем возраст на уровне БД
+        return User.objects.all().annotate(
+            birth_year=ExtractYear('birth_date')).annotate(
+            age=ExpressionWrapper(dt.datetime.now().year - F('birth_year'),
+                                  output_field=IntegerField())
+        )
 
     @action(
         methods=('PATCH',),
