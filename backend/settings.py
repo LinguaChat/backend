@@ -24,17 +24,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'djoser',
+    'corsheaders',
     'chats.apps.ChatsConfig',
     'users.apps.UsersConfig',
     'core.apps.CoreConfig',
-    'django_filters',
     'drf_spectacular',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -96,9 +98,10 @@ AUTH_PASSWORD_VALIDATORS = [
 DJOSER = {
 
     'HIDE_USERS': False,
-    'SERIALIZERS': {'user': 'users.serializers.UserSerializer',
-                    'user_create': 'users.serializers.UserSerializer'
-                    },
+    'SERIALIZERS': {
+        'user': 'users.serializers.UserSerializer',
+        'user_create': 'users.serializers.UserSerializer',
+    },
 
 }
 
@@ -116,11 +119,18 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
 
+    'DEFAULT_PAGINATION_CLASS': 'core.pagination.LimitPagination',
+    'PAGE_SIZE': 100,
+
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+CORS_ALLOWED_ORIGINS = [
+    '*',
+]
+
 SIMPLE_JWT = {
-    # Устанавливаем срок жизни токена
+    # Срок действия токена
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=45),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
     'AUTH_HEADER_TYPES': ('Bearer',),
