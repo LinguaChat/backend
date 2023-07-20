@@ -37,10 +37,10 @@ jobs:
           username: ${{ secrets.USER }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            cd backend/
+            cd infra/
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/backend:latest
-            sudo docker-compose stop
-            sudo docker-compose rm web
+            sudo docker compose stop
+            sudo docker compose rm web
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} > .env
             echo DB_NAME=${{ secrets.DB_NAME }} >> .env
             echo DB_USER=${{ secrets.POSTGRES_USER }} >> .env
@@ -51,8 +51,10 @@ jobs:
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
             echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
             echo DJANGO_SUPERUSER_PASSWORD=${{ secrets.DJANGO_SUPERUSER_PASSWORD }} >> .env
-            sudo docker-compose up -d
-            sudo docker-compose exec web python manage.py makemigrations
-            sudo docker-compose exec web python manage.py migrate
-            sudo docker-compose exec web python manage.py createsuperuser --username admin --email admin@example.com --no-input
-            sudo docker-compose exec web python manage.py collectstatic --no-input 
+            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+            sudo docker compose up -d
+            sudo docker compose exec web python manage.py makemigrations users
+            sudo docker compose exec web python manage.py makemigrations chats
+            sudo docker compose exec web python manage.py migrate
+            sudo docker compose exec web python manage.py createsuperuser --username admin --email admin@example.com --no-input
+            sudo docker compose exec web python manage.py collectstatic --no-input 
