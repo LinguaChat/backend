@@ -94,7 +94,7 @@ class ChatMembers(DateCreatedModel):
 
 
 class Message(DateCreatedModel, DateEditedModel):
-    """Модель для представления сообщения."""
+    """Модель сообщения."""
 
     sender = models.ForeignKey(
         User,
@@ -159,7 +159,7 @@ class Message(DateCreatedModel, DateEditedModel):
 
 
 class MessageReaders(models.Model):
-    """Модель для отслеживания прочитанных сообщений пользователем."""
+    """Модель для отслеживания прочитанных пользователями сообщений."""
 
     message = models.ForeignKey(
         Message,
@@ -180,7 +180,7 @@ class MessageReaders(models.Model):
 
 
 class Attachment(models.Model):
-    """Модель для представления вложений сообщений."""
+    """Модель для вложений сообщений."""
 
     name = models.CharField(
         max_length=255,

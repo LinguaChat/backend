@@ -1,4 +1,4 @@
-"""Файл конфигурации apps для приложения chats."""
+"""Конфигурация приложения chats."""
 
 from django.apps import AppConfig
 
