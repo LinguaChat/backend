@@ -85,7 +85,7 @@ class User(AbstractUser, DateEditedModel):
         null=True,
         help_text='Город проживания пользователя',
     )
-    avatar = models.ImageField(
+    image = models.ImageField(
         'Изображение',
         upload_to='user_photos/',
         null=True,
