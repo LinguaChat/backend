@@ -1,4 +1,4 @@
-"""View-функции для приложения users."""
+"""View-функции приложения users."""
 
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
@@ -13,7 +13,8 @@ from users.models import User
 
 @extend_schema(tags=['Users'])
 class UserViewSet(DjoserViewSet):
-    """Вьюсет для модели пользователя."""
+    """Вьюсет модели пользователя."""
+
     queryset = User.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('country', 'gender')
@@ -22,7 +23,6 @@ class UserViewSet(DjoserViewSet):
         methods=('PATCH',),
         detail=False,
         permission_classes=(IsAuthenticated,),
-        # сериализатор не нужен, т.к. нет отправки/получения данных
         serializer_class=None
     )
     def hide_show_age(self, request):
@@ -36,7 +36,6 @@ class UserViewSet(DjoserViewSet):
         methods=('PATCH',),
         detail=False,
         permission_classes=(IsAuthenticated,),
-        # сериализатор не нужен, т.к. нет отправки/получения данных
         serializer_class=None
     )
     def hide_show_gender(self, request):
