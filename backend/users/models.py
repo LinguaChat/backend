@@ -1,4 +1,4 @@
-"""Файл c моделями для приложения users."""
+"""Модели для приложения users."""
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -70,12 +70,6 @@ class User(AbstractUser, DateEditedModel):
         null=True,
         help_text='Темы для разговора',
     )
-    phone_number = models.CharField(
-        'Номер телефона',
-        max_length=30,
-        null=True,
-        help_text='Номер телефона пользователя',
-    )
     city = models.ForeignKey(
         'City',
         max_length=255,
@@ -85,7 +79,7 @@ class User(AbstractUser, DateEditedModel):
         null=True,
         help_text='Город проживания пользователя',
     )
-    image = models.ImageField(
+    avatar = models.ImageField(
         'Изображение',
         upload_to='user_photos/',
         null=True,
@@ -95,7 +89,6 @@ class User(AbstractUser, DateEditedModel):
         default=False,
         help_text='Поле для скрытия/отображения возраста пользователя',
     )
-    # булево поле для скрытия пола
     gender_is_hidden = models.BooleanField(
         default=False,
         help_text='Поле для скрытия/отображения пола пользователя',
