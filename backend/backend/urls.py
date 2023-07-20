@@ -1,4 +1,4 @@
-"""Основной файл с маршрутами проекта."""
+"""Основные маршруты проекта."""
 
 from django.conf import settings
 from django.conf.urls.static import static
