@@ -1,14 +1,19 @@
-"""Файл c кастомными командами управления."""
+"""Кастомные команды управления."""
+
+import os
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils.crypto import get_random_string
+from dotenv import load_dotenv
+
+load_dotenv()
 
 User = get_user_model()
 
 
 class Command(BaseCommand):
-    """Команда для создания админа"""
+    """Команда создания админа с заданным или случайным паролем"""
 
     def handle(self, *args, **options):
         username = 'admin'
@@ -21,7 +26,9 @@ class Command(BaseCommand):
             ):
                 print("admin user not found, creating one")
 
-                new_password = get_random_string(10)
+                new_password = os.getenv(
+                    'DJANGO_SUPERUSER_PASSWORD', default=get_random_string(10)
+                )
 
                 u = User.objects.create_superuser(
                     username, email, new_password
