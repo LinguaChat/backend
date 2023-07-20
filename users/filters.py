@@ -17,5 +17,3 @@ class UserAgeFilter(df.FilterSet):
 
 
 
-
-

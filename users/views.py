@@ -3,10 +3,10 @@ import datetime as dt
 
 from django.db.models import ExpressionWrapper, F, IntegerField
 from django.db.models.functions import ExtractYear
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend, filters
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import filters, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -19,8 +19,9 @@ from users.models import User
 class UserViewSet(DjoserViewSet):
     """Вьюсет для модели пользователя."""
 
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = UserAgeFilter
+    search_fields = ('foreign_languages__name', )
 
     def get_queryset(self):
         """Переопределенный метод - аннотирует
