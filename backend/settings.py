@@ -125,8 +125,10 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-CORS_ALLOWED_ORIGIN_ALLOW_ALL = True
-
+CORS_ALLOWED_ORIGINS = [
+    "http://lingvogo.acceleratorpracticum.ru",
+    # Дополнительные разрешенные источники, если есть
+]
 
 SIMPLE_JWT = {
     # Срок действия токена
