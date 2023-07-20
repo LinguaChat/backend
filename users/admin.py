@@ -32,7 +32,6 @@ class AdvUserAdmin(admin.ModelAdmin):
         'email',
         'first_name',
         'country',
-        # 'native_language__name',
         'city__name',
     )
     fields = (
