@@ -1,9 +1,12 @@
+"""Файл административных настроек для приложения users."""
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .models import User
 
 
+@admin.register(User)
 class CustomUserAdmin(UserAdmin):
     list_display = (
         'username',
@@ -24,6 +27,7 @@ class CustomUserAdmin(UserAdmin):
         'first_name'
     )
     ordering = ('-date_joined',)
+    prepopulated_fields = {'slug': ('username',)}
     fieldsets = (
         (None, {
             'fields': (
@@ -74,6 +78,3 @@ class CustomUserAdmin(UserAdmin):
             ),
         }),
     )
-
-
-admin.site.register(User, CustomUserAdmin)
