@@ -97,8 +97,7 @@ DJOSER = {
 
     'HIDE_USERS': False,
     'SERIALIZERS': {
-        'user': 'users.serializers.UserSerializer',
-        'user_create': 'users.serializers.UserSerializer',
+        'user': 'users.serializers.UserSerializer'
     },
 
 }

@@ -71,12 +71,6 @@ class User(AbstractUser, DateEditedModel):
         null=True,
         help_text='Темы для разговора',
     )
-    phone_number = models.CharField(
-        'Номер телефона',
-        max_length=30,
-        null=True,
-        help_text='Номер телефона пользователя',
-    )
     city = models.ForeignKey(
         'City',
         max_length=255,

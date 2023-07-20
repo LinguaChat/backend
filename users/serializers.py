@@ -39,7 +39,7 @@ class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
         )
 
 
-class UserSerializer(DjoserSerializer,):
+class UserSerializer(DjoserSerializer):
     """Сериализатор для модели пользователя."""
 
     age = serializers.SerializerMethodField()
@@ -72,7 +72,8 @@ class UserSerializer(DjoserSerializer,):
             'native_languages',
             'foreign_languages',
             'gender',
-            'phone_number',
+            'topics_for_discussion',
+            'about',
         )
 
     def get_age(self, obj):
