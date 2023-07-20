@@ -125,9 +125,8 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-CORS_ALLOWED_ORIGINS = [
-    '*',
-]
+CORS_ALLOWED_ORIGIN_ALLOW_ALL = True
+
 
 SIMPLE_JWT = {
     # Срок действия токена
