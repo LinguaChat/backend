@@ -7,15 +7,18 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 from chats.serializers import (ChatListSerializer, ChatSerializer,
                                MessageSerializer)
+from chats.models import Chat
 from core.pagination import LimitPagination
 from core.permissions import ActiveChatOrReceiverOnly
 
 User = get_user_model()
 
 
+@extend_schema(tags=['chats'])
 class ChatViewSet(viewsets.ModelViewSet):
     serializer_class = ChatSerializer
     http_method_names = ['get', 'post', 'head']
@@ -32,7 +35,9 @@ class ChatViewSet(viewsets.ModelViewSet):
     ordering = ('-date_created',)
 
     def get_queryset(self):
-        return self.request.user.chats.all()
+        if self.request.user.is_authenticated:
+            return self.request.user.chats.all()
+        return Chat.objects.none()
 
     def get_permissions(self):
         if self.action == 'send_message':
