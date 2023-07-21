@@ -5,9 +5,8 @@ from rest_framework import serializers
 # from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 
+from chats.models import Attachment, Chat, ChatMembers, Message, MessageReaders
 from users.serializers import UserSerializer
-
-from .models import Attachment, Chat, ChatMembers, Message, MessageReaders
 
 User = get_user_model()
 

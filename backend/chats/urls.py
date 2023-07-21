@@ -2,7 +2,7 @@
 
 from rest_framework import routers
 
-from .views import ChatViewSet
+from chats.views import ChatViewSet
 
 chat_router = routers.DefaultRouter()
 

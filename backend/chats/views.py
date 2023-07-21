@@ -7,10 +7,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from chats.serializers import (ChatListSerializer, ChatSerializer,
+                               MessageSerializer)
 from core.pagination import LimitPagination
 from core.permissions import ActiveChatOrReceiverOnly
-
-from .serializers import ChatListSerializer, ChatSerializer, MessageSerializer
 
 User = get_user_model()
 
