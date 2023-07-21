@@ -5,7 +5,7 @@ from rest_framework import permissions
 
 class ActiveChatOrReceiverOnly(permissions.BasePermission):
     """
-    Разрешение на отправку сообщений для участников активного чата 
+    Разрешение на отправку сообщений для участников активного чата
     или только для получателя.
     """
 

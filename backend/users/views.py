@@ -4,6 +4,7 @@ import datetime as dt
 
 from django.db.models import ExpressionWrapper, F, IntegerField
 from django.db.models.functions import ExtractYear
+
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
