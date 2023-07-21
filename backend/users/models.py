@@ -28,7 +28,7 @@ class User(AbstractUser, DateEditedModel):
     country = models.CharField(
         'Страна',
         max_length=50,
-        null=True,
+        blank=True,
         help_text='Страна проживания пользователя',
     )
     native_languages = models.ManyToManyField(
@@ -53,7 +53,7 @@ class User(AbstractUser, DateEditedModel):
     about = models.TextField(
         'О себе',
         max_length=100,
-        null=True,
+        blank=True,
         help_text='О себе',
     )
     gender = models.CharField(
@@ -66,7 +66,7 @@ class User(AbstractUser, DateEditedModel):
     topics_for_discussion = models.TextField(
         'Темы для разговора',
         max_length=100,
-        null=True,
+        blank=True,
         help_text='Темы для разговора',
     )
     city = models.ForeignKey(
@@ -76,6 +76,7 @@ class User(AbstractUser, DateEditedModel):
         on_delete=models.SET_NULL,
         verbose_name='Город проживания',
         null=True,
+        blank=True,
         help_text='Город проживания пользователя',
     )
     avatar = models.ImageField(
