@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from users.filters import UserAgeFilter
+from users.filters import UserFilter
 from users.models import User
 
 
@@ -20,9 +20,8 @@ from users.models import User
 class UserViewSet(DjoserViewSet):
     """Вьюсет модели пользователя."""
 
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filterset_class = UserAgeFilter
-    search_fields = ('foreign_languages__name', )
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = UserFilter
 
     def get_queryset(self):
         """Переопределенный метод - аннотирует
