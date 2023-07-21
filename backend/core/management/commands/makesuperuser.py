@@ -16,6 +16,12 @@ User = get_user_model()
 class Command(BaseCommand):
     """Команда создания админа с заданным или случайным паролем"""
 
+    help = (
+        'Создает суперпользователя, если его нет. '
+        'Задает случайный пароль или использует заданный в окружении '
+        'DJANGO_SUPERUSER_PASSWORD'
+    )
+
     def handle(self, *args, **options):
         username = 'admin'
         email = 'admin@example.com'
