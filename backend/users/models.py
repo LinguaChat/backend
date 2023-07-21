@@ -3,6 +3,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.template.defaultfilters import slugify
+from django.utils.translation import gettext as _
 
 from core.constants import GENDERS, LANGUAGE_SKILL_LEVEL
 from core.models import AbstractNameModel, DateEditedModel
@@ -115,16 +116,49 @@ class User(AbstractUser, DateEditedModel):
         super().save(*args, **kwargs)
 
 
-class Language(AbstractNameModel):
-    """Модель языка."""
+class Language(models.Model):
+    '''
+    List of languages by iso code (2 letter only because country code
+    is not needed.
+    This should be popluated by getting data from django.conf.locale.LANG_INFO
+    '''
 
-    class Meta:
-        ordering = ('name',)
-        verbose_name = 'Язык'
-        verbose_name_plural = 'Языки'
+    name = models.CharField(
+        max_length=256,
+        null=False,
+        blank=False,
+        verbose_name=_('Language name')
+    )
+    name_local = models.CharField(
+        max_length=256,
+        null=False,
+        blank=True,
+        default='',
+        verbose_name=_('Language name (in that language)')
+    )
+    isocode = models.CharField(
+        max_length=2,
+        null=False,
+        blank=False,
+        unique=True,
+        verbose_name=_('ISO 639-1 Language code'),
+        help_text=_('2 character language code without country')
+    )
+    sorting = models.PositiveIntegerField(
+        blank=False,
+        null=False,
+        default=0,
+        verbose_name=_('Sorting order'),
+        help_text=_('Increase to show at top of the list')
+    )
 
     def __str__(self):
-        return self.name
+        return '%s (%s)' % (self.name, self.name_local)
+
+    class Meta:
+        verbose_name = _('Language')
+        verbose_name_plural = _('Languages')
+        ordering = ('-sorting', 'name', 'isocode', )
 
 
 class UserLanguage(models.Model):
