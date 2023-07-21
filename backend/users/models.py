@@ -116,12 +116,12 @@ class User(AbstractUser, DateEditedModel):
 
 
 class Language(AbstractNameModel):
-    """Модель изучаемого языка."""
+    """Модель языка."""
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Изучаемый язык'
-        verbose_name_plural = 'Изучаемые языки'
+        verbose_name = 'Язык'
+        verbose_name_plural = 'Языки'
 
     def __str__(self):
         return self.name
