@@ -1,4 +1,4 @@
-"""Файл c абстрактными моделями для всего проекта."""
+"""Абстрактные модели проекта."""
 
 from django.db import models
 from django.utils import timezone
@@ -39,8 +39,7 @@ class DateEditedModel(models.Model):
 
 
 class AbstractNameModel(models.Model):
-    """Модель, содержащее поле 'имя' для
-    уменьшения дублирования кода."""
+    """Абстрактная модель. Добавляет поле имени."""
 
     name = models.CharField(
         'Название',

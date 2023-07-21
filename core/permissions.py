@@ -1,10 +1,14 @@
+"""Кастомные разрешения."""
+
 from rest_framework import permissions
 
 
 class ActiveChatOrReceiverOnly(permissions.BasePermission):
     """
-    Разрешение на редактирование и удаление только для владельца.
+    Разрешение на отправку сообщений для участников активного чата 
+    или только для получателя.
     """
+
     def has_permission(self, request, view):
         return request.user.is_authenticated
 

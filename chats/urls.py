@@ -1,4 +1,4 @@
-"""Маршруты для приложения chats."""
+"""Маршруты приложения chats."""
 
 from rest_framework import routers
 

@@ -1,4 +1,4 @@
-"""Файл конфигурации apps для приложения core."""
+"""Конфигурация приложения core."""
 
 from django.apps import AppConfig
 

@@ -1,4 +1,4 @@
-"""Сериализаторы для приложения chats."""
+"""Сериализаторы приложения chats."""
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -88,10 +88,8 @@ class ChatSerializer(serializers.ModelSerializer):
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для модели Attachment.
+    """Сериализатор модели Attachment."""
 
-    """
     content = serializers.CharField(write_only=True)
 
     class Meta:
@@ -104,10 +102,8 @@ class AttachmentSerializer(serializers.ModelSerializer):
 
 
 class MessageReadersSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для модели MessageReaders.
+    """Сериализатор модели MessageReaders."""
 
-    """
     class Meta:
         model = MessageReaders
         fields = [
@@ -117,10 +113,8 @@ class MessageReadersSerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для модели Message.
+    """Сериализатор модели Message."""
 
-    """
     text = serializers.CharField(
         allow_null=True,
         max_length=5000

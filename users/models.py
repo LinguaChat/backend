@@ -1,4 +1,4 @@
-"""Файл c моделями для приложения users."""
+"""Модели для приложения users."""
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -90,7 +90,6 @@ class User(AbstractUser, DateEditedModel):
         default=False,
         help_text='Поле для скрытия/отображения возраста пользователя',
     )
-    # булево поле для скрытия пола
     gender_is_hidden = models.BooleanField(
         default=False,
         help_text='Поле для скрытия/отображения пола пользователя',

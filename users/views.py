@@ -1,4 +1,5 @@
-"""View-функции для приложения users."""
+"""View-функции приложения users."""
+
 import datetime as dt
 
 from django.db.models import ExpressionWrapper, F, IntegerField
@@ -17,7 +18,7 @@ from users.models import User
 
 @extend_schema(tags=['Users'])
 class UserViewSet(DjoserViewSet):
-    """Вьюсет для модели пользователя."""
+    """Вьюсет модели пользователя."""
 
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = UserAgeFilter
@@ -37,7 +38,6 @@ class UserViewSet(DjoserViewSet):
         methods=('PATCH',),
         detail=False,
         permission_classes=(IsAuthenticated,),
-        # сериализатор не нужен, т.к. нет отправки/получения данных
         serializer_class=None
     )
     def hide_show_age(self, request):
@@ -51,7 +51,6 @@ class UserViewSet(DjoserViewSet):
         methods=('PATCH',),
         detail=False,
         permission_classes=(IsAuthenticated,),
-        # сериализатор не нужен, т.к. нет отправки/получения данных
         serializer_class=None
     )
     def hide_show_gender(self, request):

@@ -1,3 +1,5 @@
+"""Кастомные поля сериализатора приложения users."""
+
 import base64
 
 from django.core.files.base import ContentFile
@@ -7,7 +9,7 @@ from users.models import City, Language
 
 
 class Base64ImageField(serializers.ImageField):
-    """Поле изображения."""
+    """Поле изображения сериализатора."""
 
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):

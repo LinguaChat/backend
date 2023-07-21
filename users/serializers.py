@@ -43,7 +43,7 @@ class UserSerializer(DjoserSerializer):
     """Сериализатор для модели пользователя."""
 
     age = serializers.SerializerMethodField()
-    image = Base64ImageField(required=False, allow_null=True)
+    avatar = Base64ImageField(required=False, allow_null=True)
     city = CityNameField(queryset=City.objects.all(), required=False)
     native_languages = UserNativeLanguageSerializer(
         source='usernativelanguage',
@@ -63,7 +63,7 @@ class UserSerializer(DjoserSerializer):
             'username',
             'password',
             'first_name',
-            'image',
+            'avatar',
             'age',
             'slug',
             'country',
@@ -77,7 +77,7 @@ class UserSerializer(DjoserSerializer):
         )
 
     def get_age(self, obj):
-        """Вычисляем возраст пользователя."""
+        """Вычисление возраста пользователя."""
         if obj.birth_date:
             age_days = (dt.datetime.now().date() - obj.birth_date).days
             return int(age_days / 365)
@@ -118,13 +118,6 @@ class UserSerializer(DjoserSerializer):
                 result[key] = value
 
         return result
-
-    def create(self, validated_data):
-        print('вызван метод create')
-        native_languages = validated_data.pop('native_languages')
-        user = User.objects.create(**validated_data)
-        self.create_native_languages(user, native_languages)
-        return user
 
     def update(self, instance, validated_data):
         """Кастомные метод update, учитывающий
