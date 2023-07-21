@@ -1,9 +1,11 @@
 """Административные настройки приложения users."""
 
+import datetime as dt
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import User, City, Language
+from .models import City, Language, User
 
 
 class NativeLanguageInlineAdmin(admin.TabularInline):
