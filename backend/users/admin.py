@@ -15,9 +15,14 @@ class ForeignLanguageInlineAdmin(admin.TabularInline):
 
 
 @admin.register(User)
-class UserAdmin(UserAdmin):
+class CustomUserAdmin(UserAdmin):
     """Админ-панель модели пользователя"""
 
+    readonly_fields = (
+        '_age',
+        '_native_languages',
+        '_foreign_languages',
+    )
     list_display = (
         'username',
         'email',
