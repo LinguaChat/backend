@@ -44,7 +44,6 @@ class UserAdmin(UserAdmin):
                 'country',
                 'birth_date',
                 'gender',
-                'phone_number',
                 'city',
                 'avatar',
                 'about',
