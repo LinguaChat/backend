@@ -1,4 +1,4 @@
-"""Модели для приложения users."""
+"""Модели приложения users."""
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -37,15 +37,13 @@ class User(AbstractUser, DateEditedModel):
         related_name='native_for',
         verbose_name='Родной язык',
         help_text='Родной язык пользователя',
-
     )
     foreign_languages = models.ManyToManyField(
         'Language',
         through='UserForeignLanguage',
         related_name='learned_by',
         verbose_name='Изучаемые языки',
-        help_text='Языки, которые изучает пользователь'
-
+        help_text='Языки, которые изучает пользователь',
     )
     birth_date = models.DateField(
         'Дата рождения',
@@ -146,7 +144,6 @@ class UserLanguage(models.Model):
         related_name='%(class)s',
         verbose_name='Язык',
         help_text='Язык',
-
     )
 
     class Meta:
@@ -166,7 +163,6 @@ class UserNativeLanguage(UserLanguage):
 
 
 class UserForeignLanguage(UserLanguage):
-
     """Промежуточная таблица для связи
     пользователь-иностранный язык."""
 

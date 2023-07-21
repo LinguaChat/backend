@@ -1,10 +1,12 @@
+"""Фильтры приложения users."""
+
 import django_filters as df
 
 from users.models import User
 
 
 class CustomFilterList(df.Filter):
-    """Класс для фильтрации по изучаемым языкам."""
+    """Фильтрация по списку значений."""
 
     def filter(self, qs, value):
         if value not in (None, ''):
@@ -14,8 +16,8 @@ class CustomFilterList(df.Filter):
         return qs
 
 
-class UserAgeFilter(df.FilterSet):
-    """Основной фильтр по полям."""
+class UserFilter(df.FilterSet):
+    """Фильтр пользователей."""
 
     age = df.NumberFilter(field_name='age')
     foreign_languages = CustomFilterList(
