@@ -1,2 +1,2 @@
 # backend
-The best description possible!
+Rest API for LinguaChat
