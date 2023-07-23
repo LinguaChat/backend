@@ -19,7 +19,6 @@ user_router._urls = [
     )
 ]
 
-
 urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
 ]
