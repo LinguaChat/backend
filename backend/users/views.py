@@ -23,6 +23,7 @@ class UserViewSet(DjoserViewSet):
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = UserFilter
+    lookup_field = 'username'
 
     def get_queryset(self):
         """Переопределенный метод - аннотирует

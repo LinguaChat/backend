@@ -96,7 +96,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 DJOSER = {
-
+    'PASSWORD_RESET_CONFIRM_URL': '#/reset_password_confirm/{uid}/{token}',
+    'SEND_CONFIRMATION_EMAIL': True,
     'HIDE_USERS': False,
     'SERIALIZERS': {
         'user': 'users.serializers.UserSerializer'
