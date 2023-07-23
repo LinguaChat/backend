@@ -115,7 +115,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     text = serializers.CharField(
         allow_null=True,
-        max_length=5000
+        max_length=10000
     )
     chat = ChatSerializer(
         read_only=True
