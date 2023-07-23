@@ -1,9 +1,9 @@
 """Модели для приложения chats."""
 
-from django.contrib.auth import get_user_model
-from django.db import models
-
 from core.models import DateCreatedModel, DateEditedModel
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.db import models
 
 User = get_user_model()
 
@@ -106,10 +106,11 @@ class Message(DateCreatedModel, DateEditedModel):
         Chat,
         on_delete=models.CASCADE,
         verbose_name='Чат',
-        help_text='Чат, к которому относится сообщение'
+        help_text='Чат, к которому относится сообщение',
+        related_name='messages'
     )
     text = models.TextField(
-        max_length=5000,
+        max_length=10000,
         verbose_name='Текст сообщения',
         help_text='Текст сообщения'
     )
@@ -119,6 +120,13 @@ class Message(DateCreatedModel, DateEditedModel):
         null=True,
         verbose_name='Файл для отправки',
         help_text='Файл для отправки'
+    )
+    photo_to_send = models.ImageField(
+        upload_to='photos_to_send/',
+        blank=True,
+        null=True,
+        verbose_name='Фото для отправки',
+        help_text='Фото для отправки'
     )
     responding_to = models.ForeignKey(
         'self',
@@ -144,8 +152,20 @@ class Message(DateCreatedModel, DateEditedModel):
         help_text='Сообщение закреплено'
     )
 
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            chat_messages_count = Message.objects.filter(
+                chat=self.chat
+            ).count()
+            if chat_messages_count == 0:
+                if self.file_to_send or self.photo_to_send:
+                    raise ValidationError(
+                        "Нельзя отправить фото или файл первым сообщением"
+                    )
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"Message {self.message_id}"
+        return f"Message {self.id}"
 
     class Meta:
         verbose_name = 'Сообщение'

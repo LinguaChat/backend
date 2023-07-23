@@ -1,12 +1,10 @@
 """Сериализаторы приложения chats."""
 
+from chats.models import Attachment, Chat, ChatMembers, Message, MessageReaders
 from django.contrib.auth import get_user_model
-
 from rest_framework import serializers
 # from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
-
-from chats.models import Attachment, Chat, ChatMembers, Message, MessageReaders
 from users.serializers import UserSerializer
 
 User = get_user_model()
@@ -131,6 +129,11 @@ class MessageSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty_file=True
     )
+    photo_to_send = serializers.ImageField(
+        write_only=True,
+        required=False,
+        allow_empty_file=True
+    )
 
     class Meta:
         model = Message
@@ -140,6 +143,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'chat',
             'text',
             'file_to_send',
+            'photo_to_send',
             'responding_to',
             'sender_keep',
             'is_read',
@@ -149,7 +153,13 @@ class MessageSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         file_to_send = validated_data.pop('file_to_send', None)
+        photo_to_send = validated_data.pop('photo_to_send', None)
+        chat = validated_data['chat']
 
+        if chat.messages.exists():
+            raise serializers.ValidationError(
+                "Нельзя отправить фото или файл первым сообщением"
+            )
         message = Message.objects.create(**validated_data)
 
         if file_to_send:
@@ -159,10 +169,18 @@ class MessageSerializer(serializers.ModelSerializer):
                 message=message
             )
 
+        if photo_to_send:
+            Attachment.objects.create(
+                name=photo_to_send.name,
+                content=photo_to_send.read(),
+                message=message
+            )
+
         return message
 
     def update(self, instance, validated_data):
         file_to_send = validated_data.pop('file_to_send', None)
+        photo_to_send = validated_data.pop('photo_to_send', None)
 
         for key, value in validated_data.items():
             setattr(instance, key, value)
@@ -171,6 +189,13 @@ class MessageSerializer(serializers.ModelSerializer):
             Attachment.objects.create(
                 name=file_to_send.name,
                 content=file_to_send.read(),
+                message=instance
+            )
+
+        if photo_to_send:
+            Attachment.objects.create(
+                name=photo_to_send.name,
+                content=photo_to_send.read(),
                 message=instance
             )
 
