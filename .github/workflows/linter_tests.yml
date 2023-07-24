@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - develop
-      - 'feat[-/]**'
-      - 'fix[-/]**'
+      - 'feat**'
+      - 'fix**'
 
 jobs:
   tests:
