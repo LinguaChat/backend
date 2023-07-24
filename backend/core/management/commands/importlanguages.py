@@ -1,5 +1,5 @@
-from django.core.management.base import BaseCommand, CommandError
 from django.conf.locale import LANG_INFO
+from django.core.management.base import BaseCommand, CommandError
 
 from users.models import Language
 
@@ -12,15 +12,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         cnt = 0
-        for lang in LANG_INFO:
-            if len(lang) == 2:
-                #we only care about the 2 letter iso codes
+        for isocode in LANG_INFO:
+            if len(isocode) == 2:  #  we only care about the 2 letter iso codes
                 try:
-                    l = Language(isocode=lang,
-                                 name=LANG_INFO[lang]['name'],
-                                 name_local=LANG_INFO[lang]['name_local'])
-                    l.save()
+                    lang = Language(isocode=isocode,
+                                 name=LANG_INFO[isocode]['name'],
+                                 name_local=LANG_INFO[isocode]['name_local'])
+                    lang.save()
                     cnt += 1
                 except Exception as e:
-                    raise CommandError('Error adding language %s' % lang)
+                    raise CommandError('Error adding language %s: %s' % (lang, e))
         self.stdout.write('Added %d languages to users' % cnt)

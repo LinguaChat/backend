@@ -8,13 +8,13 @@ from django.db.models.functions import ExtractYear
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
-from rest_framework import status, mixins, filters, viewsets
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from users.filters import UserFilter
-from users.models import User, Language
+from users.models import Language, User
 from users.serializers import LanguageSerializer
 
 
@@ -74,4 +74,3 @@ class LanguageViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     search_fields = (
         'name', 'name_local'
     )
-
