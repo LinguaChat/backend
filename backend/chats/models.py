@@ -1,10 +1,9 @@
 """Модели для приложения chats."""
 
+from core.models import DateCreatedModel, DateEditedModel
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
-
-from core.models import DateCreatedModel, DateEditedModel
 
 User = get_user_model()
 
@@ -159,7 +158,11 @@ class Message(DateCreatedModel, DateEditedModel):
                 chat=self.chat
             ).count()
             if chat_messages_count == 0:
-                if self.file_to_send or self.photo_to_send:
+                if (
+                    self.file_to_send and self.file_to_send.file
+                ) or (
+                    self.photo_to_send and self.photo_to_send.file
+                ):
                     raise ValidationError(
                         "Нельзя отправить фото или файл первым сообщением"
                     )
@@ -171,12 +174,6 @@ class Message(DateCreatedModel, DateEditedModel):
     class Meta:
         verbose_name = 'Сообщение'
         verbose_name_plural = 'Сообщения'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['text', 'sender', 'chat'],
-                name='уникальное сообщение'
-            )
-        ]
 
 
 class MessageReaders(models.Model):

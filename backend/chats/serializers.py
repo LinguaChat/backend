@@ -1,12 +1,10 @@
 """Сериализаторы приложения chats."""
 
+from chats.models import Attachment, Chat, ChatMembers, Message, MessageReaders
 from django.contrib.auth import get_user_model
-
 from rest_framework import serializers
 # from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
-
-from chats.models import Attachment, Chat, ChatMembers, Message, MessageReaders
 from users.serializers import UserSerializer
 
 User = get_user_model()
@@ -158,10 +156,12 @@ class MessageSerializer(serializers.ModelSerializer):
         photo_to_send = validated_data.pop('photo_to_send', None)
         chat = validated_data['chat']
 
-        if chat.messages.exists():
+        if not chat.messages.exists() and (file_to_send or photo_to_send):
             raise serializers.ValidationError(
                 "Нельзя отправить фото или файл первым сообщением"
             )
+
+        validated_data['sender'] = self.context['request'].user
         message = Message.objects.create(**validated_data)
 
         if file_to_send:

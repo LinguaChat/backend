@@ -1,17 +1,15 @@
 """View-функции приложения chats."""
 
+from chats.serializers import (ChatListSerializer, ChatSerializer,
+                               MessageSerializer)
+from core.pagination import LimitPagination
+from core.permissions import ActiveChatOrReceiverOnly
 from django.contrib.auth import get_user_model
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from chats.serializers import (ChatListSerializer, ChatSerializer,
-                               MessageSerializer)
-from core.pagination import LimitPagination
-from core.permissions import ActiveChatOrReceiverOnly
 
 User = get_user_model()
 
@@ -68,10 +66,13 @@ class ChatViewSet(viewsets.ModelViewSet):
     def send_message(self, request, pk=None):
         """Отправить сообщение в чат"""
         chat = self.get_object()
-        serializer = MessageSerializer(data=request.data)
+        serializer = MessageSerializer(
+            data=request.data,
+            context={'request': request}
+        )
 
         if serializer.is_valid():
-            serializer.save(sender=request.user, chat=chat)
+            serializer.save(chat=chat)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
