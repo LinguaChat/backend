@@ -15,7 +15,7 @@ user_router._urls = [
     if not any(
         r.name.endswith(bad) for bad in [
             'set-username', 'reset-username', 'reset-username-confirm',
-            ]
+        ]
     )
 ]
 
