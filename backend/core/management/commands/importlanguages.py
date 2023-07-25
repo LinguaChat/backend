@@ -1,3 +1,5 @@
+"""Кастомные команды управления."""
+
 from django.conf.locale import LANG_INFO
 from django.core.management.base import BaseCommand, CommandError
 
@@ -5,7 +7,9 @@ from users.models import Language
 
 
 class Command(BaseCommand):
-    help = 'Imports language codes and names from django.conf.locale.LANG_INFO'
+    """Команда загрузки языков"""
+
+    help = 'Заружает коды и названия языков из django.conf.locale.LANG_INFO'
 
     def add_arguments(self, parser):
         pass
