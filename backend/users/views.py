@@ -14,8 +14,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from users.filters import UserFilter
-from users.models import Language, Country, User
-from users.serializers import LanguageSerializer, CountrySerializer
+from users.models import Country, Language, User
+from users.serializers import CountrySerializer, LanguageSerializer
 
 
 @extend_schema(tags=['users'])
