@@ -120,6 +120,13 @@ class Message(DateCreatedModel, DateEditedModel):
         verbose_name='Файл для отправки',
         help_text='Файл для отправки'
     )
+    # photo_to_send = models.ImageField(
+    #     upload_to='photos_to_send/',
+    #     blank=True,
+    #     null=True,
+    #     verbose_name='Фото для отправки',
+    #     help_text='Фото для отправки'
+    # )
     responding_to = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,

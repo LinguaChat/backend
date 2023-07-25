@@ -57,7 +57,7 @@ class UserSerializer(DjoserSerializer):
     """Сериализатор для модели пользователя."""
 
     age = serializers.SerializerMethodField()
-    avatar = Base64ImageField(required=False, allow_null=True)
+    # avatar = Base64ImageField(required=False, allow_null=True)
     city = CityNameField(queryset=City.objects.all(), required=False)
     native_languages = UserNativeLanguageSerializer(
         source='usernativelanguage',
@@ -77,7 +77,7 @@ class UserSerializer(DjoserSerializer):
             'username',
             'password',
             'first_name',
-            'avatar',
+            # 'avatar',
             'age',
             'slug',
             'country',

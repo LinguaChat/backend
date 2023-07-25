@@ -70,22 +70,12 @@ class User(AbstractUser, DateEditedModel):
         blank=True,
         help_text='Темы для разговора',
     )
-    city = models.ForeignKey(
-        'City',
-        max_length=255,
-        related_name='users_in_this_city',
-        on_delete=models.SET_NULL,
-        verbose_name='Город проживания',
-        null=True,
-        blank=True,
-        help_text='Город проживания пользователя',
-    )
-    avatar = models.ImageField(
-        'Изображение',
-        upload_to='user_photos/',
-        null=True,
-        help_text='Аватар пользователя',
-    )
+    # avatar = models.ImageField(
+    #     'Изображение',
+    #     upload_to='user_photos/',
+    #     null=True,
+    #     help_text='Аватар пользователя',
+    # )
     age_is_hidden = models.BooleanField(
         default=False,
         help_text='Поле для скрытия/отображения возраста пользователя',
@@ -214,15 +204,3 @@ class UserForeignLanguage(UserLanguage):
 
     def __str__(self):
         return f'{self.user} изучает {self.language}'
-
-
-class City(AbstractNameModel):
-    """Модель города проживания пользователя."""
-
-    class Meta:
-        ordering = ('name',)
-        verbose_name = 'Город проживания'
-        verbose_name_plural = 'Города проживания'
-
-    def __str__(self):
-        return self.name
