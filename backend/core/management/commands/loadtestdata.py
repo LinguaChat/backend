@@ -2,14 +2,14 @@
 
 import datetime as dt
 import random
-import requests
 import tempfile
 
-from django.core import files
 from django.contrib.auth import get_user_model
+from django.core import files
 from django.core.management.base import BaseCommand, CommandError
 
 import factory
+import requests
 
 from core.constants import GENDERS
 from users.models import Country, Language
