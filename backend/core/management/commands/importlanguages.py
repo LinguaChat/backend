@@ -19,7 +19,8 @@ class Command(BaseCommand):
             self.stdout.write('Languages not found, creating ones')
             cnt = 0
             for isocode in LANG_INFO:
-                if len(isocode) == 2:  # we only care about the 2 letter iso codes
+                # we only care about the 2 letter iso codes
+                if len(isocode) == 2:
                     try:
                         lang = Language(
                             isocode=isocode,

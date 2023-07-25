@@ -1,7 +1,7 @@
 """Кастомные команды управления."""
 
-from django.core.management.base import BaseCommand, CommandError
 from django.core.files.images import ImageFile
+from django.core.management.base import BaseCommand, CommandError
 
 from countries.conf import COUNTRIES, FLAGS_URLS
 from users.models import Country

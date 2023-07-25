@@ -54,5 +54,5 @@ class Command(BaseCommand):
                 self.stdout.write(u)
         except Exception as e:
             raise CommandError(
-                        'There was an error: %s' % (e,)
-                    )
+                    'There was an error: %s' % (e,)
+                )
