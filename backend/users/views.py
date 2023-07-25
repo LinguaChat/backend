@@ -14,8 +14,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from users.filters import UserFilter
-from users.models import Language, User
-from users.serializers import LanguageSerializer
+from users.models import Language, Country, User
+from users.serializers import LanguageSerializer, CountrySerializer
 
 
 @extend_schema(tags=['users'])
@@ -73,4 +73,18 @@ class LanguageViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     ]
     search_fields = (
         'name', 'name_local'
+    )
+
+
+class CountryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Country.objects.all()
+    serializer_class = CountrySerializer
+    permission_classes = [
+        AllowAny,
+    ]
+    filter_backends = [
+        filters.SearchFilter,
+    ]
+    search_fields = (
+        'name',
     )
