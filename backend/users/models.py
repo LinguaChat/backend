@@ -117,7 +117,9 @@ class User(AbstractUser, DateEditedModel):
     )
 
     def __str__(self):
-        return f'Пользователь {self.first_name}'
+        if self.first_name:
+            return f'{self.first_name} ({self.username})'
+        return f'{self.username}'
 
     class Meta:
         ordering = ['-date_joined']
