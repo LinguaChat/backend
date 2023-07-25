@@ -1,15 +1,17 @@
 """View-функции приложения chats."""
 
-from chats.serializers import (ChatListSerializer, ChatSerializer,
-                               MessageSerializer)
-from core.pagination import LimitPagination
-from core.permissions import ActiveChatOrReceiverOnly
 from django.contrib.auth import get_user_model
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from chats.serializers import (ChatListSerializer, ChatSerializer,
+                               MessageSerializer)
+from core.pagination import LimitPagination
+from core.permissions import ActiveChatOrReceiverOnly
 
 User = get_user_model()
 
