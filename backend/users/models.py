@@ -9,6 +9,29 @@ from core.constants import GENDERS, LANGUAGE_SKILL_LEVEL
 from core.models import AbstractNameModel, DateEditedModel
 
 
+class Country(AbstractNameModel):
+    """Модель страны."""
+
+    code = models.CharField(
+        'Код',
+        max_length=2,
+        null=True,
+        unique=True,
+        help_text='Код страны',
+    )
+    flag_icon = models.ImageField(
+        'Флаг',
+        help_text='Флаг страны',
+    )
+
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        verbose_name = 'Страна'
+        verbose_name_plural = 'Страны'
+
+
 class User(AbstractUser, DateEditedModel):
     """Кастомная модель пользователя."""
 
@@ -70,12 +93,20 @@ class User(AbstractUser, DateEditedModel):
         blank=True,
         help_text='Темы для разговора',
     )
-    # avatar = models.ImageField(
-    #     'Изображение',
-    #     upload_to='user_photos/',
-    #     null=True,
-    #     help_text='Аватар пользователя',
-    # )
+    country = models.ForeignKey(
+        'Country',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users',
+        verbose_name='Страна',
+    )
+    avatar = models.ImageField(
+        'Изображение',
+        upload_to='user_photos/',
+        null=True,
+        help_text='Аватар пользователя',
+    )
     age_is_hidden = models.BooleanField(
         default=False,
         help_text='Поле для скрытия/отображения возраста пользователя',

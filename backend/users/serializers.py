@@ -6,11 +6,12 @@ from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
 from users.fields import Base64ImageField
-from users.models import (Language, User, UserForeignLanguage,
+from users.models import (Language, Country, User, UserForeignLanguage,
                           UserNativeLanguage)
 
 
 class LanguageSerializer(serializers.ModelSerializer):
+    """Сериализатор модели языка."""
 
     class Meta:
         model = Language
@@ -24,14 +25,14 @@ class LanguageSerializer(serializers.ModelSerializer):
 
 
 class UserLanguageBaseSerializer(serializers.ModelSerializer):
-    """Общий сериализатор для двух промежуточных моделей."""
+    """Общий сериализатор промежуточных моделей Пользователь-Язык."""
 
     id = serializers.ReadOnlyField(source='language.id')
     language = serializers.ReadOnlyField(source='language.name')
 
 
 class UserNativeLanguageSerializer(UserLanguageBaseSerializer):
-    """Сериализатор для промежутоной модели Пользователь-родной язык."""
+    """Сериализатор промежутоной модели Пользователь-родной язык."""
 
     class Meta:
         model = UserNativeLanguage
@@ -42,7 +43,7 @@ class UserNativeLanguageSerializer(UserLanguageBaseSerializer):
 
 
 class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
-    """Сериализатор для промежутоной модели Пользователь-иностранный язык."""
+    """Сериализатор промежутоной модели Пользователь-иностранный язык."""
 
     class Meta:
         model = UserForeignLanguage
@@ -53,11 +54,24 @@ class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
         )
 
 
+class CountrySerializer(serializers.ModelSerializer):
+    """Сериализатор модели страны."""
+
+    class Meta:
+        model = Country
+        fields = (
+            'code',
+            'name',
+            'flag_icon',
+        )
+
+
 class UserSerializer(DjoserSerializer):
-    """Сериализатор для модели пользователя."""
+    """Сериализатор модели пользователя."""
 
     age = serializers.SerializerMethodField()
-    # avatar = Base64ImageField(required=False, allow_null=True)
+    avatar = Base64ImageField(required=False, allow_null=True)
+    country = CountrySerializer(read_only=True)
     native_languages = UserNativeLanguageSerializer(
         source='usernativelanguage',
         many=True,
@@ -76,7 +90,7 @@ class UserSerializer(DjoserSerializer):
             'username',
             'password',
             'first_name',
-            # 'avatar',
+            'avatar',
             'age',
             'slug',
             'country',
