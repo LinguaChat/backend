@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 
 from rest_framework import serializers
 
-from users.models import City, Language
+from users.models import Language
 
 
 class Base64ImageField(serializers.ImageField):
@@ -20,18 +20,6 @@ class Base64ImageField(serializers.ImageField):
                                name='temp.' + extension)
 
         return super().to_internal_value(data)
-
-
-class CityNameField(serializers.RelatedField):
-    """Кастомное поле, позволяющее делать update
-    города по id и получать его строковое
-    название при GET-запросе."""
-
-    def to_representation(self, value):
-        return value.name
-
-    def to_internal_value(self, data):
-        return City.objects.get(id=data)
 
 
 class LanguageNameField(serializers.RelatedField):
