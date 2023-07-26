@@ -11,11 +11,13 @@ from django.core.management.base import BaseCommand, CommandError
 import factory
 import requests
 
-from core.constants import GENDERS, MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES
-from users.models import Country, Language
+from core.constants import (GENDERS, LANGUAGE_SKILL_LEVELS,
+                            MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES)
+from users.models import Country, Language, UserForeignLanguage
 
 User = get_user_model()
 GENDERS_IDS = [x[0] for x in GENDERS]
+SKILL_LEVELS_IDS = [x[0] for x in LANGUAGE_SKILL_LEVELS]
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -78,8 +80,12 @@ class UserFactory(factory.django.DjangoModelFactory):
                 )
             except IndexError:
                 random_languages = []
-            for foreign_language in random_languages:
-                self.foreign_languages.add(foreign_language)
+            foreign_languages = [UserForeignLanguage(
+                user=self,
+                language=random_language,
+                skill_level=random.choice(SKILL_LEVELS_IDS)
+            ) for random_language in random_languages]
+            UserForeignLanguage.objects.bulk_create(foreign_languages)
         else:
             return
 
