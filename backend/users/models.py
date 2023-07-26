@@ -27,6 +27,7 @@ class Country(AbstractNameModel):
         return f'{self.name}'
 
     class Meta:
+        ordering = ['name']
         verbose_name = 'Страна'
         verbose_name_plural = 'Страны'
 
