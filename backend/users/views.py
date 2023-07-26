@@ -8,7 +8,7 @@ from django.db.models.functions import ExtractYear
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -64,9 +64,10 @@ class UserViewSet(DjoserViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-class LanguageViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Language.objects.all()
     serializer_class = LanguageSerializer
+    lookup_field = 'isocode'
     permission_classes = [
         AllowAny,
     ]
@@ -78,9 +79,10 @@ class LanguageViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     )
 
 
-class CountryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
+    lookup_field = 'code'
     permission_classes = [
         AllowAny,
     ]
