@@ -24,7 +24,7 @@ class UserViewSet(DjoserViewSet):
 
     filter_backends = (DjangoFilterBackend,)
     filterset_class = UserFilter
-    lookup_field = 'username'
+    lookup_field = 'slug'
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
