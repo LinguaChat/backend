@@ -11,7 +11,7 @@ from django.core.management.base import BaseCommand, CommandError
 import factory
 import requests
 
-from core.constants import GENDERS
+from core.constants import GENDERS, MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES
 from users.models import Country, Language
 
 User = get_user_model()
@@ -58,7 +58,8 @@ class UserFactory(factory.django.DjangoModelFactory):
         if create:
             try:
                 random_languages = random.choices(
-                    Language.objects.all(), k=random.randrange(1, 3)
+                    Language.objects.all(),
+                    k=random.randrange(1, MAX_NATIVE_LANGUAGES + 1)
                 )
             except IndexError:
                 random_languages = []
@@ -72,7 +73,8 @@ class UserFactory(factory.django.DjangoModelFactory):
         if create:
             try:
                 random_languages = random.choices(
-                    Language.objects.all(), k=random.randrange(1, 10)
+                    Language.objects.all(),
+                    k=random.randrange(1, MAX_FOREIGN_LANGUAGES + 1)
                 )
             except IndexError:
                 random_languages = []

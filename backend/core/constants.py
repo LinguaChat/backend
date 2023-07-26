@@ -14,3 +14,6 @@ LANGUAGE_SKILL_LEVEL = (
     ('Expert', 'Эксперт'),
     ('Guru', 'Гуру'),
 )
+
+MAX_FOREIGN_LANGUAGES = 5
+MAX_NATIVE_LANGUAGES = 3
