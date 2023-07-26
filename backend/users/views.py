@@ -68,6 +68,7 @@ class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Language.objects.all()
     serializer_class = LanguageSerializer
     lookup_field = 'isocode'
+    pagination_class = None
     permission_classes = [
         AllowAny,
     ]
@@ -83,6 +84,7 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
     lookup_field = 'code'
+    pagination_class = None
     permission_classes = [
         AllowAny,
     ]
