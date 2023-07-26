@@ -12,10 +12,10 @@ router.register('users', UserViewSet, basename='users')
 router.register('languages', LanguageViewSet, basename='languages')
 router.register('countries', CountryViewSet, basename='countries')
 
-user_router._urls = [
-    r for r in user_router.urls
+router._urls = [
+    url for url in router.urls
     if not any(
-        r.name.endswith(bad) for bad in [
+        url.name.endswith(bad) for bad in [
             'set-username', 'reset-username', 'reset-username-confirm',
         ]
     )
