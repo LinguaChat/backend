@@ -74,7 +74,7 @@ class LanguageViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         filters.SearchFilter,
     ]
     search_fields = (
-        'name', 'name_local'
+        'name', 'name_local', 'isocode'
     )
 
 
