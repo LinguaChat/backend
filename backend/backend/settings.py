@@ -101,7 +101,8 @@ DJOSER = {
     'SEND_CONFIRMATION_EMAIL': True,
     'HIDE_USERS': False,
     'SERIALIZERS': {
-        'user': 'users.serializers.UserSerializer'
+        'user': 'users.serializers.UserSerializer',
+        'current_user': 'users.serializers.UserSerializer',
     },
 
 }
