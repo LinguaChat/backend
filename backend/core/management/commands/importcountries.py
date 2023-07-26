@@ -21,23 +21,22 @@ class Command(BaseCommand):
             cnt = 0
             ignored = []
             for code, name in COUNTRIES.items():
-                if len(code) == 2:  # we only care about the 2 letter iso codes
-                    try:
-                        flag_url = FLAGS_URLS + code.lower() + '.svg'
-                        flag = ImageFile(open(flag_url, 'rb'))
-                        country = Country(
-                            code=code,
-                            name=name,
-                            flag_icon=flag
-                        )
-                        country.save()
-                        cnt += 1
-                    except FileNotFoundError:
-                        ignored.append(flag_url)
-                    except Exception as e:
-                        raise CommandError(
-                            'Error adding country %s: %s' % (country, e)
-                        )
+                try:
+                    flag_url = FLAGS_URLS + code.lower() + '.svg'
+                    flag = ImageFile(open(flag_url, 'rb'))
+                    country = Country(
+                        code=code,
+                        name=name,
+                        flag_icon=flag
+                    )
+                    country.save()
+                    cnt += 1
+                except FileNotFoundError:
+                    ignored.append(flag_url)
+                except Exception as e:
+                    raise CommandError(
+                        'Error adding country %s: %s' % (country, e)
+                    )
             self.stdout.write('Added %d countries' % cnt)
             if ignored:
                 self.stdout.write('Ignored: \n %s' % '\n'.join(ignored))

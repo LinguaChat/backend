@@ -13,7 +13,7 @@ class Country(AbstractNameModel):
 
     code = models.CharField(
         'Код',
-        max_length=2,
+        max_length=32,
         null=True,
         unique=True,
         help_text='Код страны',
