@@ -26,7 +26,7 @@ class Command(BaseCommand):
                     flag = ImageFile(open(flag_url, 'rb'))
                     country = Country(
                         code=code,
-                        name=name,
+                        name=name.capitalize(),
                         flag_icon=flag
                     )
                     country.save()
