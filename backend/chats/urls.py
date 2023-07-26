@@ -1,11 +1,15 @@
 """Маршруты приложения chats."""
 
+from django.urls import include, path
+
 from rest_framework import routers
 
 from chats.views import ChatViewSet
 
-chat_router = routers.DefaultRouter()
+router = routers.DefaultRouter()
 
-chat_router.register('chats', ChatViewSet, basename='chats')
+router.register('chats', ChatViewSet, basename='chats')
 
-urlpatterns = []
+urlpatterns = [
+    path('', include(router.urls)),
+]

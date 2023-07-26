@@ -8,16 +8,17 @@ from django.db.models.functions import ExtractYear
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from users.filters import UserFilter
-from users.models import User
+from users.models import Country, Language, User
+from users.serializers import CountrySerializer, LanguageSerializer
 
 
-@extend_schema(tags=['Users'])
+@extend_schema(tags=['users'])
 class UserViewSet(DjoserViewSet):
     """Вьюсет модели пользователя."""
 
@@ -61,3 +62,31 @@ class UserViewSet(DjoserViewSet):
         user.gender_is_hidden = 1 if not user.gender_is_hidden else 0
         request.user.save()
         return Response(status=status.HTTP_200_OK)
+
+
+class LanguageViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Language.objects.all()
+    serializer_class = LanguageSerializer
+    permission_classes = [
+        AllowAny,
+    ]
+    filter_backends = [
+        filters.SearchFilter,
+    ]
+    search_fields = (
+        'name', 'name_local'
+    )
+
+
+class CountryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Country.objects.all()
+    serializer_class = CountrySerializer
+    permission_classes = [
+        AllowAny,
+    ]
+    filter_backends = [
+        filters.SearchFilter,
+    ]
+    search_fields = (
+        'name',
+    )

@@ -8,6 +8,29 @@ from core.constants import GENDERS, LANGUAGE_SKILL_LEVEL
 from core.models import AbstractNameModel, DateEditedModel
 
 
+class Country(AbstractNameModel):
+    """Модель страны."""
+
+    code = models.CharField(
+        'Код',
+        max_length=32,
+        null=True,
+        unique=True,
+        help_text='Код страны',
+    )
+    flag_icon = models.ImageField(
+        'Флаг',
+        help_text='Флаг страны',
+    )
+
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        verbose_name = 'Страна'
+        verbose_name_plural = 'Страны'
+
+
 class User(AbstractUser, DateEditedModel):
     """Кастомная модель пользователя."""
 
@@ -69,15 +92,13 @@ class User(AbstractUser, DateEditedModel):
         blank=True,
         help_text='Темы для разговора',
     )
-    city = models.ForeignKey(
-        'City',
-        max_length=255,
-        related_name='users_in_this_city',
+    country = models.ForeignKey(
+        'Country',
         on_delete=models.SET_NULL,
-        verbose_name='Город проживания',
         null=True,
         blank=True,
-        help_text='Город проживания пользователя',
+        related_name='users',
+        verbose_name='Страна',
     )
     avatar = models.ImageField(
         'Изображение',
@@ -95,7 +116,9 @@ class User(AbstractUser, DateEditedModel):
     )
 
     def __str__(self):
-        return f'Пользователь {self.first_name}'
+        if self.first_name:
+            return f'{self.first_name} ({self.username})'
+        return f'{self.username}'
 
     class Meta:
         ordering = ['-date_joined']
@@ -115,16 +138,48 @@ class User(AbstractUser, DateEditedModel):
         super().save(*args, **kwargs)
 
 
-class Language(AbstractNameModel):
-    """Модель языка."""
+class Language(models.Model):
+    """
+    Модель языка.
+    Объекты должны быть сгенерированы из django.conf.locale.LANG_INFO
+    """
 
-    class Meta:
-        ordering = ('name',)
-        verbose_name = 'Язык'
-        verbose_name_plural = 'Языки'
+    name = models.CharField(
+        max_length=256,
+        null=False,
+        blank=False,
+        verbose_name='Название языка'
+    )
+    name_local = models.CharField(
+        max_length=256,
+        null=False,
+        blank=True,
+        default='',
+        verbose_name='Название языка (на этом языке)'
+    )
+    isocode = models.CharField(
+        max_length=2,
+        null=False,
+        blank=False,
+        unique=True,
+        verbose_name='ISO 639-1 Код языка',
+        help_text='2-символьный код языка без страны'
+    )
+    sorting = models.PositiveIntegerField(
+        blank=False,
+        null=False,
+        default=0,
+        verbose_name='Порядок сортировки',
+        help_text='Увеличьте, чтобы поднять в выборке'
+    )
 
     def __str__(self):
-        return self.name
+        return '%s (%s)' % (self.name, self.name_local)
+
+    class Meta:
+        verbose_name = 'Язык'
+        verbose_name_plural = 'Языки'
+        ordering = ('-sorting', 'name', 'isocode', )
 
 
 class UserLanguage(models.Model):
@@ -180,15 +235,3 @@ class UserForeignLanguage(UserLanguage):
 
     def __str__(self):
         return f'{self.user} изучает {self.language}'
-
-
-class City(AbstractNameModel):
-    """Модель города проживания пользователя."""
-
-    class Meta:
-        ordering = ('name',)
-        verbose_name = 'Город проживания'
-        verbose_name_plural = 'Города проживания'
-
-    def __str__(self):
-        return self.name

@@ -4,11 +4,13 @@ from django.urls import include, path
 
 from rest_framework import routers
 
-from users.views import UserViewSet
+from users.views import CountryViewSet, LanguageViewSet, UserViewSet
 
-user_router = routers.DefaultRouter()
+router = routers.DefaultRouter()
 
-user_router.register('users', UserViewSet, basename='users')
+router.register('users', UserViewSet, basename='users')
+router.register('languages', LanguageViewSet, basename='languages')
+router.register('countries', CountryViewSet, basename='countries')
 
 user_router._urls = [
     r for r in user_router.urls
@@ -21,4 +23,5 @@ user_router._urls = [
 
 urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
+    path('', include(router.urls)),
 ]

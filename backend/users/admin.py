@@ -5,7 +5,7 @@ import datetime as dt
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import City, Language, User
+from .models import Country, Language, User
 
 
 class NativeLanguageInlineAdmin(admin.TabularInline):
@@ -42,8 +42,7 @@ class CustomUserAdmin(UserAdmin):
         'username',
         'email',
         'first_name',
-        'country',
-        'city__name',
+        'country__name',
     )
     ordering = ('-date_joined',)
     prepopulated_fields = {'slug': ('username',)}
@@ -64,7 +63,6 @@ class CustomUserAdmin(UserAdmin):
                 'birth_date',
                 '_age',
                 'gender',
-                'city',
                 'avatar',
                 'about',
                 'topics_for_discussion',
@@ -96,7 +94,8 @@ class CustomUserAdmin(UserAdmin):
                 'username',
                 'email',
                 'password1',
-                'password2'
+                'password2',
+                'slug',
             ),
         }),
     )
@@ -127,5 +126,5 @@ class CustomUserAdmin(UserAdmin):
     _foreign_languages.short_description = 'Изучаемые языки'
 
 
-admin.site.register(City)
 admin.site.register(Language)
+admin.site.register(Country)
