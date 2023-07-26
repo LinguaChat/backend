@@ -12,6 +12,7 @@ class Command(BaseCommand):
     help = 'Удаляет всех пользователей, кроме админов'
 
     def handle(self, *args, **options):
+        self.stdout.write('Dropping users...')
         try:
             User.objects.all().exclude(is_staff=True).delete()
         except Exception as e:

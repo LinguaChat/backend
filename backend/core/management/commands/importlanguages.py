@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not Language.objects.exists():
-            self.stdout.write('Languages not found, creating ones')
+            self.stdout.write('Languages not found, creating ones...')
             cnt = 0
             for isocode in LANG_INFO:
                 # we only care about the 2 letter iso codes

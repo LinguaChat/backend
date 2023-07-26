@@ -31,7 +31,7 @@ class Command(BaseCommand):
                 not User.objects.filter(username=username).exists()
                 and not User.objects.filter(is_superuser=True).exists()
             ):
-                self.stdout.write("admin user not found, creating one")
+                self.stdout.write("admin user not found, creating one...")
 
                 new_password = os.getenv(
                     'DJANGO_SUPERUSER_PASSWORD', default=get_random_string(10)

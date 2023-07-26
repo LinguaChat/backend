@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not Country.objects.exists():
-            self.stdout.write('Countries not found, creating ones')
+            self.stdout.write('Countries not found, creating ones...')
             cnt = 0
             ignored = []
             for code, name in COUNTRIES.items():
