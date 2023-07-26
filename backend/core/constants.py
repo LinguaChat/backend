@@ -7,7 +7,7 @@ GENDERS = (
 )
 
 # Уровни владения языком
-LANGUAGE_SKILL_LEVEL = (
+LANGUAGE_SKILL_LEVELS = (
     ('Newbie', 'Новичок'),
     ('Amateur', 'Любитель'),
     ('Profi', 'Профи'),

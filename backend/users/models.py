@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.template.defaultfilters import slugify
 
-from core.constants import GENDERS, LANGUAGE_SKILL_LEVEL
+from core.constants import GENDERS, LANGUAGE_SKILL_LEVELS
 from core.models import AbstractNameModel, DateEditedModel
 
 
@@ -225,7 +225,7 @@ class UserForeignLanguage(UserLanguage):
     skill_level = models.CharField(
         'Уровень владения языком',
         max_length=30,
-        choices=LANGUAGE_SKILL_LEVEL,
+        choices=LANGUAGE_SKILL_LEVELS,
         help_text='Укажите уровень вашего владения языком.',
     )
 
