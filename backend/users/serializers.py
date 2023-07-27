@@ -112,12 +112,16 @@ class UserSerializer(DjoserSerializer):
             'gender',
             'topics_for_discussion',
             'about',
+            'gender_is_hidden',
+            'age_is_hidden',
         )
         extra_kwargs = {
             'email': {'write_only': True},
             'username': {'write_only': True},
             'password': {'write_only': True},
             'birth_date': {'write_only': True},
+            'gender_is_hidden': {'read_only': True},
+            'age_is_hidden': {'read_only': True},
         }
 
     def get_age(self, obj):
