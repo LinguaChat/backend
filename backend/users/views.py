@@ -26,7 +26,7 @@ class UserViewSet(DjoserViewSet):
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = UserFilter
     ordering_fields = ['date_joined']
-    ordering = ['?'] 
+    ordering = ['?']
     lookup_field = 'slug'
     http_method_names = ['get', 'post', 'patch', 'delete']
 

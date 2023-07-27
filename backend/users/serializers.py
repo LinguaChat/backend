@@ -135,8 +135,8 @@ class UserSerializer(DjoserSerializer):
         native_languages = attrs.get('native_languages')
 
         if (
-            native_languages and
-            len(native_languages) > MAX_NATIVE_LANGUAGES
+            native_languages
+            and len(native_languages) > MAX_NATIVE_LANGUAGES
         ):
             self.fail(
                 'out_of_range',
@@ -147,8 +147,8 @@ class UserSerializer(DjoserSerializer):
         foreign_languages = attrs.get('foreign_languages')
 
         if (
-            foreign_languages and
-            len(foreign_languages) > MAX_FOREIGN_LANGUAGES
+            foreign_languages
+            and len(foreign_languages) > MAX_FOREIGN_LANGUAGES
         ):
             self.fail(
                 'out_of_range',
