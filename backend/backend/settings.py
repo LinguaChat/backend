@@ -103,7 +103,8 @@ DJOSER = {
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],
         'user_create': ['rest_framework.permissions.AllowAny'],
-        'user': ['rest_framework.permissions.IsAuthenticated'],
+        'user_delete': ['rest_framework.permissions.CurrentUserOrAdmin'],
+        'user': ['rest_framework.permissions.AllowAny'],
         'current_user': ['rest_framework.permissions.IsAuthenticated'],
     },
     'SERIALIZERS': {
