@@ -24,6 +24,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
         django_get_or_create = ('email', 'username')
+
     email = factory.faker.Faker('email')
     username = factory.faker.Faker('name')
     birth_date = factory.Faker('date_between', end_date=dt.date(2005, 7, 24))
@@ -47,7 +48,7 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     @factory.post_generation
     def avatar(self, create, extracted, **kwargs):
-        if create:
+        if create and not extracted == 'no-avatar':
             gender = self.gender.lower()
             url = f"https://xsgames.co/randomusers/avatar.php?g={gender}"
             response = requests.get(url, stream=True)
@@ -116,12 +117,20 @@ class Command(BaseCommand):
             '--count',
             help='Кол-во',
         )
+        parser.add_argument(
+            '--no-avatar',
+            action="store_true",
+            help="Добавить пользователя(-ей) без фото",
+        )
 
     def handle(self, *args, **options):
         self.stdout.write('Adding random users...')
         cnt = int(options.get('count') or '16')
         try:
-            UserFactory.create_batch(cnt)
+            if options['no_avatar']:
+                UserFactory.create_batch(cnt, avatar='no-avatar')
+            else:
+                UserFactory.create_batch(cnt)
         except Exception as e:
             raise CommandError(
                 'Error adding users: %s' % (e,)
