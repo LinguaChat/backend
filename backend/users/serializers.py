@@ -5,6 +5,7 @@ import datetime as dt
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
+from core.constants import MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES
 from users.fields import Base64ImageField
 from users.models import (Country, Language, User, UserForeignLanguage,
                           UserNativeLanguage)
@@ -16,7 +17,6 @@ class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
         fields = (
-            'id',
             'name',
             'name_local',
             'isocode',
@@ -40,6 +40,9 @@ class UserNativeLanguageSerializer(UserLanguageBaseSerializer):
             'id',
             'language',
         )
+        read_only_fields = (
+            'language',
+        )
 
 
 class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
@@ -51,6 +54,9 @@ class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
             'id',
             'language',
             'skill_level',
+        )
+        read_only_fields = (
+            'language',
         )
 
 
@@ -80,8 +86,14 @@ class UserSerializer(DjoserSerializer):
     foreign_languages = UserForeignLanguageSerializer(
         source='userforeignlanguage',
         many=True,
-        read_only=True,
+        read_only=True
     )
+
+    default_error_messages = {
+        'out_of_range': (
+            'Кол-во {objects} не должно превышать {max_amount}.'
+        )
+    }
 
     class Meta:
         model = User
@@ -101,6 +113,12 @@ class UserSerializer(DjoserSerializer):
             'topics_for_discussion',
             'about',
         )
+        extra_kwargs = {
+            'email': {'write_only': True},
+            'username': {'write_only': True},
+            'password': {'write_only': True},
+            'birth_date': {'write_only': True},
+        }
 
     def get_age(self, obj):
         """Вычисление возраста пользователя."""
@@ -108,6 +126,33 @@ class UserSerializer(DjoserSerializer):
             age_days = (dt.datetime.now().date() - obj.birth_date).days
             return int(age_days / 365)
         return None
+
+    def validate(self, attrs):
+        native_languages = attrs.get('native_languages')
+
+        if (
+            native_languages and
+            len(native_languages) > MAX_NATIVE_LANGUAGES
+        ):
+            self.fail(
+                'out_of_range',
+                objects='родных языков',
+                max_amount=MAX_NATIVE_LANGUAGES
+            )
+
+        foreign_languages = attrs.get('foreign_languages')
+
+        if (
+            foreign_languages and
+            len(foreign_languages) > MAX_FOREIGN_LANGUAGES
+        ):
+            self.fail(
+                'out_of_range',
+                objects='изучаемых языков',
+                max_amount=MAX_FOREIGN_LANGUAGES
+            )
+
+        return super().validate(attrs)
 
     def create_native_languages(self, user, native_languages):
         """Создание объектов в промежуточной таблице."""
