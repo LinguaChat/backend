@@ -23,8 +23,10 @@ from users.serializers import (CountrySerializer, LanguageSerializer,
 class UserViewSet(DjoserViewSet):
     """Вьюсет модели пользователя."""
 
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = UserFilter
+    ordering_fields = ['date_joined']
+    ordering = ['?'] 
     lookup_field = 'slug'
     http_method_names = ['get', 'post', 'patch', 'delete']
 
