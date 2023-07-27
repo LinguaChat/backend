@@ -28,6 +28,7 @@ class UserLanguageBaseSerializer(serializers.ModelSerializer):
     """Общий сериализатор промежуточных моделей Пользователь-Язык."""
 
     id = serializers.ReadOnlyField(source='language.id')
+    code = serializers.ReadOnlyField(source='language.isocode')
     language = serializers.ReadOnlyField(source='language.name')
 
 
@@ -38,10 +39,12 @@ class UserNativeLanguageSerializer(UserLanguageBaseSerializer):
         model = UserNativeLanguage
         fields = (
             'id',
+            'code',
             'language',
         )
         read_only_fields = (
             'language',
+            'code',
         )
 
 
@@ -52,11 +55,13 @@ class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
         model = UserForeignLanguage
         fields = (
             'id',
+            'code',
             'language',
             'skill_level',
         )
         read_only_fields = (
             'language',
+            'code',
         )
 
 
