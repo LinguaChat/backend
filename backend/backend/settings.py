@@ -100,6 +100,12 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/reset_password_confirm/{uid}/{token}',
     'SEND_CONFIRMATION_EMAIL': True,
     'HIDE_USERS': False,
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user_create': ['rest_framework.permissions.AllowAny'],
+        'user': ['rest_framework.permissions.IsAuthenticated'],
+        'current_user': ['rest_framework.permissions.IsAuthenticated'],
+    },
     'SERIALIZERS': {
         'user': 'users.serializers.UserSerializer',
         'current_user': 'users.serializers.UserSerializer',
