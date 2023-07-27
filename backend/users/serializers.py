@@ -4,7 +4,6 @@ import datetime as dt
 
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
-
 from users.fields import Base64ImageField
 from users.models import (Country, Language, User, UserForeignLanguage,
                           UserNativeLanguage)
@@ -82,6 +81,7 @@ class UserSerializer(DjoserSerializer):
         many=True,
         read_only=True,
     )
+    is_online = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -100,6 +100,8 @@ class UserSerializer(DjoserSerializer):
             'gender',
             'topics_for_discussion',
             'about',
+            'last_activity',
+            'is_online',
         )
 
     def get_age(self, obj):

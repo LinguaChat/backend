@@ -1,11 +1,11 @@
 """Модели приложения users."""
 
+from core.constants import GENDERS, LANGUAGE_SKILL_LEVELS
+from core.models import AbstractNameModel, DateEditedModel
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.template.defaultfilters import slugify
-
-from core.constants import GENDERS, LANGUAGE_SKILL_LEVELS
-from core.models import AbstractNameModel, DateEditedModel
+from django.utils import timezone
 
 
 class Country(AbstractNameModel):
@@ -115,6 +115,17 @@ class User(AbstractUser, DateEditedModel):
         default=False,
         help_text='Поле для скрытия/отображения пола пользователя',
     )
+    last_activity = models.DateTimeField(
+        'Последняя активность',
+        default=timezone.now,
+        blank=True,
+        null=True,
+        help_text='Последнее время активности пользователя',
+    )
+    is_online = models.BooleanField(
+        default=False,
+        help_text='Статус пользователя: онлайн или оффлайн',
+    )
 
     def __str__(self):
         if self.first_name:
@@ -136,6 +147,7 @@ class User(AbstractUser, DateEditedModel):
         """При создании объекта устанавливать слаг."""
         if not self.id:
             self.slug = slugify(self.username)
+        self.last_activity = timezone.now()
         super().save(*args, **kwargs)
 
 

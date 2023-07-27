@@ -1,10 +1,9 @@
 """Модели для приложения chats."""
 
+from core.models import DateCreatedModel, DateEditedModel
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
-
-from core.models import DateCreatedModel, DateEditedModel
 
 User = get_user_model()
 
@@ -101,7 +100,9 @@ class Message(DateCreatedModel, DateEditedModel):
         User,
         on_delete=models.CASCADE,
         verbose_name='Отправитель сообщения',
-        help_text='Отправитель сообщения'
+        help_text='Отправитель сообщения',
+        blank=True,
+        null=True
     )
     chat = models.ForeignKey(
         Chat,
