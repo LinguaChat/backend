@@ -32,7 +32,7 @@ class UserViewSet(DjoserViewSet):
         """Переопределенный метод - аннотирует
         queryset поле 'age' - высчитывает возраст пользователя."""
         # вычисляем возраст на уровне БД
-        return User.objects.all().annotate(
+        return User.objects.filter(is_staff=False).annotate(
             birth_year=ExtractYear('birth_date')).annotate(
             age=ExpressionWrapper(dt.datetime.now().year - F('birth_year'),
                                   output_field=IntegerField())
