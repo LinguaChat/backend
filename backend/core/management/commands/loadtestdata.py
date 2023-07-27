@@ -26,12 +26,24 @@ class UserFactory(factory.django.DjangoModelFactory):
         django_get_or_create = ('email', 'username')
     email = factory.faker.Faker('email')
     username = factory.faker.Faker('name')
-    first_name = factory.Faker('first_name')
     birth_date = factory.Faker('date_between', end_date=dt.date(2005, 7, 24))
     password = factory.django.Password('pw')
     gender = factory.Faker('random_element', elements=GENDERS_IDS)
     country = factory.Faker('random_element', elements=Country.objects.all())
     about = factory.faker.Faker('text', max_nb_chars=255)
+
+    @factory.post_generation
+    def first_name(self, create, extracted, **kwargs):
+        if create:
+            faker = factory.Faker
+            if self.gender == 'Male':
+                first_name = faker._get_faker().first_name_male()
+            else:
+                first_name = faker._get_faker().first_name_female()
+            self.first_name = first_name
+            self.save()
+        else:
+            return
 
     @factory.post_generation
     def avatar(self, create, extracted, **kwargs):
