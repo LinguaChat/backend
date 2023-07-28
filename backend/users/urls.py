@@ -4,8 +4,8 @@ from django.urls import include, path
 
 from rest_framework import routers
 
-from users.views import CountryViewSet, LanguageViewSet, UserViewSet
 from users.routers import CustomRouter
+from users.views import CountryViewSet, LanguageViewSet, UserViewSet
 
 router_user = CustomRouter()
 router = routers.DefaultRouter()
