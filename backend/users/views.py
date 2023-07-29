@@ -1,10 +1,5 @@
 """View-функции приложения users."""
 
-import datetime as dt
-
-from django.db.models import ExpressionWrapper, F, IntegerField
-from django.db.models.functions import ExtractYear
-
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
@@ -31,14 +26,8 @@ class UserViewSet(DjoserViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
-        """Переопределенный метод - аннотирует
-        queryset поле 'age' - высчитывает возраст пользователя."""
-        # вычисляем возраст на уровне БД
-        return User.objects.filter(is_staff=False).annotate(
-            birth_year=ExtractYear('birth_date')).annotate(
-            age=ExpressionWrapper(dt.datetime.now().year - F('birth_year'),
-                                  output_field=IntegerField())
-        )
+        """Исключает из выборки админов."""
+        return User.objects.filter(is_staff=False)
 
     @action(
         methods=('PATCH',),
@@ -73,7 +62,10 @@ class UserViewSet(DjoserViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=['languages'])
 class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет модели языка."""
+
     queryset = Language.objects.all()
     serializer_class = LanguageSerializer
     lookup_field = 'isocode'
@@ -89,7 +81,10 @@ class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
     )
 
 
+@extend_schema(tags=['countries'])
 class CountryViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет модели страны."""
+
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
     lookup_field = 'code'
