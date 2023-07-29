@@ -25,7 +25,7 @@ class Command(BaseCommand):
                     flag_url = FLAGS_URLS + code.lower() + '.svg'
                     flag = ImageFile(open(flag_url, 'rb'))
                     country = Country(
-                        code=code,
+                        code=code.lower(),
                         name=name.capitalize(),
                         flag_icon=flag
                     )
