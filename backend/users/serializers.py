@@ -133,14 +133,15 @@ class UserSerializer(DjoserSerializer):
             'age_is_hidden': {'read_only': True},
         }
 
-    def get_is_online(self, obj):
-        last_seen = cache.get(f'last-seen-{obj.id}')
-        if last_seen is not None and \
-                timezone.now() < last_seen + timezone.timedelta(seconds=300):
-            is_online = True
-        else:
-            is_online = False
-        return is_online
+        def get_is_online(self, obj):
+            last_seen = cache.get(f'last-seen-{obj.id}')
+            if last_seen is not None and (
+                timezone.now() < last_seen + timezone.timedelta(seconds=300)
+            ):
+                is_online = True
+            else:
+                is_online = False
+            return is_online
 
     def get_age(self, obj):
         """Вычисление возраста пользователя."""
