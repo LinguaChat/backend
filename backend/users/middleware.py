@@ -1,4 +1,3 @@
-
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import timezone
@@ -24,8 +23,7 @@ class ActiveUserMiddleware:
                 cache.set(cache_key, timezone.now(), 300)
 
             request.user.refresh_from_db()
-            is_online = request.user.is_user_online()
-            request.user.is_online = is_online
+            request.user.is_online = request.user.is_user_online()
             request.user.save()
 
         return response
