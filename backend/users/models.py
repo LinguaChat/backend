@@ -1,8 +1,10 @@
 """Модели приложения users."""
 
 from django.contrib.auth.models import AbstractUser
+from django.core.cache import cache
 from django.db import models
 from django.template.defaultfilters import slugify
+from django.utils import timezone
 
 from core.constants import GENDERS, LANGUAGE_SKILL_LEVELS
 from core.models import AbstractNameModel, DateEditedModel
@@ -116,6 +118,25 @@ class User(AbstractUser, DateEditedModel):
         default=False,
         help_text='Поле для скрытия/отображения пола пользователя',
     )
+    last_activity = models.DateTimeField(
+        'Последняя активность',
+        default=timezone.now,
+        blank=True,
+        null=True,
+        help_text='Последнее время активности пользователя',
+    )
+    is_online = models.BooleanField(
+        default=False,
+        help_text='Статус пользователя: онлайн или оффлайн',
+    )
+
+    def is_user_online(self):
+        last_seen = cache.get(f'last-seen-{self.id}')
+        if last_seen is not None and (
+            timezone.now() < last_seen + timezone.timedelta(seconds=300)
+        ):
+            return True
+        return False
 
     def __str__(self):
         if self.first_name:
@@ -134,9 +155,20 @@ class User(AbstractUser, DateEditedModel):
         ]
 
     def save(self, *args, **kwargs):
-        """При создании объекта устанавливать слаг."""
         if not self.id:
             self.slug = slugify(self.username)
+
+        if self.id or self._state.adding:
+            self.last_activity = timezone.now()
+
+            last_seen = cache.get(f'last-seen-{self.id}')
+            if last_seen is not None and (
+                timezone.now() < last_seen + timezone.timedelta(seconds=300)
+            ):
+                self.is_online = True
+            else:
+                self.is_online = False
+
         super().save(*args, **kwargs)
 
 
