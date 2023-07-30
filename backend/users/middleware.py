@@ -10,8 +10,6 @@ class ActiveUserMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
-
         if request.user.is_authenticated:
             cache_key = f'last-seen-{request.user.id}'
             last_seen = cache.get(cache_key)
@@ -23,5 +21,6 @@ class ActiveUserMiddleware:
                 cache.set(cache_key, timezone.now(), 300)
 
             request.user.refresh_from_db()
+            request.user.is_user_online()
 
-        return response
+        return self.get_response(request)
