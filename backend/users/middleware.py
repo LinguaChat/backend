@@ -14,7 +14,9 @@ class ActiveUserMiddleware:
 
         if request.user.is_authenticated:
             cache_key = f'last-seen-{request.user.id}'
-            if not cache.get(cache_key):
+            last_seen = cache.get(cache_key)
+
+            if not last_seen:
                 User.objects.filter(id=request.user.id).update(
                     last_activity=timezone.now()
                 )
