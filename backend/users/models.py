@@ -106,6 +106,7 @@ class User(AbstractUser, DateEditedModel):
         'Изображение',
         upload_to='user_photos/',
         null=True,
+        blank=True,
         help_text='Аватар пользователя',
     )
     age_is_hidden = models.BooleanField(

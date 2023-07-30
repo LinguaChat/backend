@@ -23,7 +23,7 @@ class Command(BaseCommand):
                 if len(isocode) == 2:
                     try:
                         lang = Language(
-                            isocode=isocode,
+                            isocode=isocode.capitalize(),
                             name=LANG_INFO[isocode]['name'],
                             name_local=LANG_INFO[isocode]['name_local']
                         )

@@ -15,5 +15,6 @@ LANGUAGE_SKILL_LEVELS = (
     ('Guru', 'Гуру'),
 )
 
+# Ограничение по кол-ву родных и изучаемых языков
 MAX_FOREIGN_LANGUAGES = 5
 MAX_NATIVE_LANGUAGES = 3
