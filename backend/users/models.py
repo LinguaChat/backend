@@ -3,6 +3,7 @@
 from core.constants import GENDERS, LANGUAGE_SKILL_LEVELS
 from core.models import AbstractNameModel, DateEditedModel
 from django.contrib.auth.models import AbstractUser
+from django.core.cache import cache
 from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils import timezone
@@ -127,6 +128,14 @@ class User(AbstractUser, DateEditedModel):
         help_text='Статус пользователя: онлайн или оффлайн',
     )
 
+    def is_user_online(self):
+        last_seen = cache.get(f'last-seen-{self.id}')
+        if last_seen is not None and (
+            timezone.now() < last_seen + timezone.timedelta(seconds=300)
+        ):
+            return True
+        return False
+
     def __str__(self):
         if self.first_name:
             return f'{self.first_name} ({self.username})'
@@ -144,10 +153,20 @@ class User(AbstractUser, DateEditedModel):
         ]
 
     def save(self, *args, **kwargs):
-        """При создании объекта устанавливать слаг."""
-        if not self.id:
+        if not self.id: 
             self.slug = slugify(self.username)
-        self.last_activity = timezone.now()
+
+        if self.id or self._state.adding: 
+            self.last_activity = timezone.now()
+
+            last_seen = cache.get(f'last-seen-{self.id}')
+            if last_seen is not None and (
+                timezone.now() < last_seen + timezone.timedelta(seconds=300)
+            ):
+                self.is_online = True
+            else:
+                self.is_online = False
+
         super().save(*args, **kwargs)
 
 

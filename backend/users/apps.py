@@ -8,6 +8,6 @@ class UsersConfig(AppConfig):
     name = 'users'
     verbose_name = 'Приложение для описания пользователя'
 
-    def ready(self):
-        # Импортируем модуль с определениями сигналов
-        import users.signals  # noqa
+    # def ready(self):
+    #     # Импортируем модуль с определениями сигналов
+    #     import users.signals  # noqa
