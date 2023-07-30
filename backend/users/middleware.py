@@ -27,13 +27,3 @@ class ActiveUserMiddleware:
             request.user.save()
 
         return response
-
-    def process_response(self, request, response):
-        if request.user.is_authenticated:
-            if not request.session.session_key:
-                cache_key = f'last-seen-{request.user.id}'
-                cache.delete(cache_key)
-                request.user.is_online = False
-                request.user.save()
-
-        return response
