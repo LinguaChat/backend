@@ -2,11 +2,13 @@
 
 import datetime as dt
 
-from core.constants import MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES
 from django.core.cache import cache
 from django.utils import timezone
+
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
+
+from core.constants import MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES
 from users.fields import Base64ImageField
 from users.models import (Country, Language, User, UserForeignLanguage,
                           UserNativeLanguage)

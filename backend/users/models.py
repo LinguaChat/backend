@@ -1,12 +1,13 @@
 """Модели приложения users."""
 
-from core.constants import GENDERS, LANGUAGE_SKILL_LEVELS
-from core.models import AbstractNameModel, DateEditedModel
 from django.contrib.auth.models import AbstractUser
 from django.core.cache import cache
 from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils import timezone
+
+from core.constants import GENDERS, LANGUAGE_SKILL_LEVELS
+from core.models import AbstractNameModel, DateEditedModel
 
 
 class Country(AbstractNameModel):
