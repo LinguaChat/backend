@@ -23,7 +23,8 @@ class ActiveUserMiddleware:
                 cache.set(cache_key, timezone.now(), 300)
 
             request.user.refresh_from_db()
-            request.user.is_user_online()
+            is_online = request.user.is_user_online()
+            request.user.is_online = is_online
             request.user.save()
 
         return response
