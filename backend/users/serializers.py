@@ -2,13 +2,11 @@
 
 import datetime as dt
 
+from core.constants import MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES
 from django.core.cache import cache
 from django.utils import timezone
-
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
-
-from core.constants import MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES
 from users.fields import Base64ImageField
 from users.models import (Country, Language, User, UserForeignLanguage,
                           UserNativeLanguage)
@@ -135,15 +133,15 @@ class UserSerializer(DjoserSerializer):
             'age_is_hidden': {'read_only': True},
         }
 
-        def get_is_online(self, obj):
-            last_seen = cache.get(f'last-seen-{obj.id}')
-            if last_seen is not None and (
-                timezone.now() < last_seen + timezone.timedelta(seconds=300)
-            ):
-                is_online = True
-            else:
-                is_online = False
-            return is_online
+    def get_is_online(self, obj):
+        last_seen = cache.get(f'last-seen-{obj.id}')
+        if last_seen is not None and (
+            timezone.now() < last_seen + timezone.timedelta(seconds=300)
+        ):
+            is_online = True
+        else:
+            is_online = False
+        return is_online
 
     def get_age(self, obj):
         """Вычисление возраста пользователя."""
