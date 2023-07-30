@@ -155,10 +155,10 @@ class User(AbstractUser, DateEditedModel):
         ]
 
     def save(self, *args, **kwargs):
-        if not self.id: 
+        if not self.id:
             self.slug = slugify(self.username)
 
-        if self.id or self._state.adding: 
+        if self.id or self._state.adding:
             self.last_activity = timezone.now()
 
             last_seen = cache.get(f'last-seen-{self.id}')
