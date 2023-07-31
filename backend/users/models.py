@@ -51,12 +51,6 @@ class User(AbstractUser, DateEditedModel):
         help_text='Слаг',
         null=True
     )
-    country = models.CharField(
-        'Страна',
-        max_length=50,
-        blank=True,
-        help_text='Страна проживания пользователя',
-    )
     native_languages = models.ManyToManyField(
         'Language',
         through='UserNativeLanguage',
