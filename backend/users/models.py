@@ -3,11 +3,16 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.cache import cache
 from django.db import models
+from django.db.models import Q
+from django.db.models.functions import Length
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 
-from core.constants import GENDERS, LANGUAGE_SKILL_LEVELS
+from core.constants import (EMAIL_MAX_LENGTH, GENDERS, LANGUAGE_SKILL_LEVELS,
+                            PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH)
 from core.models import AbstractNameModel, DateEditedModel
+
+models.CharField.register_lookup(Length)
 
 
 class Country(AbstractNameModel):
@@ -44,12 +49,13 @@ class User(AbstractUser, DateEditedModel):
         'Электронная почта',
         unique=True,
         help_text='Адрес email',
+        max_length=EMAIL_MAX_LENGTH,
     )
     slug = models.SlugField(
         'Слаг',
         max_length=150,
         help_text='Слаг',
-        null=True
+        null=True,
     )
     native_languages = models.ManyToManyField(
         'Language',
@@ -145,7 +151,15 @@ class User(AbstractUser, DateEditedModel):
             models.UniqueConstraint(
                 fields=['username', 'email'],
                 name='уникальные пользователи'
-            )
+            ),
+            models.CheckConstraint(
+                check=Q(username__length__lte=USERNAME_MAX_LENGTH),
+                name="username length lte max username length"
+            ),
+            models.CheckConstraint(
+                check=Q(password__length__lte=PASSWORD_MAX_LENGTH),
+                name="password length lte max password length"
+            ),
         ]
 
     def save(self, *args, **kwargs):
