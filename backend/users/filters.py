@@ -63,4 +63,5 @@ class UserFilter(df.FilterSet):
             'native_languages',
             'foreign_languages',
             'skill_level',
+            'is_online',
         )
