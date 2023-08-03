@@ -43,7 +43,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+    'users.middleware.ActiveUserMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -63,6 +63,13 @@ TEMPLATES = [
         },
     },
 ]
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': (BASE_DIR / 'cache'),
+    }
+}
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
@@ -98,11 +105,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 DJOSER = {
-    'SEND_ACTIVATION_EMAIL': True,
-    'ACTIVATION_URL': '#/activate/{uid}/{token}',
-    'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
-    'PASSWORD_RESET_CONFIRM_URL': '#/reset_password_confirm/{uid}/{token}',
-    'SEND_CONFIRMATION_EMAIL': True,
+    # 'SEND_ACTIVATION_EMAIL': True,
+    # 'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    # 'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
+    # 'PASSWORD_RESET_CONFIRM_URL': '#/reset_password_confirm/{uid}/{token}',
+    # 'SEND_CONFIRMATION_EMAIL': True,
     'HIDE_USERS': False,
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],

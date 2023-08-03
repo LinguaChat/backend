@@ -21,9 +21,13 @@ router_user._urls = [
     if not any(
         url.name.endswith(bad) for bad in [
             'set-username', 'reset-username', 'reset-username-confirm',
+            'users-activation', 'users-resend-activation',
+            'users-reset-password', 'users-reset-password-confirm',
         ]
     )
 ]
+
+print(router_user._urls)
 
 urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),

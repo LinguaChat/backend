@@ -101,7 +101,9 @@ class Message(DateCreatedModel, DateEditedModel):
         User,
         on_delete=models.CASCADE,
         verbose_name='Отправитель сообщения',
-        help_text='Отправитель сообщения'
+        help_text='Отправитель сообщения',
+        blank=True,
+        null=True
     )
     chat = models.ForeignKey(
         Chat,
