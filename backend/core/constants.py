@@ -18,3 +18,8 @@ LANGUAGE_SKILL_LEVELS = (
 # Ограничение по кол-ву родных и изучаемых языков
 MAX_FOREIGN_LANGUAGES = 5
 MAX_NATIVE_LANGUAGES = 3
+
+# Ограничения в длине полей пользователя
+EMAIL_MAX_LENGTH = 30
+USERNAME_MAX_LENGTH = 12
+PASSWORD_MAX_LENGTH = 12
