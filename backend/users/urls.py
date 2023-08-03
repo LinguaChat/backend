@@ -27,15 +27,8 @@ router_user._urls = [
     )
 ]
 
-print(router_user._urls)
-
 urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
-    path(
-        'users/<str:slug>/',
-        UserViewSet.as_view({'get': 'retrieve'}),
-        name='user-detail'
-    ),
     path('', include(router_user.urls)),
     path('', include(router.urls)),
 ]
