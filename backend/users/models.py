@@ -9,7 +9,7 @@ from django.template.defaultfilters import slugify
 from django.utils import timezone
 
 from core.constants import (EMAIL_MAX_LENGTH, GENDERS, LANGUAGE_SKILL_LEVELS,
-                            PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH)
+                            USERNAME_MAX_LENGTH)
 from core.models import AbstractNameModel, DateEditedModel
 
 models.CharField.register_lookup(Length)
@@ -155,10 +155,6 @@ class User(AbstractUser, DateEditedModel):
             models.CheckConstraint(
                 check=Q(username__length__lte=USERNAME_MAX_LENGTH),
                 name="username length lte max username length"
-            ),
-            models.CheckConstraint(
-                check=Q(password__length__lte=PASSWORD_MAX_LENGTH),
-                name="password length lte max password length"
             ),
         ]
 
