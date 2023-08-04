@@ -1,7 +1,5 @@
 """Сериализаторы приложения users."""
 
-import datetime as dt
-
 from django.core.cache import cache
 from django.utils import timezone
 
@@ -148,7 +146,7 @@ class UserSerializer(DjoserSerializer):
     def get_age(self, obj):
         """Вычисление возраста пользователя."""
         if obj.birth_date:
-            age_days = (dt.datetime.now().date() - obj.birth_date).days
+            age_days = (timezone.now().date() - obj.birth_date).days
             return int(age_days / 365)
         return None
 
