@@ -10,8 +10,7 @@ from rest_framework.response import Response
 
 from users.filters import UserFilter
 from users.models import Country, Language, User
-from users.serializers import (CountrySerializer, LanguageSerializer,
-                               UserSerializer)
+from users.serializers import CountrySerializer, LanguageSerializer
 
 
 @extend_schema(tags=['users'])
@@ -38,12 +37,12 @@ class UserViewSet(DjoserViewSet):
     def hide_show_age(self, request):
         """Метод для отображения/скрытия возраста."""
         user = request.user
-        user.age_is_hidden = 1 if not user.age_is_hidden else 0
+        user.age_is_hidden = True if not user.age_is_hidden else False
         user.save()
-        serializer = UserSerializer(
-            user, context={'request': request}
+        return Response(
+            {"age_is_hidden": user.age_is_hidden},
+            status=status.HTTP_200_OK
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=('PATCH',),
@@ -54,12 +53,12 @@ class UserViewSet(DjoserViewSet):
     def hide_show_gender(self, request):
         """Метод для отображения/скрытия пола."""
         user = request.user
-        user.gender_is_hidden = 1 if not user.gender_is_hidden else 0
+        user.gender_is_hidden = True if not user.gender_is_hidden else False
         user.save()
-        serializer = UserSerializer(
-            user, context={'request': request}
+        return Response(
+            {"gender_is_hidden": user.gender_is_hidden},
+            status=status.HTTP_200_OK
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=['languages'])
