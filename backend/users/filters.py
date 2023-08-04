@@ -1,6 +1,7 @@
 """Фильтры приложения users."""
 
 from django.db.models import ExpressionWrapper, F, IntegerField
+from django.db.models.functions import ExtractDay
 from django.utils import timezone
 
 import django_filters as df
@@ -27,8 +28,8 @@ class AgeFilter(df.Filter):
         if value not in (None, ''):
             qs = qs.annotate(
                 age=ExpressionWrapper(
-                    (timezone.now().date() - F('birth_date'))
-                    / 86400000000 / 365.25,
+                    ExtractDay(timezone.now().date() - F('birth_date'))
+                    / 365.25,
                     output_field=IntegerField()
                 )
             )
@@ -62,4 +63,5 @@ class UserFilter(df.FilterSet):
             'native_languages',
             'foreign_languages',
             'skill_level',
+            'is_online',
         )
