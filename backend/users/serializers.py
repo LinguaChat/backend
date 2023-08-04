@@ -8,7 +8,8 @@ from django.utils import timezone
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
-from core.constants import MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES
+from core.constants import (MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES,
+                            PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH)
 from users.fields import Base64ImageField
 from users.models import (Country, Language, User, UserForeignLanguage,
                           UserNativeLanguage)
@@ -101,6 +102,9 @@ class UserSerializer(DjoserSerializer):
     default_error_messages = {
         'out_of_range': (
             'Кол-во {objects} не должно превышать {max_amount}.'
+        ),
+        'too_long': (
+            'Длина {objects} не должна превышать {max_amount} символов.'
         )
     }
 
@@ -150,7 +154,6 @@ class UserSerializer(DjoserSerializer):
 
     def validate(self, attrs):
         native_languages = attrs.get('native_languages')
-
         if (
             native_languages
             and len(native_languages) > MAX_NATIVE_LANGUAGES
@@ -162,7 +165,6 @@ class UserSerializer(DjoserSerializer):
             )
 
         foreign_languages = attrs.get('foreign_languages')
-
         if (
             foreign_languages
             and len(foreign_languages) > MAX_FOREIGN_LANGUAGES
@@ -171,6 +173,26 @@ class UserSerializer(DjoserSerializer):
                 'out_of_range',
                 objects='изучаемых языков',
                 max_amount=MAX_FOREIGN_LANGUAGES
+            )
+
+        username = attrs.get('username')
+        if (
+            len(username) > USERNAME_MAX_LENGTH
+        ):
+            self.fail(
+                'too_long',
+                objects='username',
+                max_amount=USERNAME_MAX_LENGTH
+            )
+
+        password = attrs.get('password')
+        if (
+            len(password) > PASSWORD_MAX_LENGTH
+        ):
+            self.fail(
+                'too_long',
+                objects='password',
+                max_amount=PASSWORD_MAX_LENGTH
             )
 
         return super().validate(attrs)
