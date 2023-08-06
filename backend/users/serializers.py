@@ -1,11 +1,13 @@
 """Сериализаторы приложения users."""
 
-from core.constants import (MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES,
-                            PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH)
 from django.core.cache import cache
 from django.utils import timezone
+
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
+
+from core.constants import (MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES,
+                            PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH)
 from users.fields import Base64ImageField
 from users.models import (BlacklistEntry, Country, Language, Report, User,
                           UserForeignLanguage, UserNativeLanguage)
