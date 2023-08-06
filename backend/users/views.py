@@ -101,6 +101,33 @@ class UserViewSet(DjoserViewSet):
         permission_classes=(IsAuthenticated,),
         serializer_class=None
     )
+    def unblock_user(self, request, slug=None):
+        """Метод для разблокировки пользователя."""
+        user = self.get_object()
+        current_user = request.user
+
+        if BlacklistEntry.objects.filter(
+            user=current_user, blocked_user=user
+        ).exists():
+            BlacklistEntry.objects.filter(
+                user=current_user, blocked_user=user
+            ).delete()
+            return Response(
+                {"detail": "Пользователь успешно разблокирован"},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"detail": "Пользователь не заблокирован"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(
+        methods=('POST',),
+        detail=True,
+        permission_classes=(IsAuthenticated,),
+        serializer_class=None
+    )
     def report_user(self, request, slug=None):
         user = self.get_object()
         current_user = request.user
