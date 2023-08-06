@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from users.filters import UserFilter
-from users.models import BlacklistEntry, Country, Language, User
+from users.models import BlacklistEntry, Country, Language, Report, User
 from users.serializers import (
     CountrySerializer, LanguageSerializer, ReportSerializer
 )
@@ -110,10 +110,17 @@ class UserViewSet(DjoserViewSet):
                 {"detail": "Нельзя отправить жалобу самому на себя."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
+        if Report.objects.filter(
+            user=current_user, reported_user=user
+        ).exists():
+            return Response(
+                {"detail": "Жалоба уже отправлена"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         serializer = ReportSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=current_user, reported_user=user)
+            serializer.validated_data['reported_user'] = user
+            serializer.save(user=current_user)
             return Response(
                 {"detail": "Жалоба успешно отправлена."},
                 status=status.HTTP_200_OK

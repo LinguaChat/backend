@@ -261,5 +261,5 @@ class BlacklistEntrySerializer(serializers.ModelSerializer):
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
-        fields = '__all__'
-        read_only_fields = ('user',)
+        fields = ['reason', 'description']
+        read_only_fields = ['reported_user']
