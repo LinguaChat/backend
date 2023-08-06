@@ -9,8 +9,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from users.filters import UserFilter
-from users.models import Country, Language, User
-from users.serializers import CountrySerializer, LanguageSerializer
+from users.models import BlacklistEntry, Country, Language, User
+from users.serializers import (
+    CountrySerializer, LanguageSerializer, ReportSerializer
+)
 
 
 @extend_schema(tags=['users'])
@@ -59,6 +61,65 @@ class UserViewSet(DjoserViewSet):
             {"gender_is_hidden": user.gender_is_hidden},
             status=status.HTTP_200_OK
         )
+
+    @action(
+        methods=('POST',),
+        detail=True,
+        permission_classes=(IsAuthenticated,),
+        serializer_class=None
+    )
+    def block_user(self, request, slug=None):
+        """Метод для блокировки пользователя."""
+        user = self.get_object()
+        current_user = request.user
+
+        if user == current_user:
+            return Response(
+                {"detail": "Нельзя заблокировать самого себя"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if BlacklistEntry.objects.filter(user=current_user, blocked_user=user).exists():
+            return Response(
+                {"detail": "Пользователь уже заблокирован"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        BlacklistEntry.objects.create(
+            user=current_user,
+            blocked_user=user,
+        )
+        return Response(
+            {"detail": "Пользователь успешно заблокирован"},
+            status=status.HTTP_200_OK
+        )
+
+    @action(
+        methods=('POST',),
+        detail=True,
+        permission_classes=(IsAuthenticated,),
+        serializer_class=None
+    )
+    def report_user(self, request, slug=None):
+        """Метод для отправки жалобы на пользователя."""
+        user = self.get_object()
+        current_user = request.user
+
+        if user == current_user:
+            return Response(
+                {"detail": "Нельзя отправить жалобу самому на себя."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = ReportSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=current_user, reported_user=user)
+            return Response(
+                {"detail": "Жалоба успешно отправлена."},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 @extend_schema(tags=['languages'])

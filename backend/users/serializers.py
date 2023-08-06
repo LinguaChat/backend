@@ -10,7 +10,7 @@ from core.constants import (MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES,
                             PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH)
 from users.fields import Base64ImageField
 from users.models import (Country, Language, User, UserForeignLanguage,
-                          UserNativeLanguage)
+                          UserNativeLanguage, BlacklistEntry, Report)
 
 
 class LanguageSerializer(serializers.ModelSerializer):
@@ -249,3 +249,17 @@ class UserSerializer(DjoserSerializer):
                 foreign_languages=validated_data.pop('foreign_languages'),
             )
         return super().update(instance, validated_data)
+
+
+class BlacklistEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlacklistEntry
+        fields = '__all__'
+        read_only_fields = ('user',)
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = '__all__'
+        read_only_fields = ('user',)
