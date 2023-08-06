@@ -1,5 +1,7 @@
 """View-функции приложения users."""
 
+from datetime import timedelta
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
@@ -99,34 +101,43 @@ class UserViewSet(DjoserViewSet):
         serializer_class=None
     )
     def report_user(self, request, slug=None):
-        """Метод для отправки жалобы на пользователя."""
         user = self.get_object()
         current_user = request.user
 
-        if user == current_user:
-            return Response(
-                {"detail": "Нельзя отправить жалобу самому на себя."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if Report.objects.filter(
-            user=current_user, reported_user=user
-        ).exists():
-            return Response(
-                {"detail": "Жалоба уже отправлена"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        serializer = ReportSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.validated_data['reported_user'] = user
-            serializer.save(user=current_user)
-            return Response(
-                {"detail": "Жалоба успешно отправлена."},
-                status=status.HTTP_200_OK
-            )
+        existing_report = Report.objects.filter(
+            user=current_user, reported_user=user).first()
+
+        if existing_report:
+            if (
+                existing_report.date_created + timezone.timedelta(weeks=1) >
+                timezone.now()
+            ):
+                return Response(
+                    {"detail": "Вы не можете отправлять жалобу часто."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            existing_report.date_created = timezone.now()
+            existing_report.reason = request.data.get(
+                'reason', existing_report.reason)
+            existing_report.description = request.data.get(
+                'description', existing_report.description)
+
+            existing_report.save()
         else:
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+
+            serializer = ReportSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(user=current_user, reported_user=user)
+            else:
+                return Response(
+                    serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
+
+        return Response(
+            {"detail": "Жалоба успешно отправлена."},
+            status=status.HTTP_200_OK
+        )
 
 
 @extend_schema(tags=['languages'])
