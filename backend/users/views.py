@@ -78,7 +78,9 @@ class UserViewSet(DjoserViewSet):
                 {"detail": "Нельзя заблокировать самого себя"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if BlacklistEntry.objects.filter(user=current_user, blocked_user=user).exists():
+        if BlacklistEntry.objects.filter(
+            user=current_user, blocked_user=user
+        ).exists():
             return Response(
                 {"detail": "Пользователь уже заблокирован"},
                 status=status.HTTP_400_BAD_REQUEST
