@@ -1,6 +1,8 @@
 """Модели приложения users."""
 
-from tkinter import CASCADE
+from core.constants import (EMAIL_MAX_LENGTH, GENDERS, LANGUAGE_SKILL_LEVELS,
+                            USERNAME_MAX_LENGTH)
+from core.models import AbstractNameModel, DateCreatedModel, DateEditedModel
 from django.contrib.auth.models import AbstractUser
 from django.core.cache import cache
 from django.db import models
@@ -8,10 +10,6 @@ from django.db.models import Q
 from django.db.models.functions import Length
 from django.template.defaultfilters import slugify
 from django.utils import timezone
-
-from core.constants import (EMAIL_MAX_LENGTH, GENDERS, LANGUAGE_SKILL_LEVELS,
-                            USERNAME_MAX_LENGTH)
-from core.models import AbstractNameModel, DateEditedModel, DateCreatedModel
 
 models.CharField.register_lookup(Length)
 

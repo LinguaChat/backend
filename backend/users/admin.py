@@ -5,7 +5,7 @@ import datetime as dt
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Country, Language, User, BlacklistEntry, Report
+from .models import BlacklistEntry, Country, Language, Report, User
 
 
 class NativeLanguageInlineAdmin(admin.TabularInline):
