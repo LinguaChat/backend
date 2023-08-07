@@ -1,7 +1,7 @@
 """View-функции приложения users."""
 
-from core.permissions import IsAdminOrModeratorReadOnly
 from django.utils import timezone
+
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import extend_schema
@@ -9,6 +9,8 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+
+from core.permissions import IsAdminOrModeratorReadOnly
 from users.filters import UserFilter
 from users.models import BlacklistEntry, Country, Language, Report, User
 from users.serializers import (CountrySerializer, LanguageSerializer,
