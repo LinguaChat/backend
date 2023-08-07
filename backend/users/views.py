@@ -136,7 +136,10 @@ class UserViewSet(DjoserViewSet):
             existing_report = Report.objects.filter(
                 user=current_user, reported_user=user).first()
 
-            if existing_report and existing_report.date_created + timezone.timedelta(weeks=1) > timezone.now():
+            if existing_report and (
+                    existing_report.date_created + timezone.timedelta(weeks=1)
+                    > timezone.now()
+            ):
                 return Response(
                     {"detail": "Вы не можете отправлять жалобу часто."},
                     status=status.HTTP_400_BAD_REQUEST
