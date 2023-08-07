@@ -117,11 +117,10 @@ class UserViewSet(DjoserViewSet):
                 {"detail": "Пользователь успешно разблокирован"},
                 status=status.HTTP_200_OK
             )
-        else:
-            return Response(
-                {"detail": "Пользователь не заблокирован"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            {"detail": "Пользователь не заблокирован"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(
         methods=('POST', 'GET'),
@@ -134,26 +133,21 @@ class UserViewSet(DjoserViewSet):
         current_user = request.user
 
         if request.method == 'POST':
-
             existing_report = Report.objects.filter(
                 user=current_user, reported_user=user).first()
 
-            if existing_report:
-                if existing_report and (
-                    existing_report.date_created + timezone.timedelta(weeks=1)
-                    > timezone.now()
-                ):
-                    return Response(
-                        {"detail": "Вы не можете отправлять жалобу часто."},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+            if existing_report and existing_report.date_created + timezone.timedelta(weeks=1) > timezone.now():
+                return Response(
+                    {"detail": "Вы не можете отправлять жалобу часто."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
+            if existing_report:
                 existing_report.date_created = timezone.now()
                 existing_report.reason = request.data.get(
                     'reason', existing_report.reason)
                 existing_report.description = request.data.get(
                     'description', existing_report.description)
-
                 existing_report.save()
             else:
                 serializer = ReportSerializer(data=request.data)
@@ -168,10 +162,10 @@ class UserViewSet(DjoserViewSet):
                 {"detail": "Жалоба успешно отправлена."},
                 status=status.HTTP_200_OK
             )
-        else:
-            reports = Report.objects.filter(reported_user=user)
-            serializer = ReportSerializer(reports, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        reports = Report.objects.filter(reported_user=user)
+        serializer = ReportSerializer(reports, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=['languages'])
