@@ -111,7 +111,7 @@ class UserSerializer(DjoserSerializer):
         read_only=True
     )
     is_online = serializers.SerializerMethodField()
-
+    role = serializers.CharField(source='get_role_display', read_only=True)
     default_error_messages = {
         'out_of_range': (
             'Кол-во {objects} не должно превышать {max_amount}.'
@@ -139,6 +139,7 @@ class UserSerializer(DjoserSerializer):
             'is_online',
             'gender_is_hidden',
             'age_is_hidden',
+            'role',
         )
         extra_kwargs = {
             'birth_date': {'write_only': True},

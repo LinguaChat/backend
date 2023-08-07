@@ -20,3 +20,19 @@ class ActiveChatOrReceiverOnly(permissions.BasePermission):
                 or not obj.members_info.get(member=request.user).is_creator
             )
         )
+
+
+class IsAdminOrModeratorReadOnly(permissions.BasePermission):
+    """
+    Разрешение на просмотр Администраторам или Модераторам.
+    """
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            user = request.user
+            return (
+                user.is_staff or
+                user.role == 'moderator' or
+                user.role == 'admin'
+            )
+        return True

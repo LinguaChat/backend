@@ -44,7 +44,11 @@ class User(AbstractUser, DateEditedModel):
 
     # исключаем из таблицы стобец "last_name"
     last_name = None
-
+    ROLE_CHOICES = (
+        ('user', 'User'),
+        ('moderator', 'Moderator'),
+        ('admin', 'Admin'),
+    )
     email = models.EmailField(
         'Электронная почта',
         unique=True,
@@ -128,6 +132,12 @@ class User(AbstractUser, DateEditedModel):
     is_online = models.BooleanField(
         default=False,
         help_text='Статус пользователя: онлайн или оффлайн',
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='user',
+        help_text='Роль пользователя',
     )
 
     def is_user_online(self):
