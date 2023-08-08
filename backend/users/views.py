@@ -125,9 +125,10 @@ class UserViewSet(DjoserViewSet):
     def retrieve(self, request, *args, **kwargs):
         user = self.get_object()
         current_user = request.user
+
         if current_user.blacklist_entries_received.filter(user=user).exists():
             return Response(
-                {"detail": "Просмотр профиля заблокирован"
+                {"detail": "Просмотр профиля заблокирован "
                  "для данного пользователя."},
                 status=status.HTTP_403_FORBIDDEN
             )
