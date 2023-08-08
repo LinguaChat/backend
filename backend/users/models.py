@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from core.constants import (EMAIL_MAX_LENGTH, GENDERS, LANGUAGE_SKILL_LEVELS,
                             USERNAME_MAX_LENGTH)
-from core.models import AbstractNameModel, DateEditedModel
+from core.models import AbstractNameModel, DateCreatedModel, DateEditedModel
 
 models.CharField.register_lookup(Length)
 
@@ -54,7 +54,11 @@ class User(AbstractUser, DateEditedModel):
 
     # исключаем из таблицы стобец "last_name"
     last_name = None
-
+    ROLE_CHOICES = (
+        ('user', 'User'),
+        ('moderator', 'Moderator'),
+        ('admin', 'Admin'),
+    )
     email = models.EmailField(
         'Электронная почта',
         unique=True,
@@ -138,6 +142,12 @@ class User(AbstractUser, DateEditedModel):
     is_online = models.BooleanField(
         default=False,
         help_text='Статус пользователя: онлайн или оффлайн',
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='user',
+        help_text='Роль пользователя',
     )
 
     objects = CustomUserManager()
@@ -285,3 +295,63 @@ class UserForeignLanguage(UserLanguage):
 
     def __str__(self):
         return f'{self.user} изучает {self.language}'
+
+
+class BlacklistEntry(DateCreatedModel):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='blacklist_entries_created',
+        verbose_name='Пользователь, который заблокировал',
+        help_text='Пользователь, который добавил другого '
+        'пользователя в черный список',
+    )
+    blocked_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='blacklist_entries_received',
+        verbose_name='Заблокированный пользователь',
+        help_text='Пользователь, который был добавлен в черный список',
+    )
+
+    class Meta:
+        unique_together = ('user', 'blocked_user')
+        verbose_name = 'Запись в черном списке'
+        verbose_name_plural = 'Записи в черном списке'
+
+    def __str__(self):
+        return f'{self.user} заблокировал {self.blocked_user}'
+
+
+class Report(DateCreatedModel, DateEditedModel):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='sent_reports',
+        verbose_name='Пользователь, отправивший жалобу',
+        help_text='Пользователь, который отправил данную жалобу.',
+    )
+    reported_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='received_reports',
+        verbose_name='Пользователь, на которого подана жалоба',
+        help_text='Пользователь, на которого подана данная жалоба.',
+    )
+    reason = models.CharField(
+        max_length=100,
+        verbose_name='Причина жалобы',
+        help_text='Укажите причину данной жалобы.',
+    )
+    description = models.TextField(
+        verbose_name='Описание',
+        max_length=1000,
+        help_text='Подробное описание проблемы или причины жалобы.',
+    )
+
+    def __str__(self):
+        return f"Жалоба от {self.user} на {self.reported_user}"
+
+    class Meta:
+        verbose_name = 'Жалоба на пользователя'
+        verbose_name_plural = 'Жалобы на пользователей'
