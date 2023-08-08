@@ -3,9 +3,7 @@
 from django.core.cache import cache
 from django.utils import timezone
 
-from djoser.serializers import UserCreateMixin
-from djoser.serializers import \
-    UserCreateSerializer as DjoserUserCreateSerializer
+from djoser.serializers import UserCreateSerializer as DjoserCreateSerializer
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
@@ -18,7 +16,7 @@ from users.models import (Country, Language, User, UserForeignLanguage,
 
 class LanguageSerializer(serializers.ModelSerializer):
     """Сериализатор модели языка."""
-    
+
     code = serializers.SerializerMethodField('get_pretty_code')
 
     class Meta:
@@ -87,7 +85,7 @@ class CountrySerializer(serializers.ModelSerializer):
         )
 
 
-class UserCreateSerializer(DjoserUserCreateSerializer):
+class UserCreateSerializer(DjoserCreateSerializer):
     """Сериализатор создания пользователя."""
 
     default_error_messages = {
