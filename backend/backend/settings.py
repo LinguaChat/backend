@@ -125,6 +125,7 @@ DJOSER = {
         'user_create': 'users.serializers.UserCreateSerializer',
         'current_user': 'users.serializers.UserSerializer',
     },
+    'TOKEN_MODEL': None,
 }
 
 REST_FRAMEWORK = {
