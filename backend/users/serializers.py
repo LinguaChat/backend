@@ -7,8 +7,9 @@ from djoser.serializers import UserCreateSerializer as DjoserCreateSerializer
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
-from core.constants import (MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES,
-                            PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH)
+from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
+                            MAX_NATIVE_LANGUAGES, MIN_AGE, PASSWORD_MAX_LENGTH,
+                            USERNAME_MAX_LENGTH)
 from users.fields import Base64ImageField
 from users.models import (BlacklistEntry, Country, Language, Report, User,
                           UserForeignLanguage, UserNativeLanguage)
@@ -188,6 +189,13 @@ class UserSerializer(DjoserSerializer):
             age_days = (timezone.now().date() - obj.birth_date).days
             return int(age_days / 365)
         return None
+
+    def validate_birth_date(self, value):
+        dif = (timezone.now().date() - value)
+        age = int(dif.days / 365.25)
+        if age not in range(MIN_AGE, MAX_AGE + 1):
+            raise serializers.ValidationError("Некорректная дата рождения.")
+        return value
 
     def validate(self, attrs):
         native_languages = attrs.get('native_languages')
