@@ -10,8 +10,8 @@ from rest_framework import serializers
 from core.constants import (MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES,
                             PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH)
 from users.fields import Base64ImageField
-from users.models import (Country, Language, User, UserForeignLanguage,
-                          UserNativeLanguage)
+from users.models import (BlacklistEntry, Country, Language, Report, User,
+                          UserForeignLanguage, UserNativeLanguage)
 
 
 class LanguageSerializer(serializers.ModelSerializer):
@@ -147,7 +147,7 @@ class UserSerializer(DjoserSerializer):
         read_only=True
     )
     is_online = serializers.SerializerMethodField()
-
+    role = serializers.CharField(source='get_role_display', read_only=True)
     default_error_messages = {
         'out_of_range': (
             'Кол-во {objects} не должно превышать {max_amount}.'
@@ -172,6 +172,7 @@ class UserSerializer(DjoserSerializer):
             'is_online',
             'gender_is_hidden',
             'age_is_hidden',
+            'role',
         )
         extra_kwargs = {
             'birth_date': {'write_only': True},
@@ -262,3 +263,17 @@ class UserSerializer(DjoserSerializer):
                 foreign_languages=validated_data.pop('foreign_languages'),
             )
         return super().update(instance, validated_data)
+
+
+class BlacklistEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlacklistEntry
+        fields = '__all__'
+        read_only_fields = ('user',)
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = ['reason', 'description']
+        read_only_fields = ['reported_user']
