@@ -18,15 +18,20 @@ from users.models import (Country, Language, User, UserForeignLanguage,
 
 class LanguageSerializer(serializers.ModelSerializer):
     """Сериализатор модели языка."""
+    
+    code = serializers.SerializerMethodField('get_pretty_code')
 
     class Meta:
         model = Language
         fields = (
             'name',
             'name_local',
-            'isocode',
+            'code',
             'sorting',
         )
+
+    def get_pretty_code(self, obj):
+        return obj.isocode.capitalize()
 
 
 class UserLanguageBaseSerializer(serializers.ModelSerializer):
