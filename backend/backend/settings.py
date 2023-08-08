@@ -165,10 +165,13 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Lang_Exchange API',
-    'DESCRIPTION': 'API-endpoints for "Lang_Exchange" project',
+    'TITLE': 'LinguaChat API',
+    'DESCRIPTION': 'API endpoints for LinguaChat',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    "SWAGGER_UI_SETTINGS": {
+        "filter": True, # включить поиск по тегам
+    },
 }
 
 
