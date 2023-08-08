@@ -149,6 +149,7 @@ class UserSerializer(DjoserSerializer):
     class Meta:
         model = User
         fields = (
+            'username',
             'first_name',
             'avatar',
             'age',
@@ -170,6 +171,7 @@ class UserSerializer(DjoserSerializer):
             'birth_date': {'write_only': True},
             'gender_is_hidden': {'read_only': True},
             'age_is_hidden': {'read_only': True},
+            'username': {'read_only': True},
         }
 
     def get_is_online(self, obj):
