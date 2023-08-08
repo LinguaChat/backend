@@ -122,6 +122,19 @@ class UserViewSet(DjoserViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        current_user = request.user
+        if current_user.blacklist_entries_received.filter(user=user).exists():
+            return Response(
+                {"detail": "Просмотр профиля заблокирован"
+                 "для данного пользователя."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
     @action(
         methods=('POST', 'GET'),
         detail=True,
@@ -129,6 +142,9 @@ class UserViewSet(DjoserViewSet):
         serializer_class=None
     )
     def report_user(self, request, slug=None):
+        """
+        Метод для отправки жалобы и просмотра администратором/модератором.
+        """
         user = self.get_object()
         current_user = request.user
 
