@@ -32,6 +32,11 @@ class UserViewSet(DjoserViewSet):
         """Исключает из выборки админов."""
         return User.objects.filter(is_staff=False)
 
+    def get_permissions(self):
+        if self.action == 'me':
+            return (IsAuthenticated(),)
+        return super().get_permissions()
+
     @action(
         methods=('PATCH',),
         detail=False,
