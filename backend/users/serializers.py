@@ -17,26 +17,20 @@ from users.models import (BlacklistEntry, Country, Language, Report, User,
 class LanguageSerializer(serializers.ModelSerializer):
     """Сериализатор модели языка."""
 
-    code = serializers.SerializerMethodField('get_pretty_code')
-
     class Meta:
         model = Language
         fields = (
             'name',
             'name_local',
-            'code',
+            'isocode',
             'sorting',
         )
-
-    def get_pretty_code(self, obj):
-        return obj.isocode.capitalize()
 
 
 class UserLanguageBaseSerializer(serializers.ModelSerializer):
     """Общий сериализатор промежуточных моделей Пользователь-Язык."""
 
-    id = serializers.ReadOnlyField(source='language.id')
-    code = serializers.ReadOnlyField(source='language.isocode')
+    isocode = serializers.ReadOnlyField(source='language.isocode')
     language = serializers.ReadOnlyField(source='language.name')
 
 
@@ -46,13 +40,12 @@ class UserNativeLanguageSerializer(UserLanguageBaseSerializer):
     class Meta:
         model = UserNativeLanguage
         fields = (
-            'id',
-            'code',
+            'isocode',
             'language',
         )
         read_only_fields = (
+            'isocode',
             'language',
-            'code',
         )
 
 
@@ -62,14 +55,13 @@ class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
     class Meta:
         model = UserForeignLanguage
         fields = (
-            'id',
-            'code',
+            'isocode',
             'language',
             'skill_level',
         )
         read_only_fields = (
+            'isocode',
             'language',
-            'code',
         )
 
 
