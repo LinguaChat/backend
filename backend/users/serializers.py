@@ -172,6 +172,8 @@ class UserSerializer(DjoserSerializer):
             'gender_is_hidden': {'read_only': True},
             'age_is_hidden': {'read_only': True},
             'username': {'read_only': True},
+            'slug': {'read_only': True},
+            'last_activity': {'read_only': True},
         }
 
     def get_is_online(self, obj):
