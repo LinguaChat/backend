@@ -3,6 +3,9 @@
 from django.core.cache import cache
 from django.utils import timezone
 
+from djoser.serializers import UserCreateMixin
+from djoser.serializers import \
+    UserCreateSerializer as DjoserUserCreateSerializer
 from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
@@ -79,8 +82,14 @@ class CountrySerializer(serializers.ModelSerializer):
         )
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор модели пользователя."""
+class UserCreateSerializer(DjoserUserCreateSerializer):
+    """Сериализатор создания пользователя."""
+
+    default_error_messages = {
+        'too_long': (
+            'Длина {objects} не должна превышать {max_amount} символов.'
+        ),
+    }
 
     class Meta:
         model = User
@@ -91,7 +100,31 @@ class UserCreateSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'email': {'write_only': True},
+            'username': {'write_only': True},
         }
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        if (
+            len(username) > USERNAME_MAX_LENGTH
+        ):
+            self.fail(
+                'too_long',
+                objects='username',
+                max_amount=USERNAME_MAX_LENGTH
+            )
+
+        password = attrs.get('password')
+        if (
+            len(password) > PASSWORD_MAX_LENGTH
+        ):
+            self.fail(
+                'too_long',
+                objects='password',
+                max_amount=PASSWORD_MAX_LENGTH
+            )
+
+        return super().validate(attrs)
 
 
 class UserSerializer(DjoserSerializer):
@@ -116,9 +149,6 @@ class UserSerializer(DjoserSerializer):
         'out_of_range': (
             'Кол-во {objects} не должно превышать {max_amount}.'
         ),
-        'too_long': (
-            'Длина {objects} не должна превышать {max_amount} символов.'
-        )
     }
 
     class Meta:
@@ -180,26 +210,6 @@ class UserSerializer(DjoserSerializer):
                 'out_of_range',
                 objects='изучаемых языков',
                 max_amount=MAX_FOREIGN_LANGUAGES
-            )
-
-        username = attrs.get('username')
-        if (
-            len(username) > USERNAME_MAX_LENGTH
-        ):
-            self.fail(
-                'too_long',
-                objects='username',
-                max_amount=USERNAME_MAX_LENGTH
-            )
-
-        password = attrs.get('password')
-        if (
-            len(password) > PASSWORD_MAX_LENGTH
-        ):
-            self.fail(
-                'too_long',
-                objects='password',
-                max_amount=PASSWORD_MAX_LENGTH
             )
 
         return super().validate(attrs)
