@@ -1,11 +1,14 @@
 """View-функции приложения users."""
 
+from django.db.models import Q
 from django.utils import timezone
 
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
-from drf_spectacular.utils import extend_schema
-from rest_framework import filters, status, viewsets
+from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
+                                   extend_schema, extend_schema_view,
+                                   inline_serializer)
+from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -14,10 +17,90 @@ from core.permissions import IsAdminOrModeratorReadOnly
 from users.filters import UserFilter
 from users.models import BlacklistEntry, Country, Language, Report, User
 from users.serializers import (CountrySerializer, LanguageSerializer,
-                               ReportSerializer)
+                               ReportSerializer, UserProfileSerializer,
+                               UserReprSerializer)
 
 
 @extend_schema(tags=['users'])
+@extend_schema_view(
+    list=extend_schema(
+        summary='Просмотреть всех пользователей',
+        request=UserProfileSerializer,
+        responses={
+            status.HTTP_200_OK: UserReprSerializer,
+        },
+        description=(
+            'Просмотреть всех пользователей с применением фильтров '
+            'и сортировки. Админы и модераторы из выборки исключены'
+        ),
+    ),
+    retrieve=extend_schema(
+        summary='Просмотреть профиль пользователя',
+        responses={
+            status.HTTP_200_OK: UserReprSerializer,
+        },
+        description="Просмотреть профиль пользователя с соответствующим slug",
+    ),
+    create=extend_schema(
+        summary='Зарегистрироваться',
+        description='Создать нового пользователя',
+        examples=[
+                OpenApiExample(
+                    "Create user example",
+                    description="Test example for the new user",
+                    value={
+                        "email": "user@example.com",
+                        "username": "newuser",
+                        "password": "string"
+                    },
+                    status_codes=[str(status.HTTP_200_OK)],
+                ),
+        ],
+    ),
+    me=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='Authorization',
+                location=OpenApiParameter.HEADER,
+                description='Bearer access token',
+                required=True,
+                type=str
+            ),
+        ]
+    ),
+    set_password=extend_schema(
+        summary='Изменить пароль на новый',
+        description='Изменить пароль на новый',
+    ),
+    hide_show_age=extend_schema(
+        summary='Изменить видимость возраста в своем профиле',
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name="AgeVisibility",
+                fields={"age_is_hidden": serializers.BooleanField()}
+            ),
+        },
+        description='Изменить видимость возраста в своем профиле',
+    ),
+    hide_show_gender=extend_schema(
+        summary='Изменить видимость пола в своем профиле',
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name="GenderVisibility",
+                fields={"gender_is_hidden": serializers.BooleanField()}
+            ),
+        },
+        description='Изменить видимость пола в своем профиле',
+    ),
+    block_user=extend_schema(
+        summary='Заблокировать пользователя',
+        description='Заблокировать пользователя',
+    ),
+    unblock_user=extend_schema(
+        summary='Разблокировать пользователя',
+        description='Разблокировать пользователя',
+    ),
+)
 class UserViewSet(DjoserViewSet):
     """Вьюсет модели пользователя."""
 
@@ -29,17 +112,44 @@ class UserViewSet(DjoserViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
-        """Исключает из выборки админов."""
-        return User.objects.filter(is_staff=False)
+        """Исключение админов и модераторов из выборки."""
+        return User.objects.filter(Q(is_staff=False) | Q(role="User"))
+
+    @extend_schema(
+        summary='Редактировать свой профиль',
+        description='Редактировать свой профиль',
+        methods=["patch"]
+    )
+    @extend_schema(
+        summary='Просмотреть свой профиль',
+        description='Просмотреть свой профиль',
+        methods=["get"],
+        responses={
+            status.HTTP_200_OK: UserReprSerializer,
+        },
+    )
+    @extend_schema(
+        summary='Удалить свой аккаунт',
+        description='Удалить свой аккаунт',
+        methods=["delete"]
+    )
+    @action(
+        methods=["get", "patch", "delete"],
+        detail=False,
+        permission_classes=(IsAuthenticated,),
+    )
+    def me(self, request, *args, **kwargs):
+        """Взаимодействие со своим профилем"""
+        return super().me(request, *args, **kwargs)
 
     @action(
-        methods=('PATCH',),
+        methods=["patch"],
         detail=False,
         permission_classes=(IsAuthenticated,),
         serializer_class=None
     )
     def hide_show_age(self, request):
-        """Метод для отображения/скрытия возраста."""
+        """Изменение видимости возраста"""
         user = request.user
         user.age_is_hidden = True if not user.age_is_hidden else False
         user.save()
@@ -49,13 +159,13 @@ class UserViewSet(DjoserViewSet):
         )
 
     @action(
-        methods=('PATCH',),
+        methods=["patch"],
         detail=False,
         permission_classes=(IsAuthenticated,),
         serializer_class=None
     )
     def hide_show_gender(self, request):
-        """Метод для отображения/скрытия пола."""
+        """Изменение видимости пола."""
         user = request.user
         user.gender_is_hidden = True if not user.gender_is_hidden else False
         user.save()
@@ -65,13 +175,13 @@ class UserViewSet(DjoserViewSet):
         )
 
     @action(
-        methods=('POST',),
+        methods=["post"],
         detail=True,
         permission_classes=(IsAuthenticated,),
         serializer_class=None
     )
     def block_user(self, request, slug=None):
-        """Метод для блокировки пользователя."""
+        """Блокировка пользователя."""
         user = self.get_object()
         current_user = request.user
 
@@ -97,13 +207,13 @@ class UserViewSet(DjoserViewSet):
         )
 
     @action(
-        methods=('POST',),
+        methods=["post"],
         detail=True,
         permission_classes=(IsAuthenticated,),
         serializer_class=None
     )
     def unblock_user(self, request, slug=None):
-        """Метод для разблокировки пользователя."""
+        """Отмена блокировки пользователя."""
         user = self.get_object()
         current_user = request.user
 
@@ -122,30 +232,27 @@ class UserViewSet(DjoserViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    def retrieve(self, request, *args, **kwargs):
-        user = self.get_object()
-        current_user = request.user
-
-        if current_user.blacklist_entries_received.filter(user=user).exists():
-            return Response(
-                {"detail": "Просмотр профиля заблокирован "
-                 "для данного пользователя."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        serializer = self.get_serializer(user)
-        return Response(serializer.data)
-
+    @extend_schema(
+        summary='Просмотреть все жалобы на пользователя',
+        description=(
+            'Просмотреть все жалобы на пользователя '
+            '(для админов и модераторов)'
+        ),
+        methods=["get"]
+    )
+    @extend_schema(
+        summary='Отправить жалобу на пользователя',
+        description='Отправить жалобу на пользователя',
+        methods=["post"]
+    )
     @action(
-        methods=('POST', 'GET'),
+        methods=["post", "get"],
         detail=True,
         permission_classes=(IsAuthenticated, IsAdminOrModeratorReadOnly),
         serializer_class=None
     )
     def report_user(self, request, slug=None):
-        """
-        Метод для отправки жалобы и просмотра администратором/модератором.
-        """
+        """Просмотр и отправка жалоб."""
         user = self.get_object()
         current_user = request.user
 
@@ -189,6 +296,19 @@ class UserViewSet(DjoserViewSet):
 
 
 @extend_schema(tags=['languages'])
+@extend_schema_view(
+    list=extend_schema(
+        summary='Просмотреть все языки',
+        description=(
+            'Просмотреть все языки с возможностью поиска по их кодам '
+            'и названиям'
+        ),
+    ),
+    retrieve=extend_schema(
+        summary='Просмотреть информацию об языке',
+        description="Просмотреть информацию об языке с соответствующим кодом",
+    ),
+)
 class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет модели языка."""
 
@@ -207,6 +327,19 @@ class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
     )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary='Просмотреть все страны',
+        description=(
+            'Просмотреть все страны с возможностью поиска по их кодам '
+            'и названиям'
+        ),
+    ),
+    retrieve=extend_schema(
+        summary='Просмотреть информацию о стране',
+        description="Просмотреть информацию о стране с соответствующим кодом",
+    ),
+)
 @extend_schema(tags=['countries'])
 class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет модели страны."""

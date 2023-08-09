@@ -1,6 +1,6 @@
 """Модели приложения users."""
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Q
@@ -39,6 +39,16 @@ class Country(AbstractNameModel):
         verbose_name_plural = 'Страны'
 
 
+class CustomUserManager(UserManager):
+    """Кастомный менеджер пользователей."""
+
+    def get_by_natural_key(self, username_or_email):
+        return self.get(
+            Q(**{self.model.USERNAME_FIELD: username_or_email}) |
+            Q(**{self.model.EMAIL_FIELD: username_or_email})
+        )
+
+
 class User(AbstractUser, DateEditedModel):
     """Кастомная модель пользователя."""
 
@@ -57,7 +67,7 @@ class User(AbstractUser, DateEditedModel):
     )
     slug = models.SlugField(
         'Слаг',
-        max_length=150,
+        max_length=200,
         help_text='Слаг',
         null=True,
     )
@@ -82,7 +92,7 @@ class User(AbstractUser, DateEditedModel):
     )
     about = models.TextField(
         'О себе',
-        max_length=100,
+        max_length=256,
         blank=True,
         help_text='О себе',
     )
@@ -139,6 +149,8 @@ class User(AbstractUser, DateEditedModel):
         default='user',
         help_text='Роль пользователя',
     )
+
+    objects = CustomUserManager()
 
     def is_user_online(self):
         last_seen = cache.get(f'last-seen-{self.id}')

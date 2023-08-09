@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
 from chats.models import Attachment, Chat, ChatMembers, Message, MessageReaders
-from users.serializers import UserSerializer
+from users.serializers import UserProfileSerializer
 
 User = get_user_model()
 
@@ -29,7 +29,7 @@ class ChatListSerializer(serializers.ModelSerializer):
 
     def get_companion(self, obj):
         user = self.context.get('request').user
-        return UserSerializer(
+        return UserProfileSerializer(
             *obj.members.exclude(id=user.id),
             context={'request': self.context.get('request')}
         ).data

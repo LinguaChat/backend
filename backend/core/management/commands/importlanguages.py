@@ -3,6 +3,7 @@
 from django.conf.locale import LANG_INFO
 from django.core.management.base import BaseCommand, CommandError
 
+from core.constants import LANGS_SORTING_VALS
 from users.models import Language
 
 
@@ -27,6 +28,7 @@ class Command(BaseCommand):
                             name=LANG_INFO[isocode]['name'],
                             name_local=LANG_INFO[isocode]['name_local']
                         )
+                        lang.sorting = LANGS_SORTING_VALS.get(lang.isocode, 0)
                         lang.save()
                         cnt += 1
                     except Exception as e:

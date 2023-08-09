@@ -12,12 +12,21 @@ import factory
 import requests
 
 from core.constants import (GENDERS, LANGUAGE_SKILL_LEVELS,
-                            MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES)
+                            MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES,
+                            USERNAME_MAX_LENGTH)
 from users.models import Country, Language, UserForeignLanguage
 
 User = get_user_model()
 GENDERS_IDS = [x[0] for x in GENDERS]
 SKILL_LEVELS_IDS = [x[0] for x in LANGUAGE_SKILL_LEVELS]
+
+
+def generate_username(*args):
+    """ returns a random username """
+    faker = factory.Faker
+    return faker._get_faker().profile(
+        fields=['username']
+    )['username'][:USERNAME_MAX_LENGTH]
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -26,7 +35,7 @@ class UserFactory(factory.django.DjangoModelFactory):
         django_get_or_create = ('email', 'username')
 
     email = factory.faker.Faker('email')
-    username = factory.faker.Faker('name')
+    username = factory.LazyAttribute(generate_username)
     birth_date = factory.Faker('date_between', end_date=dt.date(2005, 7, 24))
     password = factory.django.Password('pw')
     gender = factory.Faker('random_element', elements=GENDERS_IDS)
