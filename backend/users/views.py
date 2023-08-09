@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
-from drf_spectacular.utils import (OpenApiExample, extend_schema,
+from drf_spectacular.utils import (OpenApiExample, OpenApiParameter, extend_schema,
                                    extend_schema_view, inline_serializer)
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -56,6 +56,17 @@ from users.serializers import (CountrySerializer, LanguageSerializer,
                     status_codes=[str(status.HTTP_200_OK)],
                 ),
             ],
+    ),
+    me=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='Authorization',
+                location=OpenApiParameter.HEADER,
+                description='Bearer access token',
+                required=True,
+                type=str
+            ),
+        ]
     ),
     set_password=extend_schema(
         summary='Изменить пароль на новый',
