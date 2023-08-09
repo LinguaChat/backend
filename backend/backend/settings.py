@@ -121,9 +121,9 @@ DJOSER = {
         'user': ['rest_framework.permissions.AllowAny'],
     },
     'SERIALIZERS': {
-        'user': 'users.serializers.UserSerializer',
+        'user': 'users.serializers.UserProfileSerializer',
         'user_create': 'users.serializers.UserCreateSerializer',
-        'current_user': 'users.serializers.UserSerializer',
+        'current_user': 'users.serializers.UserProfileSerializer',
     },
     'TOKEN_MODEL': None,
 }
@@ -172,6 +172,7 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_SETTINGS": {
         "filter": True,  # включить поиск по тегам
     },
+    "COMPONENT_SPLIT_REQUEST": True,
 }
 
 
