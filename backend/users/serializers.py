@@ -196,16 +196,17 @@ class UserSerializer(DjoserSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
-        foreign_languages = validated_data.pop('userforeignlanguage')
-        UserForeignLanguage.objects.filter(user=instance).delete()
-        for data in foreign_languages:
-            language_isocode = data['language'].get('isocode')
-            language = Language.objects.get(isocode=language_isocode)
-            UserForeignLanguage.objects.create(
-                user=instance,
-                language=language,
-                skill_level=data.get('skill_level'),
-            )
+        if 'userforeignlanguage' in validated_data:
+            foreign_languages = validated_data.pop('userforeignlanguage')
+            UserForeignLanguage.objects.filter(user=instance).delete()
+            for data in foreign_languages:
+                language_isocode = data['language'].get('isocode')
+                language = Language.objects.get(isocode=language_isocode)
+                UserForeignLanguage.objects.create(
+                    user=instance,
+                    language=language,
+                    skill_level=data.get('skill_level'),
+                )
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
