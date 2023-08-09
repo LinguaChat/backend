@@ -5,8 +5,9 @@ from django.utils import timezone
 
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
-from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import filters, status, viewsets
+from drf_spectacular.utils import (OpenApiExample, extend_schema,
+                                   extend_schema_view, inline_serializer)
+from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -15,13 +16,18 @@ from core.permissions import IsAdminOrModeratorReadOnly
 from users.filters import UserFilter
 from users.models import BlacklistEntry, Country, Language, Report, User
 from users.serializers import (CountrySerializer, LanguageSerializer,
-                               ReportSerializer)
+                               ReportSerializer, UserProfileSerializer,
+                               UserReprSerializer)
 
 
 @extend_schema(tags=['users'])
 @extend_schema_view(
     list=extend_schema(
         summary='Просмотреть всех пользователей',
+        request=UserProfileSerializer,
+        responses={
+            status.HTTP_200_OK: UserReprSerializer,
+        },
         description=(
             'Просмотреть всех пользователей с применением фильтров '
             'и сортировки. Админы и модераторы из выборки исключены'
@@ -29,11 +35,27 @@ from users.serializers import (CountrySerializer, LanguageSerializer,
     ),
     retrieve=extend_schema(
         summary='Просмотреть профиль пользователя',
+        responses={
+            status.HTTP_200_OK: UserReprSerializer,
+        },
         description="Просмотреть профиль пользователя с соответствующим slug",
     ),
     create=extend_schema(
         summary='Зарегистрироваться',
         description='Создать нового пользователя',
+        examples=[
+                OpenApiExample(
+                    "Create user example",
+                    description="Test example for the new user",
+                    value=
+                    {
+                        "email": "user@example.com",
+                        "username": "newuser",
+                        "password": "string"
+                    },
+                    status_codes=[str(status.HTTP_200_OK)],
+                ),
+            ],
     ),
     set_password=extend_schema(
         summary='Изменить пароль на новый',
@@ -41,10 +63,22 @@ from users.serializers import (CountrySerializer, LanguageSerializer,
     ),
     hide_show_age=extend_schema(
         summary='Изменить видимость возраста в своем профиле',
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name="AgeVisibility",
+                fields={"age_is_hidden": serializers.BooleanField()}
+            ),
+        },
         description='Изменить видимость возраста в своем профиле',
     ),
     hide_show_gender=extend_schema(
         summary='Изменить видимость пола в своем профиле',
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name="GenderVisibility",
+                fields={"gender_is_hidden": serializers.BooleanField()}
+            ),
+        },
         description='Изменить видимость пола в своем профиле',
     ),
     block_user=extend_schema(
@@ -78,7 +112,10 @@ class UserViewSet(DjoserViewSet):
     @extend_schema(
         summary='Просмотреть свой профиль',
         description='Просмотреть свой профиль',
-        methods=["get"]
+        methods=["get"],
+        responses={
+            status.HTTP_200_OK: UserReprSerializer,
+        },
     )
     @extend_schema(
         summary='Удалить свой аккаунт',

@@ -26,6 +26,7 @@ class LanguageSerializer(serializers.ModelSerializer):
             'isocode',
             'sorting',
         )
+        read_only_fields = fields
 
 
 class UserLanguageBaseSerializer(serializers.ModelSerializer):
@@ -74,6 +75,7 @@ class CountrySerializer(serializers.ModelSerializer):
             'name',
             'flag_icon',
         )
+        read_only_fields = fields
 
 
 class UserCreateSerializer(DjoserCreateSerializer):
@@ -121,26 +123,29 @@ class UserCreateSerializer(DjoserCreateSerializer):
         return super().validate(attrs)
 
 
-class UserSerializer(DjoserSerializer):
+class UserProfileSerializer(DjoserSerializer):
     """Сериализатор для заполнения профиля пользователя."""
 
-    avatar = Base64ImageField(allow_null=True)
+    avatar = Base64ImageField(required=False, allow_null=True)
     country = serializers.SlugRelatedField(
         many=False,
         read_only=False,
+        required=False,
         slug_field='code',
         queryset=Country.objects.all()
     )
     native_languages = serializers.SlugRelatedField(
         many=True,
         read_only=False,
+        required=False,
         slug_field='isocode',
         queryset=Language.objects.all()
     )
     foreign_languages = UserForeignLanguageSerializer(
         source='userforeignlanguage',
         many=True,
-        read_only=False
+        read_only=False,
+        required=False
     )
 
     default_error_messages = {
@@ -255,13 +260,7 @@ class UserReprSerializer(serializers.ModelSerializer):
             'age_is_hidden',
             'role',
         )
-        extra_kwargs = {
-            'gender_is_hidden': {'read_only': True},
-            'age_is_hidden': {'read_only': True},
-            'username': {'read_only': True},
-            'slug': {'read_only': True},
-            'last_activity': {'read_only': True},
-        }
+        read_only_fields = fields
 
     def get_is_online(self, obj):
         last_seen = cache.get(f'last-seen-{obj.id}')
