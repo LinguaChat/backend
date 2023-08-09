@@ -20,6 +20,7 @@ User = get_user_model()
 GENDERS_IDS = [x[0] for x in GENDERS]
 SKILL_LEVELS_IDS = [x[0] for x in LANGUAGE_SKILL_LEVELS]
 
+
 def generate_username(*args):
     """ returns a random username """
     faker = factory.Faker
