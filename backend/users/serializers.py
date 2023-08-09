@@ -31,7 +31,7 @@ class LanguageSerializer(serializers.ModelSerializer):
 class UserLanguageBaseSerializer(serializers.ModelSerializer):
     """Общий сериализатор промежуточных моделей Пользователь-Язык."""
 
-    isocode = serializers.ReadOnlyField(source='language.isocode')
+    isocode = serializers.CharField(source='language.isocode')
     language = serializers.ReadOnlyField(source='language.name')
 
 
@@ -45,7 +45,6 @@ class UserNativeLanguageSerializer(UserLanguageBaseSerializer):
             'language',
         )
         read_only_fields = (
-            'isocode',
             'language',
         )
 
@@ -61,7 +60,6 @@ class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
             'skill_level',
         )
         read_only_fields = (
-            'isocode',
             'language',
         )
 
@@ -124,23 +122,27 @@ class UserCreateSerializer(DjoserCreateSerializer):
 
 
 class UserSerializer(DjoserSerializer):
-    """Сериализатор модели пользователя."""
+    """Сериализатор для заполнения профиля пользователя."""
 
-    age = serializers.SerializerMethodField()
-    avatar = Base64ImageField(required=False, allow_null=True)
-    country = CountrySerializer(read_only=True)
-    native_languages = UserNativeLanguageSerializer(
-        source='usernativelanguage',
+    avatar = Base64ImageField(allow_null=True)
+    country = serializers.SlugRelatedField(
+        many=False,
+        read_only=False,
+        slug_field='code',
+        queryset=Country.objects.all()
+    )
+    native_languages = serializers.SlugRelatedField(
         many=True,
-        read_only=True
+        read_only=False,
+        slug_field='isocode',
+        queryset=Language.objects.all()
     )
     foreign_languages = UserForeignLanguageSerializer(
         source='userforeignlanguage',
         many=True,
-        read_only=True
+        read_only=False
     )
-    is_online = serializers.SerializerMethodField()
-    role = serializers.CharField(source='get_role_display', read_only=True)
+
     default_error_messages = {
         'out_of_range': (
             'Кол-во {objects} не должно превышать {max_amount}.'
@@ -150,11 +152,8 @@ class UserSerializer(DjoserSerializer):
     class Meta:
         model = User
         fields = (
-            'username',
             'first_name',
             'avatar',
-            'age',
-            'slug',
             'country',
             'birth_date',
             'native_languages',
@@ -162,33 +161,7 @@ class UserSerializer(DjoserSerializer):
             'gender',
             'topics_for_discussion',
             'about',
-            'last_activity',
-            'is_online',
-            'gender_is_hidden',
-            'age_is_hidden',
-            'role',
         )
-        extra_kwargs = {
-            'birth_date': {'write_only': True},
-            'gender_is_hidden': {'read_only': True},
-            'age_is_hidden': {'read_only': True},
-            'username': {'read_only': True},
-            'slug': {'read_only': True},
-            'last_activity': {'read_only': True},
-        }
-
-    def get_is_online(self, obj):
-        last_seen = cache.get(f'last-seen-{obj.id}')
-        return last_seen is not None and (
-            timezone.now() < last_seen + timezone.timedelta(seconds=300)
-        )
-
-    def get_age(self, obj):
-        """Вычисление возраста пользователя."""
-        if obj.birth_date:
-            age_days = (timezone.now().date() - obj.birth_date).days
-            return int(age_days / 365)
-        return None
 
     def validate_birth_date(self, value):
         dif = (timezone.now().date() - value)
@@ -222,51 +195,85 @@ class UserSerializer(DjoserSerializer):
 
         return super().validate(attrs)
 
-    def create_native_languages(self, user, native_languages):
-        """Создание объектов в промежуточной таблице."""
-        for language in native_languages:
-            UserNativeLanguage.objects.create(
-                user=user,
-                language_id=language.get('id'),
-            )
-
-    def create_foreign_languages(self, user, foreign_languages):
-        """Создание объектов в промежуточной таблице."""
-        for language in foreign_languages:
-            UserForeignLanguage.objects.create(
-                user=user,
-                language_id=language.get('id'),
-                skill_level=language.get('skill_level'),
-            )
-
-    def to_internal_value(self, data):
-        """Кастомный метод to_internal_value, учитывающий
-        наличие/отсутствие запроса на запись данных в through-таблицу."""
-        fields = {
-            'foreign_languages': None,
-            'native_languages': None
-        }
-        for key in fields.keys():
-            if key in data:
-                fields[key] = data.pop(key)
-
-        result = super().to_internal_value(data)
-
-        for key, value in fields.items():
-            if value:
-                result[key] = value
-
-        return result
-
     def update(self, instance, validated_data):
-        """Кастомные метод update, учитывающий
-        наличие/отсутствие запроса на обновление through-таблицы."""
-        if 'foreign_languages' in validated_data:
-            self.create_foreign_languages(
+        foreign_languages = validated_data.pop('userforeignlanguage')
+        UserForeignLanguage.objects.filter(user=instance).delete()
+        for data in foreign_languages:
+            language_isocode = data['language'].get('isocode')
+            language = Language.objects.get(isocode=language_isocode)
+            UserForeignLanguage.objects.create(
                 user=instance,
-                foreign_languages=validated_data.pop('foreign_languages'),
+                language=language,
+                skill_level=data.get('skill_level'),
             )
         return super().update(instance, validated_data)
+
+    def to_representation(self, instance):
+        return UserReprSerializer(
+            instance,
+            context={'request': self.context.get('request')}
+        ).data
+
+
+class UserReprSerializer(serializers.ModelSerializer):
+    """Сериализатор для просмотра пользователя."""
+
+    age = serializers.SerializerMethodField()
+    avatar = Base64ImageField(read_only=True)
+    country = CountrySerializer(read_only=True, many=False)
+    native_languages = UserNativeLanguageSerializer(
+        source='usernativelanguage',
+        many=True,
+        read_only=True
+    )
+    foreign_languages = UserForeignLanguageSerializer(
+        source='userforeignlanguage',
+        many=True,
+        read_only=True
+    )
+    is_online = serializers.SerializerMethodField()
+    role = serializers.CharField(source='get_role_display', read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'first_name',
+            'avatar',
+            'age',
+            'slug',
+            'country',
+            'native_languages',
+            'foreign_languages',
+            'gender',
+            'topics_for_discussion',
+            'about',
+            'last_activity',
+            'is_online',
+            'gender_is_hidden',
+            'age_is_hidden',
+            'role',
+        )
+        extra_kwargs = {
+            'gender_is_hidden': {'read_only': True},
+            'age_is_hidden': {'read_only': True},
+            'username': {'read_only': True},
+            'slug': {'read_only': True},
+            'last_activity': {'read_only': True},
+        }
+
+    def get_is_online(self, obj):
+        last_seen = cache.get(f'last-seen-{obj.id}')
+        return last_seen is not None and (
+            timezone.now() < last_seen + timezone.timedelta(seconds=300)
+        )
+
+    def get_age(self, obj):
+        """Вычисление возраста пользователя."""
+        if obj.birth_date:
+            age_days = (timezone.now().date() - obj.birth_date).days
+            return int(age_days / 365)
+        return None
 
 
 class BlacklistEntrySerializer(serializers.ModelSerializer):
@@ -279,5 +286,5 @@ class BlacklistEntrySerializer(serializers.ModelSerializer):
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
-        fields = ['reason', 'description']
-        read_only_fields = ['reported_user']
+        fields = ('reason', 'description')
+        read_only_fields = ('reported_user',)
