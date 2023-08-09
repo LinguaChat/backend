@@ -5,8 +5,9 @@ from django.utils import timezone
 
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserViewSet
-from drf_spectacular.utils import (OpenApiExample, OpenApiParameter, extend_schema,
-                                   extend_schema_view, inline_serializer)
+from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
+                                   extend_schema, extend_schema_view,
+                                   inline_serializer)
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
