@@ -17,6 +17,9 @@ class ActiveUserMiddleware:
                 last_activity=timezone.now()
             )
             cache.set(cache_key, timezone.now(), 300)
-            request.user.refresh_from_db()
-            request.user.is_user_online()
+            try:
+                request.user.refresh_from_db()
+                request.user.is_user_online()
+            except User.DoesNotExist:
+                pass
         return response
