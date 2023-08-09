@@ -48,15 +48,14 @@ from users.serializers import (CountrySerializer, LanguageSerializer,
                 OpenApiExample(
                     "Create user example",
                     description="Test example for the new user",
-                    value=
-                    {
+                    value={
                         "email": "user@example.com",
                         "username": "newuser",
                         "password": "string"
                     },
                     status_codes=[str(status.HTTP_200_OK)],
                 ),
-            ],
+        ],
     ),
     me=extend_schema(
         parameters=[
