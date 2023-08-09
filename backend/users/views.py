@@ -13,8 +13,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from core.permissions import (
-    IsAdminOrModeratorReadOnly, CanAccessProfileDetails)
+from core.permissions import (CanAccessProfileDetails,
+                              IsAdminOrModeratorReadOnly)
 from users.filters import UserFilter
 from users.models import BlacklistEntry, Country, Language, Report, User
 from users.serializers import (CountrySerializer, LanguageSerializer,
