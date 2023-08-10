@@ -13,7 +13,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from core.permissions import IsAdminOrModeratorReadOnly
+from core.permissions import (CanAccessProfileDetails,
+                              IsAdminOrModeratorReadOnly)
 from users.filters import UserFilter
 from users.models import BlacklistEntry, Country, Language, Report, User
 from users.serializers import (CountrySerializer, LanguageSerializer,
@@ -106,6 +107,7 @@ class UserViewSet(DjoserViewSet):
 
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = UserFilter
+    permission_classes = [CanAccessProfileDetails]
     ordering_fields = ['date_joined']
     ordering = ['?']
     lookup_field = 'slug'

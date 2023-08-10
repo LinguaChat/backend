@@ -21,5 +21,5 @@ class ActiveUserMiddleware:
                 request.user.refresh_from_db()
                 request.user.is_user_online()
             except User.DoesNotExist:
-                pass
+                pass  # Пользователь был удален, игнорируем исключение
         return response

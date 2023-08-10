@@ -36,3 +36,23 @@ class IsAdminOrModeratorReadOnly(permissions.BasePermission):
                 user.role == 'admin'
             )
         return True
+
+
+class CanAccessProfileDetails(permissions.BasePermission):
+    """
+    Проверяет, разрешено ли пользователю
+    просматривать детали профиля другого пользователя.
+    """
+
+    message = "Просмотр профиля заблокирован для данного пользователя."
+
+    def has_permission(self, request, view):
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        current_user = request.user
+        if current_user == obj:
+            return True
+        if current_user.blacklist_entries_received.filter(user=obj).exists():
+            return False
+        return True
