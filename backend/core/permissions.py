@@ -50,9 +50,10 @@ class CanAccessProfileDetails(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        current_user = request.user
-        if current_user == obj:
-            return True
-        if current_user.blacklist_entries_received.filter(user=obj).exists():
-            return False
+        user = request.user
+        if user.is_authenticated:
+            if user == obj:
+                return True
+            if user.blacklist_entries_received.filter(user=obj).exists():
+                return False
         return True
