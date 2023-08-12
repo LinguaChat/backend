@@ -20,3 +20,40 @@ class ActiveChatOrReceiverOnly(permissions.BasePermission):
                 or not obj.members_info.get(member=request.user).is_creator
             )
         )
+
+
+class IsAdminOrModeratorReadOnly(permissions.BasePermission):
+    """
+    Разрешение на просмотр Администраторам или Модераторам.
+    """
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            user = request.user
+            return (
+                user.is_staff or
+                user.role == 'moderator' or
+                user.role == 'admin'
+            )
+        return True
+
+
+class CanAccessProfileDetails(permissions.BasePermission):
+    """
+    Проверяет, разрешено ли пользователю
+    просматривать детали профиля другого пользователя.
+    """
+
+    message = "Просмотр профиля заблокирован для данного пользователя."
+
+    def has_permission(self, request, view):
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if user.is_authenticated:
+            if user == obj:
+                return True
+            if user.blacklist_entries_received.filter(user=obj).exists():
+                return False
+        return True

@@ -96,6 +96,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 5,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -116,12 +119,13 @@ DJOSER = {
         'user_list': ['rest_framework.permissions.AllowAny'],
         'user_create': ['rest_framework.permissions.AllowAny'],
         'user': ['rest_framework.permissions.AllowAny'],
-        'current_user': ['rest_framework.permissions.IsAuthenticated'],
     },
     'SERIALIZERS': {
-        'user': 'users.serializers.UserSerializer',
-        'current_user': 'users.serializers.UserSerializer',
+        'user': 'users.serializers.UserProfileSerializer',
+        'user_create': 'users.serializers.UserCreateSerializer',
+        'current_user': 'users.serializers.UserProfileSerializer',
     },
+    'TOKEN_MODEL': None,
 }
 
 REST_FRAMEWORK = {
@@ -144,10 +148,11 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://lingvogo.acceleratorpracticum.ru",
-    "http://5.181.255.32",
+    'http://lingvogo.acceleratorpracticum.ru',
+    'http://5.181.255.3',
     'http://localhost:3000',
     'http://localhost',
+    'https://conversation-exchange.github.io',
     # Дополнительные разрешенные источники, если есть
 ]
 
@@ -161,10 +166,14 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Lang_Exchange API',
-    'DESCRIPTION': 'API-endpoints for "Lang_Exchange" project',
+    'TITLE': 'LinguaChat API',
+    'DESCRIPTION': 'API endpoints for LinguaChat',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    "SWAGGER_UI_SETTINGS": {
+        "filter": True,  # включить поиск по тегам
+    },
+    "COMPONENT_SPLIT_REQUEST": True,
 }
 
 

@@ -165,3 +165,9 @@ migrations/
 # local media & static files
 media/
 static/
+
+# locale files
+locale/
+
+# cache files
+cache/

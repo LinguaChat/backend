@@ -23,3 +23,20 @@ MAX_NATIVE_LANGUAGES = 3
 EMAIL_MAX_LENGTH = 30
 USERNAME_MAX_LENGTH = 12
 PASSWORD_MAX_LENGTH = 12
+MIN_AGE = 18
+MAX_AGE = 60
+
+LANGS_SORTING_VALS = {
+    "En": 3,
+    "Ru": 2,
+    "Fr": 2,
+    "De": 2,
+    "It": 2,
+    "Ja": 2,
+    "Ko": 2,
+    "Es": 2,
+    "Tr": 1,
+    "Ar": 1,
+    "Nl": 1,
+    "Ro": 1,
+}
