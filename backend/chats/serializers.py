@@ -1,115 +1,16 @@
 """Сериализаторы приложения chats."""
 
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 # from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import get_object_or_404
+# from rest_framework.generics import get_object_or_404
 
-from chats.models import Attachment, Chat, ChatMembers, Message, MessageReaders
-from users.serializers import UserProfileSerializer
+from chats.models import Attachment, Chat, GroupChat, Message
+from users.serializers import UserShortSerializer
 
 User = get_user_model()
-
-
-class ChatListSerializer(serializers.ModelSerializer):
-    """Сериализатор для списка чатов."""
-
-    companion = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Chat
-        fields = (
-            'id',
-            'companion',
-            # 'latest_message',
-            # 'unread',
-            # 'unread_messages_count',
-        )
-
-    def get_companion(self, obj):
-        user = self.context.get('request').user
-        return UserProfileSerializer(
-            *obj.members.exclude(id=user.id),
-            context={'request': self.context.get('request')}
-        ).data
-
-
-class ChatReprSerializer(ChatListSerializer):
-    """Сериализатор для просмотра чата."""
-
-    class Meta:
-        model = Chat
-        fields = (
-            'id',
-            'companion',
-            # 'messages',
-        )
-
-
-class ChatSerializer(serializers.ModelSerializer):
-    """Сериализатор для создания чата."""
-
-    companion = serializers.SlugField()
-
-    class Meta:
-        model = Chat
-        fields = (
-            'companion',
-        )
-
-    def to_representation(self, instance):
-        return ChatReprSerializer(
-            instance,
-            context={'request': self.context.get('request')}
-        ).data
-
-    def create(self, validated_data):
-        companion_slug = validated_data.pop("companion", None)
-        companion = get_object_or_404(User, slug=companion_slug)
-        creator = self.context.get('request').user
-
-        # if companion.chats.filter(members__in=creator).exists():
-        #     return PermissionDenied(
-        #         'Чат с этим пользователем уже создан.'
-        #     )
-
-        chat = Chat.objects.create(**validated_data)
-        ChatMembers.objects.create(
-            chat=chat,
-            member=creator,
-            is_creator=True
-        )
-        ChatMembers.objects.create(
-            chat=chat,
-            member=companion
-        )
-        return chat
-
-
-class AttachmentSerializer(serializers.ModelSerializer):
-    """Сериализатор модели Attachment."""
-
-    content = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = Attachment
-        fields = [
-            'name',
-            'content',
-            'message'
-        ]
-
-
-class MessageReadersSerializer(serializers.ModelSerializer):
-    """Сериализатор модели MessageReaders."""
-
-    class Meta:
-        model = MessageReaders
-        fields = [
-            'message',
-            'user',
-        ]
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -119,10 +20,13 @@ class MessageSerializer(serializers.ModelSerializer):
         allow_null=True,
         max_length=10000
     )
-    chat = ChatSerializer(
-        read_only=True
-    )
-    message_readers = MessageReadersSerializer(
+    # chat = serializers.CharField(source='chat.name')
+    # chat = serializers.SlugRelatedField(
+    #     slug_field='name',
+    #     many=False,
+    #     read_only=True
+    # )
+    read_by = UserShortSerializer(
         many=True,
         read_only=True
     )
@@ -150,18 +54,22 @@ class MessageSerializer(serializers.ModelSerializer):
             'sender_keep',
             'is_read',
             'is_pinned',
-            'message_readers'
+            'read_by',
         ]
+        extra_kwargs = {
+            'chat': {'write_only': True},
+        }
 
     def create(self, validated_data):
         file_to_send = validated_data.pop('file_to_send', None)
         photo_to_send = validated_data.pop('photo_to_send', None)
-        chat = validated_data['chat']
+        # chatname = validated_data['chat']
+        # chat = get_object_or_404(Chat, name=chatname)
 
-        if not chat.messages.exists() and (file_to_send or photo_to_send):
-            raise serializers.ValidationError(
-                "Нельзя отправить фото или файл первым сообщением"
-            )
+        # if not chat.messages.exists() and (file_to_send or photo_to_send):
+        #     raise serializers.ValidationError(
+        #         "Нельзя отправить фото или файл первым сообщением"
+        #     )
 
         validated_data['sender'] = self.context['request'].user
         message = Message.objects.create(**validated_data)
@@ -206,3 +114,106 @@ class MessageSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class ChatListSerializer(serializers.ModelSerializer):
+    """Сериализатор для просмотра списка чатов."""
+
+    # other_user = serializers.SerializerMethodField()
+    last_message = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Chat
+        fields = (
+            'id',
+            'name',
+            # 'other_user',
+            "last_message",
+            # 'unread',
+            # 'unread_messages_count',
+        )
+        read_only_fields = fields
+
+    # def get_other_user(self, obj):
+    #     user = self.context.get('request').user
+    #     return UserProfileSerializer(
+    #         *obj.members.exclude(id=user.id),
+    #         context={'request': self.context.get('request')}
+    #     ).data
+
+    def get_last_message(self, obj):
+        messages = obj.messages.all().order_by('-date_created')
+        if not messages.exists():
+            return None
+        message = messages[0]
+        return MessageSerializer(message).data
+
+
+class ChatSerializer(serializers.ModelSerializer):
+    """Сериализатор для просмотра чата."""
+
+    messages = MessageSerializer(
+        many=True,
+        read_only=False
+    )
+
+    class Meta:
+        model = Chat
+        fields = (
+            'id',
+            'name',
+            "messages",
+        )
+        read_only_fields = (
+            'id',
+        )
+
+
+class GroupChatCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания группового чата."""
+
+    members = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=User.objects.all(),
+        many=True
+    )
+
+    class Meta:
+        model = GroupChat
+        fields = (
+            'name',
+            "members",
+        )
+
+    # def to_representation(self, instance):
+    #     return ChatReprSerializer(
+    #         instance,
+    #         context={'request': self.context.get('request')}
+    #     ).data
+
+    # def create(self, validated_data):
+    #     chat = Chat.objects.create(**validated_data)
+    #     # ChatMembers.objects.create(
+    #     #     chat=chat,
+    #     #     member=creator,
+    #     #     is_creator=True
+    #     # )
+    #     # ChatMembers.objects.create(
+    #     #     chat=chat,
+    #     #     member=companion
+    #     # )
+    #     return chat
+
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Attachment."""
+
+    content = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Attachment
+        fields = [
+            'name',
+            'content',
+            'message'
+        ]
