@@ -1,6 +1,7 @@
 """View-функции приложения chats."""
 
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
@@ -88,3 +89,33 @@ class ChatViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def block_user(self, request, pk=None):
+        """Блокировка пользователя в чате"""
+        chat = self.get_object()
+        user_to_block = get_object_or_404(
+            User, pk=request.data.get('id'))
+
+        if request.user == user_to_block:
+            return Response(
+                {"detail": "Нельзя заблокировать самого себя."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if chat.members.filter(slug=user_to_block.id).exists():
+            if chat.blocked_users.add(user_to_block):
+                return Response(
+                    {"detail": "Пользователь заблокирован в этом чате."},
+                    status=status.HTTP_201_CREATED
+                )
+            if user_to_block in chat.blocked_users.all():
+                Response(
+                    {"detail": "Пользователь уже заблокирован в этом чате."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            return Response(
+                {"detail": "Пользователь не является участником чата"},
+                status=status.HTTP_400_BAD_REQUEST
+            )

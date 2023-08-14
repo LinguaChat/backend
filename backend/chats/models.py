@@ -3,8 +3,6 @@
 from django.contrib.auth import get_user_model
 # from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 # from polymorphic.models import PolymorphicModel
 from model_utils.managers import InheritanceManager
@@ -28,12 +26,19 @@ class Chat(DateCreatedModel, DateEditedModel):
         help_text='Кто может просматривать и отправлять сообщения в чате',
         related_name='chats'
     )
+    blocked_users = models.ManyToManyField(
+        User,
+        verbose_name='Заблокированные пользователи',
+        related_name='bloked_chats',
+        blank=True,
+        help_text='Список пользователей, которых вы заблокировали в этом чате.'
+    )
 
     objects = InheritanceManager()
 
     def get_members_count(self):
         return self.members.count()
-    
+
     def __str__(self):
         return f'{self.name} ({self.get_members_count()})'
 
@@ -172,7 +177,7 @@ class Attachment(models.Model):
 
 class ChatRequest(DateCreatedModel):
     """Модель для запросов и приглашений."""
-    
+
     from_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="requests_from_me"
     )
