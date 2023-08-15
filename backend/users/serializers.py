@@ -13,9 +13,6 @@ from users.fields import Base64ImageField
 from users.models import (BlacklistEntry, Country, Language, Report, User,
                           UserForeignLanguage, UserNativeLanguage)
 
-from .validators import (custom_username_validator, validate_email,
-                         validate_first_name, validate_password)
-
 
 class LanguageSerializer(serializers.ModelSerializer):
     """Сериализатор модели языка."""
@@ -101,18 +98,6 @@ class UserCreateSerializer(DjoserCreateSerializer):
             'username': {'write_only': True},
         }
 
-    def validate(self, attrs):
-        username = attrs.get('username')
-        if username:
-            custom_username_validator(username)
-        password = attrs.get('password')
-        if password:
-            validate_password(password)
-        email = attrs.get('email')
-        if email:
-            validate_email(email)
-        return attrs
-
 
 class UserProfileSerializer(DjoserSerializer):
     """Сериализатор для заполнения профиля пользователя."""
@@ -168,9 +153,6 @@ class UserProfileSerializer(DjoserSerializer):
 
     def validate(self, attrs):
 
-        first_name = attrs.get('first_name')
-        if first_name:
-            validate_first_name(first_name)
         native_languages = attrs.get('native_languages')
         if (
             native_languages
