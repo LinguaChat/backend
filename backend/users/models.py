@@ -12,6 +12,9 @@ from core.constants import (EMAIL_MAX_LENGTH, GENDERS, LANGUAGE_SKILL_LEVELS,
                             USERNAME_MAX_LENGTH)
 from core.models import AbstractNameModel, DateCreatedModel, DateEditedModel
 
+from .validators import (custom_username_validator, validate_email,
+                         validate_first_name)
+
 models.CharField.register_lookup(Length)
 
 
@@ -59,11 +62,23 @@ class User(AbstractUser, DateEditedModel):
         ('moderator', 'Moderator'),
         ('admin', 'Admin'),
     )
+    first_name = models.CharField(
+        'Имя',
+        validators=[validate_first_name],
+        help_text='Имя пользователя',
+    )
+    username = models.CharField(
+        max_length=USERNAME_MAX_LENGTH,
+        unique=True,
+        validators=[custom_username_validator],
+    )
+
     email = models.EmailField(
         'Электронная почта',
         unique=True,
         help_text='Адрес email',
         max_length=EMAIL_MAX_LENGTH,
+        validators=[validate_email],
     )
     slug = models.SlugField(
         'Слаг',
