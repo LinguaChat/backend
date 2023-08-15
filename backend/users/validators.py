@@ -1,8 +1,7 @@
 import re
 
-from django.utils.translation import gettext_lazy as _
-
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from core.constants import (FIRST_NAME_MAX_LENGTH, FIRST_NAME_MIN_LENGTH,
                             PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH,
