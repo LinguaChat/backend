@@ -8,8 +8,7 @@ from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
 from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
-                            MAX_NATIVE_LANGUAGES, MIN_AGE, PASSWORD_MAX_LENGTH,
-                            USERNAME_MAX_LENGTH)
+                            MAX_NATIVE_LANGUAGES, MIN_AGE)
 from users.fields import Base64ImageField
 from users.models import (BlacklistEntry, Country, Language, Report, User,
                           UserForeignLanguage, UserNativeLanguage)
@@ -99,29 +98,6 @@ class UserCreateSerializer(DjoserCreateSerializer):
             'username': {'write_only': True},
         }
 
-    def validate(self, attrs):
-        username = attrs.get('username')
-        if (
-            len(username) > USERNAME_MAX_LENGTH
-        ):
-            self.fail(
-                'too_long',
-                objects='username',
-                max_amount=USERNAME_MAX_LENGTH
-            )
-
-        password = attrs.get('password')
-        if (
-            len(password) > PASSWORD_MAX_LENGTH
-        ):
-            self.fail(
-                'too_long',
-                objects='password',
-                max_amount=PASSWORD_MAX_LENGTH
-            )
-
-        return super().validate(attrs)
-
 
 class UserProfileSerializer(DjoserSerializer):
     """Сериализатор для заполнения профиля пользователя."""
@@ -176,6 +152,7 @@ class UserProfileSerializer(DjoserSerializer):
         return value
 
     def validate(self, attrs):
+
         native_languages = attrs.get('native_languages')
         if (
             native_languages
