@@ -1,3 +1,5 @@
+"""Кастомные валидаторы приложения users."""
+
 import re
 
 from django.core.exceptions import ValidationError

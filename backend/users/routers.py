@@ -1,4 +1,4 @@
-"""Custom routers."""
+"""Кастомные роутеры приложения users."""
 
 from rest_framework.routers import DynamicRoute, Route, SimpleRouter
 
