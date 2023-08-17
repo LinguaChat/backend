@@ -1,5 +1,7 @@
 """Общие константы проекта."""
 
+from django.utils.translation import gettext as _
+
 # Выбор пола пользователя на сайте
 GENDERS = (
     ('Male', 'Мужской'),
@@ -44,3 +46,16 @@ LANGS_SORTING_VALS = {
     "Nl": 1,
     "Ro": 1,
 }
+
+USERS_BASE_INTERESTS = [
+    _("Music"),
+    _("Films"),
+    _("Books"),
+    _("Sport"),
+    _("Pets"),
+    _("Sience"),
+    _("History"),
+    _("Cooking"),
+    _("Psychology"),
+    _("Culture and art"),
+]
