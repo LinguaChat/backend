@@ -3,8 +3,8 @@
 from django.core.files.images import ImageFile
 from django.core.management.base import BaseCommand, CommandError
 
-from core.constants import USERS_BASE_INTERESTS, USERS_GOALS, GOALS_ICONS_URLS
-from users.models import Interest, Goal
+from core.constants import GOALS_ICONS_URLS, USERS_BASE_INTERESTS, USERS_GOALS
+from users.models import Goal, Interest
 
 
 class Command(BaseCommand):
