@@ -127,11 +127,10 @@ class User(AbstractUser, DateEditedModel):
         null=True,
         help_text='Пол пользователя',
     )
-    topics_for_discussion = models.TextField(
-        'Темы для разговора',
-        max_length=100,
-        blank=True,
-        help_text='Темы для разговора',
+    interests = models.ManyToManyField(
+        'Interest',
+        verbose_name='Интересы пользователя',
+        blank=True
     )
     country = models.ForeignKey(
         'Country',
@@ -220,6 +219,23 @@ class User(AbstractUser, DateEditedModel):
                 self.is_online = False
 
         super().save(*args, **kwargs)
+
+
+class Interest(models.Model):
+    """Модель интересов пользователей."""
+
+    name = models.CharField(
+        'Название',
+        max_length=64,
+        unique=True
+    )
+
+    def __str__(self) -> str:
+        return self.name
+
+    class Meta:
+        verbose_name = 'Интерес'
+        verbose_name_plural = 'Интересы'
 
 
 class Language(models.Model):

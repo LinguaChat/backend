@@ -10,7 +10,7 @@ from rest_framework import serializers
 from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
                             MAX_NATIVE_LANGUAGES, MIN_AGE)
 from users.fields import Base64ImageField
-from users.models import (BlacklistEntry, Country, Language, Report, User,
+from users.models import (BlacklistEntry, Country, Language, Report, User, Interest,
                           UserForeignLanguage, UserNativeLanguage)
 
 
@@ -110,6 +110,13 @@ class UserProfileSerializer(DjoserSerializer):
         slug_field='code',
         queryset=Country.objects.all()
     )
+    interests = serializers.SlugRelatedField(
+        many=True,
+        read_only=False,
+        required=False,
+        slug_field='name',
+        queryset=Interest.objects.all()
+    )
     native_languages = serializers.SlugRelatedField(
         many=True,
         read_only=False,
@@ -140,7 +147,7 @@ class UserProfileSerializer(DjoserSerializer):
             'native_languages',
             'foreign_languages',
             'gender',
-            'topics_for_discussion',
+            'interests',
             'about',
         )
 
@@ -204,6 +211,11 @@ class UserReprSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
     avatar = Base64ImageField(read_only=True)
     country = CountrySerializer(read_only=True, many=False)
+    interests = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
     native_languages = UserNativeLanguageSerializer(
         source='usernativelanguage',
         many=True,
@@ -229,7 +241,7 @@ class UserReprSerializer(serializers.ModelSerializer):
             'native_languages',
             'foreign_languages',
             'gender',
-            'topics_for_discussion',
+            'interests',
             'about',
             'last_activity',
             'is_online',

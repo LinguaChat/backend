@@ -68,7 +68,7 @@ class CustomUserAdmin(UserAdmin):
                 'gender',
                 'avatar',
                 'about',
-                'topics_for_discussion',
+                'interests',
                 'age_is_hidden',
                 'gender_is_hidden',
                 'role',
