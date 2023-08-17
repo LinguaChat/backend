@@ -7,10 +7,14 @@ from django.utils.translation import gettext_lazy as _
 
 from core.constants import (FIRST_NAME_MAX_LENGTH, FIRST_NAME_MIN_LENGTH,
                             PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH,
-                            USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH)
+                            USERNAME_MIN_LENGTH)
 
 
 class CustomPasswordValidator:
+    """
+    Пользовательский валидатор паролей.
+    """
+
     def __init__(
         self, min_length=PASSWORD_MIN_LENGTH,
         max_length=PASSWORD_MAX_LENGTH
@@ -40,7 +44,11 @@ class CustomPasswordValidator:
                 {'password': password_length_error},
                 code='password_length'
             )
-
+        if ' ' in password:
+            raise ValidationError(
+                {'password': 'Пароль не должен содержать пробелов.'},
+                code='password_invalid'
+            )
         if not self.pattern.match(password):
             raise ValidationError(
                 {'password': password_invalid_error},
@@ -49,27 +57,41 @@ class CustomPasswordValidator:
 
 
 def custom_username_validator(value):
-    pattern = re.compile(r'^[a-zA-Zа-яА-Я0-9]+([._-][a-zA-Zа-яА-Я0-9]+)*$')
-
-    if len(value) < USERNAME_MIN_LENGTH or len(value) > USERNAME_MAX_LENGTH:
+    """
+    Пользовательский валидатор логинов.
+    """
+    pattern = re.compile(r'^[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*$')
+    if ' ' in value:
         raise ValidationError(
-            {'username':
-             _('Длина логина пользователя должна быть от 3 до 12 символов.')}
+            _('Логин пользователя не должен содержать пробелов.')
+        )
+
+    if len(value) < USERNAME_MIN_LENGTH:
+        raise ValidationError(
+            _('Длина логина пользователя должна быть от 3 до 12 символов.')
         )
 
     if not pattern.match(value):
         raise ValidationError(
-            {'username': _('Недопустимый логин пользователя.')})
+            _('Недопустимый логин пользователя.')
+        )
 
     if value.isdigit():
         raise ValidationError(
-            {'username':
-             _('Логин не может состоять только из цифр.')})
+            _('Логин не может состоять только из цифр.')
+        )
 
 
 def validate_email(email):
+    """
+    Пользовательский валидатор почты.
+    """
+    if ' ' in email:
+        raise ValidationError(
+            _('Адрес электронной почты не должен содержать пробелов.'))
+
     pattern = re.compile(
-        r'^[a-zA-Z0-9]+'
+        r'^[a-zA-Z][a-zA-Z0-9_]*'
         r'([._-][a-zA-Z0-9]+)*'
         r'[a-zA-Z0-9]+'
         r'@[a-zA-Z0-9.-]+'
@@ -77,25 +99,27 @@ def validate_email(email):
     )
     if not pattern.match(email):
         raise ValidationError(
-            {'email': _('Некорректный адрес электронной почты.')}
+            _('Некорректный адрес электронной почты.')
         )
 
 
 def validate_first_name(value):
+    """
+    Пользовательский валидатор имени.
+    """
     pattern = re.compile(
         r'^[A-Za-zА-ЯЁа-яё]+'
         r'(?:[- ][A-Za-zА-ЯЁа-яё]+)?'
         r'(?:[- ][A-Za-zА-ЯЁа-яё]+)?$'
     )
 
+    if not pattern.match(value):
+        raise ValidationError(
+            _('Некорректное имя.'))
+
     if (
             len(value) < FIRST_NAME_MIN_LENGTH
             or len(value) > FIRST_NAME_MAX_LENGTH
     ):
         raise ValidationError(
-            {'first_name': _('Длина имени должна быть от 2 до 12 символов.')})
-
-    if not pattern.match(value):
-        raise ValidationError(
-            {'first_name': _('Некорректное имя.')}
-        )
+            _('Длина имени должна быть от 2 до 12 символов.'))
