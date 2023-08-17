@@ -9,7 +9,7 @@ from rest_framework import serializers
 
 from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
                             MAX_NATIVE_LANGUAGES, MIN_AGE)
-from users.fields import Base64ImageField
+from users.fields import Base64ImageField, CreatableSlugRelatedField
 from users.models import (BlacklistEntry, Country, Language, Report, User, Interest,
                           UserForeignLanguage, UserNativeLanguage)
 
@@ -110,7 +110,7 @@ class UserProfileSerializer(DjoserSerializer):
         slug_field='code',
         queryset=Country.objects.all()
     )
-    interests = serializers.SlugRelatedField(
+    interests = CreatableSlugRelatedField(
         many=True,
         read_only=False,
         required=False,
