@@ -133,6 +133,12 @@ class User(AbstractUser, DateEditedModel):
         verbose_name='Интересы пользователя',
         blank=True
     )
+    goals = models.ManyToManyField(
+        'Goal',
+        related_name='users',
+        verbose_name='Цели пользователя',
+        blank=True
+    )
     country = models.ForeignKey(
         'Country',
         on_delete=models.SET_NULL,
@@ -241,6 +247,27 @@ class Interest(models.Model):
     class Meta:
         verbose_name = 'Интерес'
         verbose_name_plural = 'Интересы'
+        ordering = ('name',)
+
+
+class Goal(models.Model):
+    """Модель целей пользователей."""
+
+    name = models.CharField(
+        'Название',
+        max_length=64,
+        unique=True
+    )
+    icon = models.ImageField(
+        'Иконка'
+    )
+
+    def __str__(self) -> str:
+        return self.name
+
+    class Meta:
+        verbose_name = 'Цель'
+        verbose_name_plural = 'Цели'
         ordering = ('name',)
 
 
