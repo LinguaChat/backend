@@ -32,6 +32,7 @@ class Country(AbstractNameModel):
     flag_icon = models.ImageField(
         'Флаг',
         help_text='Флаг страны',
+        upload_to='icons/countries/'
     )
 
     def __str__(self):
@@ -149,7 +150,7 @@ class User(AbstractUser, DateEditedModel):
     )
     avatar = models.ImageField(
         'Изображение',
-        upload_to='user_photos/',
+        upload_to='icons/users/',
         null=True,
         blank=True,
         help_text='Аватар пользователя',
@@ -259,7 +260,8 @@ class Goal(models.Model):
         unique=True
     )
     icon = models.ImageField(
-        'Иконка'
+        'Иконка',
+        upload_to='icons/goals/'
     )
     sorting = models.PositiveIntegerField(
         blank=False,
