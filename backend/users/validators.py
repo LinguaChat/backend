@@ -3,7 +3,7 @@
 import re
 
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 
 from core.constants import (FIRST_NAME_MAX_LENGTH, FIRST_NAME_MIN_LENGTH,
                             PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH,
@@ -54,6 +54,9 @@ class CustomPasswordValidator:
                 {'password': password_invalid_error},
                 code='password_invalid'
             )
+
+    def get_help_text(self):
+        return _('Your password can’t contain spaces')
 
 
 def custom_username_validator(value):

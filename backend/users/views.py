@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from core.permissions import (CanAccessProfileDetails,
                               IsAdminOrModeratorReadOnly)
 from users.filters import UserFilter
-from users.models import BlacklistEntry, Country, Language, Report, User
+from users.models import BlacklistEntry, Country, Language, Report, User, Interest
 from users.serializers import (CountrySerializer, LanguageSerializer,
                                ReportSerializer, UserProfileSerializer,
                                UserReprSerializer)
