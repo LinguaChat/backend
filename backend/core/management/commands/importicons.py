@@ -45,7 +45,7 @@ class Command(BaseCommand):
         self.stdout.write('*********')
         self.stdout.write('Importing users icons...\n')
         users_path = "core/icons/users/"
-        cnt = self.load_icons(users_path, "media/icons/goals/")
+        cnt = self.load_icons(users_path, "media/icons/users/")
         self.stdout.write('\n{cnt} icons was imported'.format(cnt=cnt))
         self.stdout.write('*********')
         self.stdout.write('Importing countries flags icons...\n')
