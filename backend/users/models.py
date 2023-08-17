@@ -129,6 +129,7 @@ class User(AbstractUser, DateEditedModel):
     )
     interests = models.ManyToManyField(
         'Interest',
+        related_name='users',
         verbose_name='Интересы пользователя',
         blank=True
     )
@@ -230,12 +231,17 @@ class Interest(models.Model):
         unique=True
     )
 
+    @property
+    def sorting(self):
+        return self.users.count()
+
     def __str__(self) -> str:
         return self.name
 
     class Meta:
         verbose_name = 'Интерес'
         verbose_name_plural = 'Интересы'
+        ordering = ('name',)
 
 
 class Language(models.Model):

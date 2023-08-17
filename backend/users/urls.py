@@ -5,7 +5,8 @@ from django.urls import include, path
 from rest_framework import routers
 
 from users.routers import CustomRouter
-from users.views import CountryViewSet, LanguageViewSet, UserViewSet
+from users.views import (CountryViewSet, InterestViewSet, LanguageViewSet,
+                         UserViewSet)
 
 router_user = CustomRouter()
 router = routers.DefaultRouter()
@@ -14,6 +15,7 @@ router_user.register('users', UserViewSet, basename='users')
 
 router.register('languages', LanguageViewSet, basename='languages')
 router.register('countries', CountryViewSet, basename='countries')
+router.register('interests', InterestViewSet, basename='interests')
 
 
 router_user._urls = [

@@ -277,3 +277,10 @@ class ReportSerializer(serializers.ModelSerializer):
         model = Report
         fields = ('reason', 'description')
         read_only_fields = ('reported_user',)
+
+
+class InterestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Interest
+        fields = ('name', 'sorting')
+        read_only_fields = fields
