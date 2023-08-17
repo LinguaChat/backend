@@ -16,11 +16,12 @@ from rest_framework.response import Response
 from core.permissions import (CanAccessProfileDetails,
                               IsAdminOrModeratorReadOnly)
 from users.filters import UserFilter
-from users.models import (BlacklistEntry, Country, Interest, Language, Report,
-                          User)
-from users.serializers import (CountrySerializer, InterestSerializer,
-                               LanguageSerializer, ReportSerializer,
-                               UserProfileSerializer, UserReprSerializer)
+from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
+                          Report, User)
+from users.serializers import (CountrySerializer, GoalSerializer,
+                               InterestSerializer, LanguageSerializer,
+                               ReportSerializer, UserProfileSerializer,
+                               UserReprSerializer)
 
 
 @extend_schema(tags=['users'])
@@ -372,7 +373,7 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     )
 )
 class InterestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    """Вьюсет модели языка."""
+    """Просмотр списка интересов."""
 
     serializer_class = InterestSerializer
     permission_classes = [
@@ -389,3 +390,22 @@ class InterestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         return Interest.objects.annotate(
             users_count=Count('users')
         ).order_by('-users_count')
+
+
+@extend_schema(tags=['goals'])
+@extend_schema_view(
+    list=extend_schema(
+        summary='Список целей',
+        description=(
+            'Просмотреть список целей'
+        ),
+    )
+)
+class GoalViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Просмотр списка целей."""
+
+    queryset = Goal.objects.all()
+    serializer_class = GoalSerializer
+    permission_classes = [
+        AllowAny,
+    ]

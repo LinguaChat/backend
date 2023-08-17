@@ -10,8 +10,9 @@ from rest_framework import serializers
 from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
                             MAX_NATIVE_LANGUAGES, MIN_AGE)
 from users.fields import Base64ImageField, CreatableSlugRelatedField
-from users.models import (BlacklistEntry, Country, Interest, Language, Report,
-                          User, UserForeignLanguage, UserNativeLanguage)
+from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
+                          Report, User, UserForeignLanguage,
+                          UserNativeLanguage)
 
 
 class LanguageSerializer(serializers.ModelSerializer):
@@ -117,6 +118,13 @@ class UserProfileSerializer(DjoserSerializer):
         slug_field='name',
         queryset=Interest.objects.all()
     )
+    goals = serializers.SlugRelatedField(
+        many=True,
+        read_only=False,
+        required=False,
+        slug_field='name',
+        queryset=Goal.objects.all()
+    )
     native_languages = serializers.SlugRelatedField(
         many=True,
         read_only=False,
@@ -147,6 +155,7 @@ class UserProfileSerializer(DjoserSerializer):
             'native_languages',
             'foreign_languages',
             'gender',
+            'goals',
             'interests',
             'about',
         )
@@ -205,12 +214,20 @@ class UserProfileSerializer(DjoserSerializer):
         ).data
 
 
+class GoalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Goal
+        fields = ('name', 'icon')
+        read_only_fields = fields
+
+
 class UserReprSerializer(serializers.ModelSerializer):
     """Сериализатор для просмотра пользователя."""
 
     age = serializers.SerializerMethodField()
     avatar = Base64ImageField(read_only=True)
     country = CountrySerializer(read_only=True, many=False)
+    goals = GoalSerializer(read_only=True, many=True)
     interests = serializers.SlugRelatedField(
         many=True,
         read_only=True,
@@ -241,6 +258,7 @@ class UserReprSerializer(serializers.ModelSerializer):
             'native_languages',
             'foreign_languages',
             'gender',
+            'goals',
             'interests',
             'about',
             'last_activity',
