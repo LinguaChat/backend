@@ -5,7 +5,8 @@ import datetime as dt
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import BlacklistEntry, Country, Interest, Language, Report, User
+from .models import (BlacklistEntry, Country, Goal, Interest, Language, Report,
+                     User)
 
 
 class NativeLanguageInlineAdmin(admin.TabularInline):
@@ -135,3 +136,4 @@ admin.site.register(Country)
 admin.site.register(BlacklistEntry)
 admin.site.register(Report)
 admin.site.register(Interest)
+admin.site.register(Goal)
