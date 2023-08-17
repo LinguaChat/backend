@@ -10,8 +10,8 @@ from rest_framework import serializers
 from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
                             MAX_NATIVE_LANGUAGES, MIN_AGE)
 from users.fields import Base64ImageField, CreatableSlugRelatedField
-from users.models import (BlacklistEntry, Country, Language, Report, User, Interest,
-                          UserForeignLanguage, UserNativeLanguage)
+from users.models import (BlacklistEntry, Country, Interest, Language, Report,
+                          User, UserForeignLanguage, UserNativeLanguage)
 
 
 class LanguageSerializer(serializers.ModelSerializer):
