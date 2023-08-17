@@ -59,3 +59,13 @@ USERS_BASE_INTERESTS = [
     _("Psychology"),
     _("Culture and art"),
 ]
+
+USERS_GOALS = {
+    "brain": _("Development"),
+    "business": _("Career and business"),
+    "geography": _("Journey"),
+    "graduation": _("Education"),
+    "handshake": _("Communication"),
+    "product": _("Relocation"),
+}
+GOALS_ICONS_URLS = 'core/icons/goals/'
