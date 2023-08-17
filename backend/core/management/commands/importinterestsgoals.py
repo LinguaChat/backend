@@ -37,6 +37,7 @@ class Command(BaseCommand):
         self.stdout.write('Added %d interest' % cnt)
 
         self.stdout.write('2. Importing goals...')
+        cnt = 0
         ignored = []
         for icon_code, name in USERS_GOALS.items():
             try:
