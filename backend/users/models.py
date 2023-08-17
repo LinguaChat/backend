@@ -261,6 +261,13 @@ class Goal(models.Model):
     icon = models.ImageField(
         'Иконка'
     )
+    sorting = models.PositiveIntegerField(
+        blank=False,
+        null=False,
+        default=0,
+        verbose_name='Порядок сортировки',
+        help_text='Увеличьте, чтобы поднять в выборке'
+    )
 
     def __str__(self) -> str:
         return self.name
@@ -268,7 +275,7 @@ class Goal(models.Model):
     class Meta:
         verbose_name = 'Цель'
         verbose_name_plural = 'Цели'
-        ordering = ('name',)
+        ordering = ('-sorting', 'name')
 
 
 class Language(models.Model):
