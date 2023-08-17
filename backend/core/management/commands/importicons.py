@@ -3,6 +3,7 @@
 import shutil
 from os import listdir
 from pathlib import Path
+
 from django.core.management.base import BaseCommand, CommandError
 
 from countries.conf import FLAGS_URLS
