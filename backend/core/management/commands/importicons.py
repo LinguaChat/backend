@@ -36,7 +36,6 @@ class Command(BaseCommand):
                 )
         return cnt
 
-
     def handle(self, *args, **options):
         self.stdout.write('Importing goals icons...\n')
         goals_path = "core/icons/goals/"
