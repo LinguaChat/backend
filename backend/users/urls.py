@@ -31,6 +31,8 @@ router_user._urls = [
 
 urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
+    path('accounts/', include('allauth.urls')),
     path('', include(router_user.urls)),
     path('', include(router.urls)),
+    
 ]
