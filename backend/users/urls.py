@@ -34,5 +34,4 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('', include(router_user.urls)),
     path('', include(router.urls)),
-    
 ]
