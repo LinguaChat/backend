@@ -11,8 +11,7 @@ from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
                             MAX_NATIVE_LANGUAGES, MIN_AGE)
 from users.fields import Base64ImageField, CreatableSlugRelatedField
 from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
-                          Report, User, UserForeignLanguage,
-                          UserNativeLanguage)
+                          Report, User, UserLanguage)
 
 
 class LanguageSerializer(serializers.ModelSerializer):
@@ -29,32 +28,14 @@ class LanguageSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class UserLanguageBaseSerializer(serializers.ModelSerializer):
-    """Общий сериализатор промежуточных моделей Пользователь-Язык."""
+class UserLanguageSerializer(serializers.ModelSerializer):
+    """Сериализатор языков пользователей."""
 
     isocode = serializers.CharField(source='language.isocode')
     language = serializers.ReadOnlyField(source='language.name')
 
-
-class UserNativeLanguageSerializer(UserLanguageBaseSerializer):
-    """Сериализатор промежутоной модели Пользователь-родной язык."""
-
     class Meta:
-        model = UserNativeLanguage
-        fields = (
-            'isocode',
-            'language',
-        )
-        read_only_fields = (
-            'language',
-        )
-
-
-class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
-    """Сериализатор промежутоной модели Пользователь-иностранный язык."""
-
-    class Meta:
-        model = UserForeignLanguage
+        model = UserLanguage
         fields = (
             'isocode',
             'language',
@@ -125,15 +106,8 @@ class UserProfileSerializer(DjoserSerializer):
         slug_field='name',
         queryset=Goal.objects.all()
     )
-    native_languages = serializers.SlugRelatedField(
-        many=True,
-        read_only=False,
-        required=False,
-        slug_field='isocode',
-        queryset=Language.objects.all()
-    )
-    foreign_languages = UserForeignLanguageSerializer(
-        source='userforeignlanguage',
+    languages = UserLanguageSerializer(
+        source='languages_skill',
         many=True,
         read_only=False,
         required=False
@@ -143,6 +117,9 @@ class UserProfileSerializer(DjoserSerializer):
         'out_of_range': (
             'Кол-во {objects} не должно превышать {max_amount}.'
         ),
+        'language_duplicate': (
+            'Языки повторяются.'
+        )
     }
 
     class Meta:
@@ -152,8 +129,7 @@ class UserProfileSerializer(DjoserSerializer):
             'avatar',
             'country',
             'birth_date',
-            'native_languages',
-            'foreign_languages',
+            'languages',
             'gender',
             'goals',
             'interests',
@@ -167,40 +143,37 @@ class UserProfileSerializer(DjoserSerializer):
             raise serializers.ValidationError("Некорректная дата рождения.")
         return value
 
-    def validate(self, attrs):
-
-        native_languages = attrs.get('native_languages')
-        if (
-            native_languages
-            and len(native_languages) > MAX_NATIVE_LANGUAGES
-        ):
+    def validate_languages(self, value):
+        isocodes = [data['language']['isocode'] for data in value]
+        if len(isocodes) != len(set(isocodes)):
+            self.fail('language_duplicate')
+        
+        skill_levels = [data['skill_level'] for data in value]
+        if skill_levels.count('Native') > MAX_NATIVE_LANGUAGES:
             self.fail(
                 'out_of_range',
                 objects='родных языков',
                 max_amount=MAX_NATIVE_LANGUAGES
             )
 
-        foreign_languages = attrs.get('foreign_languages')
-        if (
-            foreign_languages
-            and len(foreign_languages) > MAX_FOREIGN_LANGUAGES
-        ):
+        not_native = list(filter('Native'.__ne__, skill_levels))
+        if len(not_native) > MAX_FOREIGN_LANGUAGES:
             self.fail(
                 'out_of_range',
                 objects='изучаемых языков',
                 max_amount=MAX_FOREIGN_LANGUAGES
             )
 
-        return super().validate(attrs)
+        return value
 
     def update(self, instance, validated_data):
-        if 'userforeignlanguage' in validated_data:
-            foreign_languages = validated_data.pop('userforeignlanguage')
-            UserForeignLanguage.objects.filter(user=instance).delete()
-            for data in foreign_languages:
+        if 'languages_skill' in validated_data:
+            languages = validated_data.pop('languages_skill')
+            UserLanguage.objects.filter(user=instance).delete()
+            for data in languages:
                 language_isocode = data['language'].get('isocode')
                 language = Language.objects.get(isocode=language_isocode)
-                UserForeignLanguage.objects.create(
+                UserLanguage.objects.create(
                     user=instance,
                     language=language,
                     skill_level=data.get('skill_level'),
@@ -233,13 +206,8 @@ class UserReprSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='name'
     )
-    native_languages = UserNativeLanguageSerializer(
-        source='usernativelanguage',
-        many=True,
-        read_only=True
-    )
-    foreign_languages = UserForeignLanguageSerializer(
-        source='userforeignlanguage',
+    languages = UserLanguageSerializer(
+        source='languages_skill',
         many=True,
         read_only=True
     )
@@ -255,8 +223,7 @@ class UserReprSerializer(serializers.ModelSerializer):
             'age',
             'slug',
             'country',
-            'native_languages',
-            'foreign_languages',
+            'languages',
             'gender',
             'goals',
             'interests',

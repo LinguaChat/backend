@@ -9,12 +9,8 @@ from .models import (BlacklistEntry, Country, Goal, Interest, Language, Report,
                      User)
 
 
-class NativeLanguageInlineAdmin(admin.TabularInline):
-    model = User.native_languages.through
-
-
-class ForeignLanguageInlineAdmin(admin.TabularInline):
-    model = User.foreign_languages.through
+class UserLanguageInlineAdmin(admin.TabularInline):
+    model = User.languages.through
 
 
 @admin.register(User)
@@ -23,8 +19,7 @@ class CustomUserAdmin(UserAdmin):
 
     readonly_fields = (
         '_age',
-        '_native_languages',
-        '_foreign_languages',
+        '_languages',
     )
     list_display = (
         'username',
@@ -62,8 +57,7 @@ class CustomUserAdmin(UserAdmin):
                 'first_name',
                 'slug',
                 'country',
-                '_native_languages',
-                '_foreign_languages',
+                '_languages',
                 'birth_date',
                 '_age',
                 'gender',
@@ -91,7 +85,7 @@ class CustomUserAdmin(UserAdmin):
             )
         }),
     )
-    inlines = (NativeLanguageInlineAdmin, ForeignLanguageInlineAdmin)
+    inlines = (UserLanguageInlineAdmin,)
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
@@ -114,21 +108,21 @@ class CustomUserAdmin(UserAdmin):
 
     _age.short_description = 'Возраст'
 
-    def _native_languages(self, obj):
-        """Родной язык пользователя."""
+    def _languages(self, obj):
+        """Язык пользователя."""
         return ", ".join(
-            [str(language) for language in obj.native_languages.all()]
+            [str(language) for language in obj.languages.all()]
         )
 
-    _native_languages.short_description = 'Родной язык'
+    _languages.short_description = 'Язык, которым владеет пользователь'
 
-    def _foreign_languages(self, obj):
-        """Изучаемые языки пользователя."""
-        return ", ".join(
-            [str(language) for language in obj.foreign_languages.all()]
-        )
+    # def _foreign_languages(self, obj):
+    #     """Изучаемые языки пользователя."""
+    #     return ", ".join(
+    #         [str(language) for language in obj.foreign_languages.all()]
+    #     )
 
-    _foreign_languages.short_description = 'Изучаемые языки'
+    # _foreign_languages.short_description = 'Изучаемые языки'
 
 
 admin.site.register(Language)
