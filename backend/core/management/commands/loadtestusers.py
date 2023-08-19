@@ -244,6 +244,7 @@ USERS_INFO = [
     },
 ]
 
+
 class Command(BaseCommand):
     """Команда загрузки тестовых данных"""
 

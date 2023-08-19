@@ -147,7 +147,7 @@ class UserProfileSerializer(DjoserSerializer):
         isocodes = [data['language']['isocode'] for data in value]
         if len(isocodes) != len(set(isocodes)):
             self.fail('language_duplicate')
-        
+
         skill_levels = [data['skill_level'] for data in value]
         if skill_levels.count('Native') > MAX_NATIVE_LANGUAGES:
             self.fail(
