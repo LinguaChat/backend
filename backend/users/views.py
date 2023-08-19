@@ -1,6 +1,6 @@
 """View-функции приложения users."""
 
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -8,7 +8,7 @@ from djoser.views import UserViewSet as DjoserViewSet
 from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
                                    extend_schema, extend_schema_view,
                                    inline_serializer)
-from rest_framework import filters, serializers, status, viewsets
+from rest_framework import filters, mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -17,8 +17,10 @@ from chats.models import GroupChatRequest, PersonalChatRequest
 from core.permissions import (CanAccessProfileDetails,
                               IsAdminOrModeratorReadOnly)
 from users.filters import UserFilter
-from users.models import BlacklistEntry, Country, Language, Report, User
-from users.serializers import (CountrySerializer, LanguageSerializer,
+from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
+                          Report, User)
+from users.serializers import (CountrySerializer, GoalSerializer,
+                               InterestSerializer, LanguageSerializer,
                                ReportSerializer, UserProfileSerializer,
                                UserReprSerializer)
 
@@ -381,3 +383,51 @@ class CountryViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = (
         'name',
     )
+
+
+@extend_schema(tags=['interests'])
+@extend_schema_view(
+    list=extend_schema(
+        summary='Список интересов',
+        description=(
+            'Просмотреть список всех интересов пользователей'
+        ),
+    )
+)
+class InterestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Просмотр списка интересов."""
+
+    serializer_class = InterestSerializer
+    permission_classes = [
+        AllowAny,
+    ]
+    filter_backends = [
+        filters.SearchFilter
+    ]
+    search_fields = (
+        'name',
+    )
+
+    def get_queryset(self):
+        return Interest.objects.annotate(
+            users_count=Count('users')
+        ).order_by('-users_count')
+
+
+@extend_schema(tags=['goals'])
+@extend_schema_view(
+    list=extend_schema(
+        summary='Список целей',
+        description=(
+            'Просмотреть список целей'
+        ),
+    )
+)
+class GoalViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Просмотр списка целей."""
+
+    queryset = Goal.objects.all()
+    serializer_class = GoalSerializer
+    permission_classes = [
+        AllowAny,
+    ]

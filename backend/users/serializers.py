@@ -8,11 +8,11 @@ from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
 from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
-                            MAX_NATIVE_LANGUAGES, MIN_AGE, PASSWORD_MAX_LENGTH,
-                            USERNAME_MAX_LENGTH)
-from users.fields import Base64ImageField
-from users.models import (BlacklistEntry, Country, Language, Report, User,
-                          UserForeignLanguage, UserNativeLanguage)
+                            MAX_NATIVE_LANGUAGES, MIN_AGE)
+from users.fields import Base64ImageField, CreatableSlugRelatedField
+from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
+                          Report, User, UserForeignLanguage,
+                          UserNativeLanguage)
 
 
 class LanguageSerializer(serializers.ModelSerializer):
@@ -99,29 +99,6 @@ class UserCreateSerializer(DjoserCreateSerializer):
             'username': {'write_only': True},
         }
 
-    def validate(self, attrs):
-        username = attrs.get('username')
-        if (
-            len(username) > USERNAME_MAX_LENGTH
-        ):
-            self.fail(
-                'too_long',
-                objects='username',
-                max_amount=USERNAME_MAX_LENGTH
-            )
-
-        password = attrs.get('password')
-        if (
-            len(password) > PASSWORD_MAX_LENGTH
-        ):
-            self.fail(
-                'too_long',
-                objects='password',
-                max_amount=PASSWORD_MAX_LENGTH
-            )
-
-        return super().validate(attrs)
-
 
 class UserProfileSerializer(DjoserSerializer):
     """Сериализатор для заполнения профиля пользователя."""
@@ -133,6 +110,20 @@ class UserProfileSerializer(DjoserSerializer):
         required=False,
         slug_field='code',
         queryset=Country.objects.all()
+    )
+    interests = CreatableSlugRelatedField(
+        many=True,
+        read_only=False,
+        required=False,
+        slug_field='name',
+        queryset=Interest.objects.all()
+    )
+    goals = serializers.SlugRelatedField(
+        many=True,
+        read_only=False,
+        required=False,
+        slug_field='name',
+        queryset=Goal.objects.all()
     )
     native_languages = serializers.SlugRelatedField(
         many=True,
@@ -164,7 +155,8 @@ class UserProfileSerializer(DjoserSerializer):
             'native_languages',
             'foreign_languages',
             'gender',
-            'topics_for_discussion',
+            'goals',
+            'interests',
             'about',
         )
 
@@ -176,6 +168,7 @@ class UserProfileSerializer(DjoserSerializer):
         return value
 
     def validate(self, attrs):
+
         native_languages = attrs.get('native_languages')
         if (
             native_languages
@@ -221,12 +214,25 @@ class UserProfileSerializer(DjoserSerializer):
         ).data
 
 
+class GoalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Goal
+        fields = ('name', 'icon')
+        read_only_fields = fields
+
+
 class UserReprSerializer(serializers.ModelSerializer):
     """Сериализатор для просмотра пользователя."""
 
     age = serializers.SerializerMethodField()
     avatar = Base64ImageField(read_only=True)
     country = CountrySerializer(read_only=True, many=False)
+    goals = GoalSerializer(read_only=True, many=True)
+    interests = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
     native_languages = UserNativeLanguageSerializer(
         source='usernativelanguage',
         many=True,
@@ -252,7 +258,8 @@ class UserReprSerializer(serializers.ModelSerializer):
             'native_languages',
             'foreign_languages',
             'gender',
-            'topics_for_discussion',
+            'goals',
+            'interests',
             'about',
             'last_activity',
             'is_online',
@@ -300,3 +307,10 @@ class ReportSerializer(serializers.ModelSerializer):
         model = Report
         fields = ('reason', 'description')
         read_only_fields = ('reported_user',)
+
+
+class InterestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Interest
+        fields = ('name', 'sorting')
+        read_only_fields = fields

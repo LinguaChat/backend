@@ -7,10 +7,14 @@ from django.db.models import Q
 from django.db.models.functions import Length
 from django.template.defaultfilters import slugify
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
-from core.constants import (EMAIL_MAX_LENGTH, GENDERS, LANGUAGE_SKILL_LEVELS,
-                            USERNAME_MAX_LENGTH)
+from core.constants import (EMAIL_MAX_LENGTH, FIRST_NAME_MAX_LENGTH, GENDERS,
+                            LANGUAGE_SKILL_LEVELS, USERNAME_MAX_LENGTH)
 from core.models import AbstractNameModel, DateCreatedModel, DateEditedModel
+
+from .validators import (custom_username_validator, validate_email,
+                         validate_first_name)
 
 models.CharField.register_lookup(Length)
 
@@ -28,6 +32,7 @@ class Country(AbstractNameModel):
     flag_icon = models.ImageField(
         'Флаг',
         help_text='Флаг страны',
+        upload_to='icons/countries/'
     )
 
     def __str__(self):
@@ -59,11 +64,31 @@ class User(AbstractUser, DateEditedModel):
         ('moderator', 'Moderator'),
         ('admin', 'Admin'),
     )
+    first_name = models.CharField(
+        'Имя',
+        max_length=FIRST_NAME_MAX_LENGTH,
+        blank=True,
+        validators=[validate_first_name],
+        help_text='Имя пользователя',
+    )
+    username = models.CharField(
+        'Логин',
+        max_length=USERNAME_MAX_LENGTH,
+        unique=True,
+        validators=[custom_username_validator],
+        error_messages={
+            "unique": _("A user with that username already exists."),
+        },
+    )
     email = models.EmailField(
         'Электронная почта',
         unique=True,
         help_text='Адрес email',
         max_length=EMAIL_MAX_LENGTH,
+        validators=[validate_email],
+        error_messages={
+            "unique": _("A user with that email already exists."),
+        },
     )
     slug = models.SlugField(
         'Слаг',
@@ -103,11 +128,17 @@ class User(AbstractUser, DateEditedModel):
         null=True,
         help_text='Пол пользователя',
     )
-    topics_for_discussion = models.TextField(
-        'Темы для разговора',
-        max_length=100,
-        blank=True,
-        help_text='Темы для разговора',
+    interests = models.ManyToManyField(
+        'Interest',
+        related_name='users',
+        verbose_name='Интересы пользователя',
+        blank=True
+    )
+    goals = models.ManyToManyField(
+        'Goal',
+        related_name='users',
+        verbose_name='Цели пользователя',
+        blank=True
     )
     country = models.ForeignKey(
         'Country',
@@ -119,7 +150,7 @@ class User(AbstractUser, DateEditedModel):
     )
     avatar = models.ImageField(
         'Изображение',
-        upload_to='user_photos/',
+        upload_to='icons/users/',
         null=True,
         blank=True,
         help_text='Аватар пользователя',
@@ -196,6 +227,57 @@ class User(AbstractUser, DateEditedModel):
                 self.is_online = False
 
         super().save(*args, **kwargs)
+
+
+class Interest(models.Model):
+    """Модель интересов пользователей."""
+
+    name = models.CharField(
+        'Название',
+        max_length=64,
+        unique=True
+    )
+
+    @property
+    def sorting(self):
+        return self.users.count()
+
+    def __str__(self) -> str:
+        return self.name
+
+    class Meta:
+        verbose_name = 'Интерес'
+        verbose_name_plural = 'Интересы'
+        ordering = ('name',)
+
+
+class Goal(models.Model):
+    """Модель целей пользователей."""
+
+    name = models.CharField(
+        'Название',
+        max_length=64,
+        unique=True
+    )
+    icon = models.ImageField(
+        'Иконка',
+        upload_to='icons/goals/'
+    )
+    sorting = models.PositiveIntegerField(
+        blank=False,
+        null=False,
+        default=0,
+        verbose_name='Порядок сортировки',
+        help_text='Увеличьте, чтобы поднять в выборке'
+    )
+
+    def __str__(self) -> str:
+        return self.name
+
+    class Meta:
+        verbose_name = 'Цель'
+        verbose_name_plural = 'Цели'
+        ordering = ('-sorting', 'name')
 
 
 class Language(models.Model):

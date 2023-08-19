@@ -5,7 +5,8 @@ import datetime as dt
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import BlacklistEntry, Country, Language, Report, User
+from .models import (BlacklistEntry, Country, Goal, Interest, Language, Report,
+                     User)
 
 
 class NativeLanguageInlineAdmin(admin.TabularInline):
@@ -68,7 +69,7 @@ class CustomUserAdmin(UserAdmin):
                 'gender',
                 'avatar',
                 'about',
-                'topics_for_discussion',
+                'interests',
                 'age_is_hidden',
                 'gender_is_hidden',
                 'role',
@@ -134,3 +135,5 @@ admin.site.register(Language)
 admin.site.register(Country)
 admin.site.register(BlacklistEntry)
 admin.site.register(Report)
+admin.site.register(Interest)
+admin.site.register(Goal)
