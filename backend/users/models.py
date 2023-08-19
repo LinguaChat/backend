@@ -342,7 +342,9 @@ class UserLanguage(models.Model):
     )
 
     def __str__(self):
-        return f'{self.user} знает {self.language} ({self.skill_level})'
+        return (
+            f'{self.user} знает {self.language} на уровне {self.skill_level}'
+        )
 
     class Meta:
         verbose_name = 'Языки пользователя'
