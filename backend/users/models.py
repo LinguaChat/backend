@@ -96,19 +96,12 @@ class User(AbstractUser, DateEditedModel):
         help_text='Слаг',
         null=True,
     )
-    native_languages = models.ManyToManyField(
+    languages = models.ManyToManyField(
         'Language',
-        through='UserNativeLanguage',
-        related_name='native_for',
-        verbose_name='Родной язык',
-        help_text='Родной язык пользователя',
-    )
-    foreign_languages = models.ManyToManyField(
-        'Language',
-        through='UserForeignLanguage',
-        related_name='learned_by',
-        verbose_name='Изучаемые языки',
-        help_text='Языки, которые изучает пользователь',
+        through='UserLanguage',
+        related_name='users',
+        verbose_name='Языки пользователя',
+        help_text='Языки, которыми владеет пользователь',
     )
     birth_date = models.DateField(
         'Дата рождения',
@@ -325,58 +318,43 @@ class Language(models.Model):
 
 
 class UserLanguage(models.Model):
-    """Абстрактная модель для создания
-     промежуточных моделей пользователь-родной язык
-     и пользователь-иностранный язык."""
+    """Модель языков пользователей."""
 
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='%(class)s',
+        related_name='languages_skill',
         verbose_name='Пользователь',
-        help_text='Пользователь',
+        help_text='Пользователь'
     )
     language = models.ForeignKey(
         Language,
         on_delete=models.CASCADE,
-        related_name='%(class)s',
+        related_name='users_skill',
         verbose_name='Язык',
-        help_text='Язык',
+        help_text='Язык'
     )
-
-    class Meta:
-        abstract = True
-
-
-class UserNativeLanguage(UserLanguage):
-    """Промежуточная таблица для связи
-    пользователь-родной язык."""
-
-    class Meta:
-        verbose_name = 'Пользователь -> родной язык'
-        verbose_name_plural = 'Пользователи -> родные языки'
-
-    def __str__(self):
-        return f'{self.language} является родным для {self.user}'
-
-
-class UserForeignLanguage(UserLanguage):
-    """Промежуточная таблица для связи
-    пользователь-иностранный язык."""
-
     skill_level = models.CharField(
         'Уровень владения языком',
         max_length=30,
         choices=LANGUAGE_SKILL_LEVELS,
-        help_text='Укажите уровень вашего владения языком.',
+        help_text='Укажите уровень вашего владения языком.'
     )
 
-    class Meta:
-        verbose_name = 'Пользователь -> изучаемый язык'
-        verbose_name_plural = 'Пользователи -> изучаемые языки'
-
     def __str__(self):
-        return f'{self.user} изучает {self.language}'
+        return (
+            f'{self.user} знает {self.language} на уровне {self.skill_level}'
+        )
+
+    class Meta:
+        verbose_name = 'Языки пользователя'
+        verbose_name_plural = 'Языки пользователей'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'language'],
+                name='unique_user_language'
+            )
+        ]
 
 
 class BlacklistEntry(DateCreatedModel):
