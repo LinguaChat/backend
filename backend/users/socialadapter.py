@@ -23,7 +23,7 @@ SERIALIZED_DB_FIELD_PREFIX = "_db_"
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     """Custom social account adapter.
-    
+
     Disable check avatar.
     """
 
@@ -32,7 +32,7 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         for k, v in data.items():
             is_db_value = False
             if k.startswith(SERIALIZED_DB_FIELD_PREFIX):
-                k = k[len(SERIALIZED_DB_FIELD_PREFIX) :]
+                k = k[len(SERIALIZED_DB_FIELD_PREFIX):]
                 is_db_value = True
             if v is not None:
                 try:
@@ -47,10 +47,11 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                         v = force_bytes(base64.b64decode(force_bytes(v)))
                     elif is_db_value and not isinstance(f, ImageField):
                         try:
-                        # This is quite an ugly hack, but will cover most
-                        # use cases...
-                        # The signature of `from_db_value` changed in Django 3
-                        # https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0
+                            # This is quite an ugly hack, but will cover most
+                            # use cases...
+                            # The signature of `from_db_value`
+                            # changed in Django 3
+                            # https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0
                             if django.VERSION < (3, 0):
                                 v = f.from_db_value(v, None, None, None)
                             else:
