@@ -310,7 +310,7 @@ class UserViewSet(DjoserViewSet):
         user = self.get_object()
         current_user = request.user
         message = request.data.pop('message', None)
-        
+
         user_request, created = PersonalChatRequest.objects.get_or_create(
             from_user=current_user,
             to_user=user,

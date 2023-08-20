@@ -1,12 +1,14 @@
 """Сериализаторы приложения chats."""
 
 from django.contrib.auth import get_user_model
-# from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 
 from chats.models import Attachment, Chat, GroupChat, Message
 from users.serializers import UserShortSerializer
+
+# from django.shortcuts import get_object_or_404
+
 
 # from rest_framework.exceptions import PermissionDenied
 # from rest_framework.generics import get_object_or_404
