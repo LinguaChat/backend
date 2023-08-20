@@ -34,6 +34,17 @@ class Chat(DateCreatedModel, DateEditedModel):
         help_text='Список пользователей, которых вы заблокировали в этом чате.'
     )
 
+    def block_user(self, user):
+        if user not in self.blocked_users.all():
+            self.blocked_users.add(user)
+
+    def unblock_user(self, user):
+        if user in self.blocked_users.all():
+            self.blocked_users.remove(user)
+
+    def is_user_blocked(self, user):
+        return user in self.blocked_users.all()
+
     objects = InheritanceManager()
 
     def get_members_count(self):

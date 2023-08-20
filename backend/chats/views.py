@@ -12,8 +12,7 @@ from rest_framework.response import Response
 
 from chats.models import Chat
 from chats.serializers import (ChatListSerializer, ChatSerializer,
-                               GroupChatCreateSerializer,
-                               MessageSerializer)
+                               GroupChatCreateSerializer, MessageSerializer)
 from core.pagination import LimitPagination
 from core.permissions import ActiveChatOrReceiverOnly
 
@@ -83,6 +82,12 @@ class ChatViewSet(viewsets.ModelViewSet):
             data=request.data,
             context={'request': request}
         )
+        if chat.is_user_blocked(request.user):
+            return Response(
+                {"detail": "Вы заблокированы в этом чате"
+                 "и не можете отправлять сообщения."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         if serializer.is_valid():
             serializer.save(chat=chat)
@@ -94,24 +99,57 @@ class ChatViewSet(viewsets.ModelViewSet):
     def block_user(self, request, pk=None):
         """Блокировка пользователя в чате"""
         chat = self.get_object()
-        user_to_block = get_object_or_404(
-            User, pk=request.data.get('id'))
+        user_slug = request.data.get('slug')
+        user_to_block = get_object_or_404(User, slug=user_slug)
 
         if request.user == user_to_block:
             return Response(
                 {"detail": "Нельзя заблокировать самого себя."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        if chat.members.filter(slug=user_to_block.id).exists():
-            if chat.blocked_users.add(user_to_block):
+        if chat.members.filter(id=user_to_block.id).exists():
+            if user_to_block in chat.blocked_users.all():
+                return Response(
+                    {"detail": "Пользователь уже заблокирован в этом чате."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                chat.blocked_users.add(user_to_block)
                 return Response(
                     {"detail": "Пользователь заблокирован в этом чате."},
                     status=status.HTTP_201_CREATED
                 )
-            if user_to_block in chat.blocked_users.all():
-                Response(
-                    {"detail": "Пользователь уже заблокирован в этом чате."},
+        else:
+            return Response(
+                {"detail": "Пользователь не является участником чата"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=True, methods=['post'])
+    def unblock_user(self, request, pk=None):
+        """
+        Разблокировка пользователя в чате
+        """
+        chat = self.get_object()
+        user_slug = request.data.get('slug')
+        user_to_unblock = get_object_or_404(User, slug=user_slug)
+
+        if request.user == user_to_unblock:
+            return Response(
+                {"detail": "Нельзя разблокировать самого себя"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if chat.members.filter(id=user_to_unblock.id).exists():
+            if user_to_unblock in chat.blocked_users.all():
+                chat.blocked_users.remove(user_to_unblock)
+                return Response(
+                    {"detail": "Пользователь разблокирован в этом чате"},
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {"detail": "Пользователь не заблокирован в этом чате"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
         else:

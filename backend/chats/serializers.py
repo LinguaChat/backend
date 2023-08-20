@@ -4,11 +4,13 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
-# from rest_framework.exceptions import PermissionDenied
-# from rest_framework.generics import get_object_or_404
 
 from chats.models import Attachment, Chat, GroupChat, Message
 from users.serializers import UserShortSerializer
+
+# from rest_framework.exceptions import PermissionDenied
+# from rest_framework.generics import get_object_or_404
+
 
 User = get_user_model()
 
@@ -156,9 +158,8 @@ class ChatSerializer(serializers.ModelSerializer):
         many=True,
         read_only=False
     )
-    blocked_users = UserShortSerializer(
-        many=True,
-        read_only=True
+    blocked_users = serializers.StringRelatedField(
+        many=True
     )
 
     class Meta:
