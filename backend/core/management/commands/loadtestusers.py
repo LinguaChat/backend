@@ -1,145 +1,278 @@
-"""Кастомные команды управления."""
-
-import datetime as dt
-import random
-import tempfile
+"""Кастомная команда загрузки тестовых пользователей."""
 
 from django.contrib.auth import get_user_model
-from django.core import files
 from django.core.management.base import BaseCommand, CommandError
 
-import factory
-import requests
-
-from core.constants import (GENDERS, LANGUAGE_SKILL_LEVELS,
-                            MAX_FOREIGN_LANGUAGES, MAX_NATIVE_LANGUAGES,
-                            USERNAME_MAX_LENGTH)
-from users.models import Country, Language, UserForeignLanguage
+from users.models import Country, Language, UserLanguage
 
 User = get_user_model()
-GENDERS_IDS = [x[0] for x in GENDERS]
-SKILL_LEVELS_IDS = [x[0] for x in LANGUAGE_SKILL_LEVELS]
 
-
-def generate_username(*args):
-    """ returns a random username """
-    faker = factory.Faker
-    return faker._get_faker().profile(
-        fields=['username']
-    )['username'][:USERNAME_MAX_LENGTH]
-
-
-class UserFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = User
-        django_get_or_create = ('email', 'username')
-
-    email = factory.faker.Faker('email')
-    username = factory.LazyAttribute(generate_username)
-    birth_date = factory.Faker('date_between', end_date=dt.date(2005, 7, 24))
-    password = factory.django.Password('pw')
-    gender = factory.Faker('random_element', elements=GENDERS_IDS)
-    country = factory.Faker('random_element', elements=Country.objects.all())
-    about = factory.faker.Faker('text', max_nb_chars=255)
-
-    @factory.post_generation
-    def first_name(self, create, extracted, **kwargs):
-        if create:
-            faker = factory.Faker
-            if self.gender == 'Male':
-                first_name = faker._get_faker().first_name_male()
-            else:
-                first_name = faker._get_faker().first_name_female()
-            self.first_name = first_name
-            self.save()
-        else:
-            return
-
-    @factory.post_generation
-    def avatar(self, create, extracted, **kwargs):
-        if create and not extracted == 'no-avatar':
-            gender = self.gender.lower()
-            url = f"https://xsgames.co/randomusers/avatar.php?g={gender}"
-            response = requests.get(url, stream=True)
-            if response.status_code != requests.codes.ok:
-                # Skip file
-                return
-            # Create a temporary file
-            lf = tempfile.NamedTemporaryFile()
-            for block in response.iter_content(1024 * 8):
-                # If no more file then stop
-                if not block:
-                    break
-                # Write image block to temporary file
-                lf.write(block)
-            # This saves the model so be sure that it is valid
-            self.avatar.save(self.slug + '.jpg', files.File(lf))
-        else:
-            return
-
-    @factory.post_generation
-    def native_languages(self, create, extracted, **kwargs):
-        if create:
-            try:
-                random_languages = random.choices(
-                    Language.objects.all(),
-                    k=random.randrange(1, MAX_NATIVE_LANGUAGES + 1)
-                )
-            except IndexError:
-                random_languages = []
-            for native_language in random_languages:
-                self.native_languages.add(native_language)
-        else:
-            return
-
-    @factory.post_generation
-    def foreign_languages(self, create, extracted, **kwargs):
-        if create:
-            try:
-                random_languages = random.choices(
-                    Language.objects.all(),
-                    k=random.randrange(1, MAX_FOREIGN_LANGUAGES + 1)
-                )
-            except IndexError:
-                random_languages = []
-            foreign_languages = [UserForeignLanguage(
-                user=self,
-                language=random_language,
-                skill_level=random.choice(SKILL_LEVELS_IDS)
-            ) for random_language in random_languages]
-            UserForeignLanguage.objects.bulk_create(foreign_languages)
-        else:
-            return
+USERS_INFO = [
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Dyah",
+        "first_name": "Dyah",
+        "email": "dyah@yandex.ru",
+        "birth_date": "1992-06-01",
+        "about": "Hello! I’m Dyah from Indonesia. I like to make new friends. Feel free to chat me!",
+        "gender": "Female",
+        "interests": [],
+        "languages": [{"isocode": "Id", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="id"),
+        "avatar": "icons/users/Dyah.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Elek",
+        "first_name": "Elek",
+        "email": "elek@yandex.ru",
+        "birth_date": "1999-06-01",
+        "about": "Hello from Turkey!",
+        "gender": "Male",
+        "interests": [],
+        "languages": [{"isocode": "Tr", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="tr"),
+        "avatar": "icons/users/Elek.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Jay",
+        "first_name": "Jay",
+        "email": "jay@yandex.ru",
+        "birth_date": "1980-06-01",
+        "about": "Hi ! I’m Jay! I’m university student! I’m asian american! I can help you with English!",
+        "gender": "Female",
+        "interests": [],
+        "languages": [{"isocode": "Id", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="us"),
+        "avatar": "icons/users/Jay.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Andrew",
+        "first_name": "Andrew",
+        "email": "andrew@yandex.ru",
+        "birth_date": "1983-06-01",
+        "about": "Hello everyone! My name is Andrew, I’m open to make more friends. Let’s go to talk!",
+        "gender": "Male",
+        "interests": [],
+        "languages": [{"isocode": "Nl", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Pt", "skill_level": "Profi"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="nl"),
+        "avatar": "icons/users/Andrew.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Matey",
+        "first_name": "Matey",
+        "email": "matey@yandex.ru",
+        "birth_date": "1987-06-01",
+        "about": "Всем привет! Я хочу выучить русский язык, чтобы свободно говорить и открыть свой бизнес в России",
+        "gender": "Male",
+        "interests": [],
+        "languages": [{"isocode": "Ro", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Expert"}],
+        "country": Country.objects.get(code="ro"),
+        "avatar": "icons/users/Matey.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Sheena",
+        "first_name": "Sheena",
+        "email": "sheena@yandex.ru",
+        "birth_date": "2004-06-01",
+        "about": "I’m a student and my hobby is learning language. I'm very friendly yet shy at first.",
+        "gender": "Female",
+        "interests": [],
+        "languages": [{"isocode": "It", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Es", "skill_level": "Profi"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="it"),
+        "avatar": "icons/users/Sheena.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Omar",
+        "first_name": "Omar",
+        "email": "omar@yandex.ru",
+        "birth_date": "2000-09-01",
+        "about": "Omar еще не заполнил информацию о себе",
+        "gender": "Male",
+        "interests": [],
+        "languages": [{"isocode": "Ar", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="ar"),
+        "avatar": "icons/users/Omar.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Iorrain",
+        "first_name": "Iorrain",
+        "email": "iorrain@yandex.ru",
+        "birth_date": "1993-06-01",
+        "about": "Привет! Я учу русский полгода. Живу в Австралии. I would love to help anyone learning English btw.",
+        "gender": "Female",
+        "interests": [],
+        "languages": [{"isocode": "En", "skill_level": "Native"}, {"isocode": "Ja", "skill_level": "Profi"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="au"),
+        "avatar": "icons/users/Iorrain.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Ahmed",
+        "first_name": "Ahmed",
+        "email": "ahmed@yandex.ru",
+        "birth_date": "1995-06-01",
+        "about": "Hello in my world",
+        "gender": "Male",
+        "interests": [],
+        "languages": [{"isocode": "Ar", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="ar"),
+        "avatar": "icons/users/Ahmed.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Daniel",
+        "first_name": "Daniel",
+        "email": "daniel@yandex.ru",
+        "birth_date": "1998-09-01",
+        "about": "If you’d like practice English or Spanish and help me with Russian, feel free to say hello!",
+        "gender": "Male",
+        "interests": [],
+        "languages": [{"isocode": "Es", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="es"),
+        "avatar": "icons/users/Daniel.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Sara",
+        "first_name": "Sara",
+        "email": "sara@yandex.ru",
+        "birth_date": "1982-06-01",
+        "about": "I’ve just started to learn Russian. So far only know the alphabet and a few basic words.",
+        "gender": "Female",
+        "interests": [],
+        "languages": [{"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Newbie"}],
+        "country": Country.objects.get(code="gb"),
+        "avatar": "icons/users/Sara.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Chris",
+        "first_name": "Chris",
+        "email": "chris@yandex.ru",
+        "birth_date": "2002-06-01",
+        "about": "Всем привет! Меня зовут Крис",
+        "gender": "Female",
+        "interests": [],
+        "languages": [{"isocode": "De", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="de"),
+        "avatar": "icons/users/Chris.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Kadir",
+        "first_name": "Kadir",
+        "email": "kadir@yandex.ru",
+        "birth_date": "2001-06-01",
+        "about": "Хочу выучить русский язык для работы.",
+        "gender": "Male",
+        "interests": [],
+        "languages": [{"isocode": "Tr", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="tr"),
+        "avatar": "icons/users/Kadir.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Josi",
+        "first_name": "Josi",
+        "email": "josi@yandex.ru",
+        "birth_date": "2003-06-01",
+        "about": "Hi you! If you help i learning English or German i can help you, feel free to text me",
+        "gender": "Female",
+        "interests": [],
+        "languages": [{"isocode": "De", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Amateur"}],
+        "country": Country.objects.get(code="de"),
+        "avatar": "icons/users/Josi.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Korren",
+        "first_name": "Korren",
+        "email": "korren@yandex.ru",
+        "birth_date": "1990-06-01",
+        "about": "Я могу немного говорить и понимать, но мне нужно улучшить свои навыки чтения и письма.",
+        "gender": "Female",
+        "interests": [],
+        "languages": [{"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Expert"}],
+        "country": Country.objects.get(code="us"),
+        "avatar": "icons/users/Korren.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Jiang",
+        "first_name": "Jiang",
+        "email": "jiang@yandex.ru",
+        "birth_date": "1986-06-01",
+        "about": "Hi there! I’m glad you came to my page. I want to improve my speaking with native speakers.",
+        "gender": "Male",
+        "interests": [],
+        "languages": [{"isocode": "Nl", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Newbie"}, {"isocode": "Ko", "skill_level": "Profi"}],
+        "country": Country.objects.get(code="us"),
+        "avatar": "icons/users/Jiang.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Pulkit",
+        "first_name": "Pulkit",
+        "email": "pulkit@yandex.ru",
+        "birth_date": "1996-06-01",
+        "about": "I want to learn russian and make good friends here.",
+        "gender": "Male",
+        "interests": [],
+        "languages": [{"isocode": "Hi", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Newbie"}],
+        "country": Country.objects.get(code="us"),
+        "avatar": "icons/users/Pulkit.png",
+    },
+    {
+        "password": "ML7kwFXh9o",
+        "username": "Pulkit2",
+        "first_name": "Pulkit",
+        "email": "pulkit2@yandex.ru",
+        "birth_date": "1996-06-01",
+        "about": "I want to move to Russia. Help me lern russian please)",
+        "gender": "Female",
+        "interests": [],
+        "languages": [{"isocode": "Th", "skill_level": "Native"}, {"isocode": "En", "skill_level": "Native"}, {"isocode": "Ru", "skill_level": "Expert"}],
+        "country": Country.objects.get(code="th"),
+        "avatar": "icons/users/PulkitTh.png",
+    },
+]
 
 
 class Command(BaseCommand):
     """Команда загрузки тестовых данных"""
 
     help = (
-        'Загружает 16 случайных пользователей. '
-        'Чтобы изменить кол-во пользователей, используйте параметр --count'
+        'Загружает 18 тестовых пользователей. '
     )
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            '-c',
-            '--count',
-            help='Кол-во',
-        )
-        parser.add_argument(
-            '--no-avatar',
-            action="store_true",
-            help="Добавить пользователя(-ей) без фото",
-        )
+        pass
 
     def handle(self, *args, **options):
-        self.stdout.write('Adding random users...')
-        cnt = int(options.get('count') or '16')
+        self.stdout.write('Adding test users...')
+        cnt = 0
         try:
-            if options['no_avatar']:
-                UserFactory.create_batch(cnt, avatar='no-avatar')
-            else:
-                UserFactory.create_batch(cnt)
+            for data in USERS_INFO:
+                interests = data.pop('interests', [])
+                languages = data.pop('languages', [])
+                user = User.objects.create(**data)
+                user.interests.set(interests)
+                for language in languages:
+                    UserLanguage.objects.create(
+                        user=user,
+                        language=Language.objects.get(
+                            isocode=language['isocode']
+                        ),
+                        skill_level=language['skill_level']
+                    )
+                cnt += 1
         except Exception as e:
             raise CommandError(
                 'Error adding users: %s' % (e,)

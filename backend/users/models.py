@@ -7,10 +7,14 @@ from django.db.models import Q
 from django.db.models.functions import Length
 from django.template.defaultfilters import slugify
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
-from core.constants import (EMAIL_MAX_LENGTH, GENDERS, LANGUAGE_SKILL_LEVELS,
-                            USERNAME_MAX_LENGTH)
+from core.constants import (EMAIL_MAX_LENGTH, FIRST_NAME_MAX_LENGTH, GENDERS,
+                            LANGUAGE_SKILL_LEVELS, USERNAME_MAX_LENGTH)
 from core.models import AbstractNameModel, DateCreatedModel, DateEditedModel
+
+from .validators import (custom_username_validator, validate_email,
+                         validate_first_name)
 
 models.CharField.register_lookup(Length)
 
@@ -28,6 +32,7 @@ class Country(AbstractNameModel):
     flag_icon = models.ImageField(
         'Флаг',
         help_text='Флаг страны',
+        upload_to='icons/countries/'
     )
 
     def __str__(self):
@@ -59,11 +64,31 @@ class User(AbstractUser, DateEditedModel):
         ('moderator', 'Moderator'),
         ('admin', 'Admin'),
     )
+    first_name = models.CharField(
+        'Имя',
+        max_length=FIRST_NAME_MAX_LENGTH,
+        blank=True,
+        validators=[validate_first_name],
+        help_text='Имя пользователя',
+    )
+    username = models.CharField(
+        'Логин',
+        max_length=USERNAME_MAX_LENGTH,
+        unique=True,
+        validators=[custom_username_validator],
+        error_messages={
+            "unique": _("A user with that username already exists."),
+        },
+    )
     email = models.EmailField(
         'Электронная почта',
         unique=True,
         help_text='Адрес email',
         max_length=EMAIL_MAX_LENGTH,
+        validators=[validate_email],
+        error_messages={
+            "unique": _("A user with that email already exists."),
+        },
     )
     slug = models.SlugField(
         'Слаг',
@@ -71,19 +96,12 @@ class User(AbstractUser, DateEditedModel):
         help_text='Слаг',
         null=True,
     )
-    native_languages = models.ManyToManyField(
+    languages = models.ManyToManyField(
         'Language',
-        through='UserNativeLanguage',
-        related_name='native_for',
-        verbose_name='Родной язык',
-        help_text='Родной язык пользователя',
-    )
-    foreign_languages = models.ManyToManyField(
-        'Language',
-        through='UserForeignLanguage',
-        related_name='learned_by',
-        verbose_name='Изучаемые языки',
-        help_text='Языки, которые изучает пользователь',
+        through='UserLanguage',
+        related_name='users',
+        verbose_name='Языки пользователя',
+        help_text='Языки, которыми владеет пользователь',
     )
     birth_date = models.DateField(
         'Дата рождения',
@@ -103,11 +121,17 @@ class User(AbstractUser, DateEditedModel):
         null=True,
         help_text='Пол пользователя',
     )
-    topics_for_discussion = models.TextField(
-        'Темы для разговора',
-        max_length=100,
-        blank=True,
-        help_text='Темы для разговора',
+    interests = models.ManyToManyField(
+        'Interest',
+        related_name='users',
+        verbose_name='Интересы пользователя',
+        blank=True
+    )
+    goals = models.ManyToManyField(
+        'Goal',
+        related_name='users',
+        verbose_name='Цели пользователя',
+        blank=True
     )
     country = models.ForeignKey(
         'Country',
@@ -119,7 +143,7 @@ class User(AbstractUser, DateEditedModel):
     )
     avatar = models.ImageField(
         'Изображение',
-        upload_to='user_photos/',
+        upload_to='icons/users/',
         null=True,
         blank=True,
         help_text='Аватар пользователя',
@@ -198,6 +222,57 @@ class User(AbstractUser, DateEditedModel):
         super().save(*args, **kwargs)
 
 
+class Interest(models.Model):
+    """Модель интересов пользователей."""
+
+    name = models.CharField(
+        'Название',
+        max_length=64,
+        unique=True
+    )
+
+    @property
+    def sorting(self):
+        return self.users.count()
+
+    def __str__(self) -> str:
+        return self.name
+
+    class Meta:
+        verbose_name = 'Интерес'
+        verbose_name_plural = 'Интересы'
+        ordering = ('name',)
+
+
+class Goal(models.Model):
+    """Модель целей пользователей."""
+
+    name = models.CharField(
+        'Название',
+        max_length=64,
+        unique=True
+    )
+    icon = models.ImageField(
+        'Иконка',
+        upload_to='icons/goals/'
+    )
+    sorting = models.PositiveIntegerField(
+        blank=False,
+        null=False,
+        default=0,
+        verbose_name='Порядок сортировки',
+        help_text='Увеличьте, чтобы поднять в выборке'
+    )
+
+    def __str__(self) -> str:
+        return self.name
+
+    class Meta:
+        verbose_name = 'Цель'
+        verbose_name_plural = 'Цели'
+        ordering = ('-sorting', 'name')
+
+
 class Language(models.Model):
     """
     Модель языка.
@@ -243,58 +318,43 @@ class Language(models.Model):
 
 
 class UserLanguage(models.Model):
-    """Абстрактная модель для создания
-     промежуточных моделей пользователь-родной язык
-     и пользователь-иностранный язык."""
+    """Модель языков пользователей."""
 
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='%(class)s',
+        related_name='languages_skill',
         verbose_name='Пользователь',
-        help_text='Пользователь',
+        help_text='Пользователь'
     )
     language = models.ForeignKey(
         Language,
         on_delete=models.CASCADE,
-        related_name='%(class)s',
+        related_name='users_skill',
         verbose_name='Язык',
-        help_text='Язык',
+        help_text='Язык'
     )
-
-    class Meta:
-        abstract = True
-
-
-class UserNativeLanguage(UserLanguage):
-    """Промежуточная таблица для связи
-    пользователь-родной язык."""
-
-    class Meta:
-        verbose_name = 'Пользователь -> родной язык'
-        verbose_name_plural = 'Пользователи -> родные языки'
-
-    def __str__(self):
-        return f'{self.language} является родным для {self.user}'
-
-
-class UserForeignLanguage(UserLanguage):
-    """Промежуточная таблица для связи
-    пользователь-иностранный язык."""
-
     skill_level = models.CharField(
         'Уровень владения языком',
         max_length=30,
         choices=LANGUAGE_SKILL_LEVELS,
-        help_text='Укажите уровень вашего владения языком.',
+        help_text='Укажите уровень вашего владения языком.'
     )
 
-    class Meta:
-        verbose_name = 'Пользователь -> изучаемый язык'
-        verbose_name_plural = 'Пользователи -> изучаемые языки'
-
     def __str__(self):
-        return f'{self.user} изучает {self.language}'
+        return (
+            f'{self.user} знает {self.language} на уровне {self.skill_level}'
+        )
+
+    class Meta:
+        verbose_name = 'Языки пользователя'
+        verbose_name_plural = 'Языки пользователей'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'language'],
+                name='unique_user_language'
+            )
+        ]
 
 
 class BlacklistEntry(DateCreatedModel):

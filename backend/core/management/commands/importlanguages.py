@@ -1,4 +1,4 @@
-"""Кастомные команды управления."""
+"""Кастомная команда загрузки языков."""
 
 from django.conf.locale import LANG_INFO
 from django.core.management.base import BaseCommand, CommandError

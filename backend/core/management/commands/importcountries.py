@@ -1,4 +1,4 @@
-"""Кастомные команды управления."""
+"""Кастомная команда загрузки стран."""
 
 from django.core.files.images import ImageFile
 from django.core.management.base import BaseCommand, CommandError

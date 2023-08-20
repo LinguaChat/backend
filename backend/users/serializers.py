@@ -8,11 +8,10 @@ from djoser.serializers import UserSerializer as DjoserSerializer
 from rest_framework import serializers
 
 from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
-                            MAX_NATIVE_LANGUAGES, MIN_AGE, PASSWORD_MAX_LENGTH,
-                            USERNAME_MAX_LENGTH)
-from users.fields import Base64ImageField
-from users.models import (BlacklistEntry, Country, Language, Report, User,
-                          UserForeignLanguage, UserNativeLanguage)
+                            MAX_NATIVE_LANGUAGES, MIN_AGE)
+from users.fields import Base64ImageField, CreatableSlugRelatedField
+from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
+                          Report, User, UserLanguage)
 
 
 class LanguageSerializer(serializers.ModelSerializer):
@@ -29,32 +28,14 @@ class LanguageSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class UserLanguageBaseSerializer(serializers.ModelSerializer):
-    """Общий сериализатор промежуточных моделей Пользователь-Язык."""
+class UserLanguageSerializer(serializers.ModelSerializer):
+    """Сериализатор языков пользователей."""
 
     isocode = serializers.CharField(source='language.isocode')
     language = serializers.ReadOnlyField(source='language.name')
 
-
-class UserNativeLanguageSerializer(UserLanguageBaseSerializer):
-    """Сериализатор промежутоной модели Пользователь-родной язык."""
-
     class Meta:
-        model = UserNativeLanguage
-        fields = (
-            'isocode',
-            'language',
-        )
-        read_only_fields = (
-            'language',
-        )
-
-
-class UserForeignLanguageSerializer(UserLanguageBaseSerializer):
-    """Сериализатор промежутоной модели Пользователь-иностранный язык."""
-
-    class Meta:
-        model = UserForeignLanguage
+        model = UserLanguage
         fields = (
             'isocode',
             'language',
@@ -99,29 +80,6 @@ class UserCreateSerializer(DjoserCreateSerializer):
             'username': {'write_only': True},
         }
 
-    def validate(self, attrs):
-        username = attrs.get('username')
-        if (
-            len(username) > USERNAME_MAX_LENGTH
-        ):
-            self.fail(
-                'too_long',
-                objects='username',
-                max_amount=USERNAME_MAX_LENGTH
-            )
-
-        password = attrs.get('password')
-        if (
-            len(password) > PASSWORD_MAX_LENGTH
-        ):
-            self.fail(
-                'too_long',
-                objects='password',
-                max_amount=PASSWORD_MAX_LENGTH
-            )
-
-        return super().validate(attrs)
-
 
 class UserProfileSerializer(DjoserSerializer):
     """Сериализатор для заполнения профиля пользователя."""
@@ -134,15 +92,22 @@ class UserProfileSerializer(DjoserSerializer):
         slug_field='code',
         queryset=Country.objects.all()
     )
-    native_languages = serializers.SlugRelatedField(
+    interests = CreatableSlugRelatedField(
         many=True,
         read_only=False,
         required=False,
-        slug_field='isocode',
-        queryset=Language.objects.all()
+        slug_field='name',
+        queryset=Interest.objects.all()
     )
-    foreign_languages = UserForeignLanguageSerializer(
-        source='userforeignlanguage',
+    goals = serializers.SlugRelatedField(
+        many=True,
+        read_only=False,
+        required=False,
+        slug_field='name',
+        queryset=Goal.objects.all()
+    )
+    languages = UserLanguageSerializer(
+        source='languages_skill',
         many=True,
         read_only=False,
         required=False
@@ -152,6 +117,9 @@ class UserProfileSerializer(DjoserSerializer):
         'out_of_range': (
             'Кол-во {objects} не должно превышать {max_amount}.'
         ),
+        'language_duplicate': (
+            'Языки повторяются.'
+        )
     }
 
     class Meta:
@@ -161,10 +129,10 @@ class UserProfileSerializer(DjoserSerializer):
             'avatar',
             'country',
             'birth_date',
-            'native_languages',
-            'foreign_languages',
+            'languages',
             'gender',
-            'topics_for_discussion',
+            'goals',
+            'interests',
             'about',
         )
 
@@ -175,39 +143,37 @@ class UserProfileSerializer(DjoserSerializer):
             raise serializers.ValidationError("Некорректная дата рождения.")
         return value
 
-    def validate(self, attrs):
-        native_languages = attrs.get('native_languages')
-        if (
-            native_languages
-            and len(native_languages) > MAX_NATIVE_LANGUAGES
-        ):
+    def validate_languages(self, value):
+        isocodes = [data['language']['isocode'] for data in value]
+        if len(isocodes) != len(set(isocodes)):
+            self.fail('language_duplicate')
+
+        skill_levels = [data['skill_level'] for data in value]
+        if skill_levels.count('Native') > MAX_NATIVE_LANGUAGES:
             self.fail(
                 'out_of_range',
                 objects='родных языков',
                 max_amount=MAX_NATIVE_LANGUAGES
             )
 
-        foreign_languages = attrs.get('foreign_languages')
-        if (
-            foreign_languages
-            and len(foreign_languages) > MAX_FOREIGN_LANGUAGES
-        ):
+        not_native = list(filter('Native'.__ne__, skill_levels))
+        if len(not_native) > MAX_FOREIGN_LANGUAGES:
             self.fail(
                 'out_of_range',
                 objects='изучаемых языков',
                 max_amount=MAX_FOREIGN_LANGUAGES
             )
 
-        return super().validate(attrs)
+        return value
 
     def update(self, instance, validated_data):
-        if 'userforeignlanguage' in validated_data:
-            foreign_languages = validated_data.pop('userforeignlanguage')
-            UserForeignLanguage.objects.filter(user=instance).delete()
-            for data in foreign_languages:
+        if 'languages_skill' in validated_data:
+            languages = validated_data.pop('languages_skill')
+            UserLanguage.objects.filter(user=instance).delete()
+            for data in languages:
                 language_isocode = data['language'].get('isocode')
                 language = Language.objects.get(isocode=language_isocode)
-                UserForeignLanguage.objects.create(
+                UserLanguage.objects.create(
                     user=instance,
                     language=language,
                     skill_level=data.get('skill_level'),
@@ -221,19 +187,27 @@ class UserProfileSerializer(DjoserSerializer):
         ).data
 
 
+class GoalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Goal
+        fields = ('name', 'icon')
+        read_only_fields = fields
+
+
 class UserReprSerializer(serializers.ModelSerializer):
     """Сериализатор для просмотра пользователя."""
 
     age = serializers.SerializerMethodField()
     avatar = Base64ImageField(read_only=True)
     country = CountrySerializer(read_only=True, many=False)
-    native_languages = UserNativeLanguageSerializer(
-        source='usernativelanguage',
+    goals = GoalSerializer(read_only=True, many=True)
+    interests = serializers.SlugRelatedField(
         many=True,
-        read_only=True
+        read_only=True,
+        slug_field='name'
     )
-    foreign_languages = UserForeignLanguageSerializer(
-        source='userforeignlanguage',
+    languages = UserLanguageSerializer(
+        source='languages_skill',
         many=True,
         read_only=True
     )
@@ -249,10 +223,10 @@ class UserReprSerializer(serializers.ModelSerializer):
             'age',
             'slug',
             'country',
-            'native_languages',
-            'foreign_languages',
+            'languages',
             'gender',
-            'topics_for_discussion',
+            'goals',
+            'interests',
             'about',
             'last_activity',
             'is_online',
@@ -300,3 +274,10 @@ class ReportSerializer(serializers.ModelSerializer):
         model = Report
         fields = ('reason', 'description')
         read_only_fields = ('reported_user',)
+
+
+class InterestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Interest
+        fields = ('name', 'sorting')
+        read_only_fields = fields
