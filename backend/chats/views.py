@@ -53,6 +53,7 @@ class ChatViewSet(viewsets.ModelViewSet):
                 return ChatListSerializer
             case _:
                 return ChatSerializer
+        return super().get_serializer_class()
 
     def list(self, request, *args, **kwargs):
         """Просмотреть свои чаты"""
@@ -107,23 +108,24 @@ class ChatViewSet(viewsets.ModelViewSet):
                 {"detail": "Нельзя заблокировать самого себя."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
         if chat.members.filter(id=user_to_block.id).exists():
             if user_to_block in chat.blocked_users.all():
                 return Response(
                     {"detail": "Пользователь уже заблокирован в этом чате."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            else:
-                chat.blocked_users.add(user_to_block)
-                return Response(
-                    {"detail": "Пользователь заблокирован в этом чате."},
-                    status=status.HTTP_201_CREATED
-                )
-        else:
+
+            chat.blocked_users.add(user_to_block)
             return Response(
-                {"detail": "Пользователь не является участником чата"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Пользователь заблокирован в этом чате."},
+                status=status.HTTP_201_CREATED
             )
+
+        return Response(
+            {"detail": "Пользователь не является участником чата"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(detail=True, methods=['post'])
     def unblock_user(self, request, pk=None):
@@ -147,13 +149,13 @@ class ChatViewSet(viewsets.ModelViewSet):
                     {"detail": "Пользователь разблокирован в этом чате"},
                     status=status.HTTP_200_OK
                 )
-            else:
-                return Response(
-                    {"detail": "Пользователь не заблокирован в этом чате"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        else:
+
             return Response(
-                {"detail": "Пользователь не является участником чата"},
+                {"detail": "Пользователь не заблокирован в этом чате"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        return Response(
+            {"detail": "Пользователь не является участником чата"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
