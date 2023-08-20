@@ -4,11 +4,13 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
-# from rest_framework.exceptions import PermissionDenied
-# from rest_framework.generics import get_object_or_404
 
 from chats.models import Attachment, Chat, GroupChat, Message
 from users.serializers import UserShortSerializer
+
+# from rest_framework.exceptions import PermissionDenied
+# from rest_framework.generics import get_object_or_404
+
 
 User = get_user_model()
 
@@ -26,20 +28,29 @@ class MessageSerializer(serializers.ModelSerializer):
     #     many=False,
     #     read_only=True
     # )
+    is_read = serializers.SerializerMethodField()
     read_by = UserShortSerializer(
         many=True,
         read_only=True
     )
     file_to_send = serializers.FileField(
-        write_only=True,
         required=False,
         allow_empty_file=True
     )
+
     photo_to_send = serializers.ImageField(
-        write_only=True,
         required=False,
         allow_empty_file=True
     )
+    voice_message = serializers.FileField(
+        required=False,
+        allow_empty_file=True
+    )
+    emojis = serializers.CharField(max_length=255, required=False)
+
+    def get_is_read(self, instance):
+        user = self.context['request'].user
+        return instance.read_by.filter(id=user.id).exists() and user != instance.sender
 
     class Meta:
         model = Message
@@ -50,6 +61,8 @@ class MessageSerializer(serializers.ModelSerializer):
             'text',
             'file_to_send',
             'photo_to_send',
+            'voice_message',
+            'emojis',
             'responding_to',
             'sender_keep',
             'is_read',
@@ -63,15 +76,12 @@ class MessageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         file_to_send = validated_data.pop('file_to_send', None)
         photo_to_send = validated_data.pop('photo_to_send', None)
-        # chatname = validated_data['chat']
-        # chat = get_object_or_404(Chat, name=chatname)
-
-        # if not chat.messages.exists() and (file_to_send or photo_to_send):
-        #     raise serializers.ValidationError(
-        #         "Нельзя отправить фото или файл первым сообщением"
-        #     )
+        voice_message = validated_data.pop('voice_message', None)
+        emojis = validated_data.pop('emojis', None)
+        text = validated_data.get('text', '')
 
         validated_data['sender'] = self.context['request'].user
+        validated_data['sender_keep'] = True
         message = Message.objects.create(**validated_data)
 
         if file_to_send:
@@ -87,15 +97,30 @@ class MessageSerializer(serializers.ModelSerializer):
                 content=photo_to_send.read(),
                 message=message
             )
+        if voice_message:
+            text += f" [Voice Message: {voice_message.name}]"
+        if emojis:
+            text += f" {emojis}"
 
+        validated_data['text'] = text
         return message
 
     def update(self, instance, validated_data):
         file_to_send = validated_data.pop('file_to_send', None)
         photo_to_send = validated_data.pop('photo_to_send', None)
+        voice_message = validated_data.pop('voice_message', None)
+        emojis = validated_data.pop('emojis', None)
+        text = validated_data.get('text', '')
 
         for key, value in validated_data.items():
             setattr(instance, key, value)
+
+        if voice_message:
+            text += f" [Voice Message: {voice_message.name}]"
+        if emojis:
+            text += f" {emojis}"
+
+        validated_data['text'] = text
 
         if file_to_send:
             Attachment.objects.create(

@@ -1,6 +1,7 @@
 """View-функции приложения chats."""
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
@@ -11,10 +12,10 @@ from rest_framework.response import Response
 
 from chats.models import Chat
 from chats.serializers import (ChatListSerializer, ChatSerializer,
-                               GroupChatCreateSerializer,
-                               MessageSerializer)
+                               GroupChatCreateSerializer, MessageSerializer)
 from core.pagination import LimitPagination
-from core.permissions import ActiveChatOrReceiverOnly
+
+# from core.permissions import ActiveChatOrReceiverOnly
 
 User = get_user_model()
 
@@ -41,8 +42,8 @@ class ChatViewSet(viewsets.ModelViewSet):
         return Chat.objects.none()
 
     def get_permissions(self):
-        if self.action == 'send_message':
-            return (ActiveChatOrReceiverOnly(),)
+        # if self.action == 'send_message':
+        #     return (ActiveChatOrReceiverOnly(),)
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -88,3 +89,19 @@ class ChatViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'])
+    def view_chat(self, request, pk=None):
+        """Просмотреть чат и обновить статус 'прочитано' для получателя"""
+        chat = self.get_object()
+
+        # Получаем текущего пользователя
+        user = self.request.user
+
+        # Обновляем статус 'прочитано' для всех сообщений в чате, если текущий пользователь не отправитель
+        if chat.members.filter(id=user.id).exists():
+            for message in chat.messages.exclude(read_by=user):
+                message.read_by.add(user)
+            return Response({"detail": "Chat read status updated."})
+        else:
+            return Response(status=status.HTTP_403_FORBIDDEN)
