@@ -14,7 +14,7 @@ from chats.models import Chat
 from chats.serializers import (ChatListSerializer, ChatSerializer,
                                GroupChatCreateSerializer, MessageSerializer)
 from core.pagination import LimitPagination
-from core.permissions import ActiveChatOrReceiverOnly
+# from core.permissions import ActiveChatOrReceiverOnly
 
 User = get_user_model()
 
@@ -41,8 +41,8 @@ class ChatViewSet(viewsets.ModelViewSet):
         return Chat.objects.none()
 
     def get_permissions(self):
-        if self.action == 'send_message':
-            return (ActiveChatOrReceiverOnly(),)
+        # if self.action == 'send_message':
+        #     return (ActiveChatOrReceiverOnly(),)
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -85,7 +85,7 @@ class ChatViewSet(viewsets.ModelViewSet):
         if chat.is_user_blocked(request.user):
             return Response(
                 {"detail": "Вы заблокированы в этом чате"
-                 "и не можете отправлять сообщения."},
+                 " и не можете отправлять сообщения."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
