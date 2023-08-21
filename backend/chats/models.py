@@ -1,8 +1,11 @@
 """Модели для приложения chats."""
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+# from django.core.exceptions import ValidationError
 from django.db import models
+
+# from polymorphic.models import PolymorphicModel
+from model_utils.managers import InheritanceManager
 
 from core.models import DateCreatedModel, DateEditedModel
 
@@ -12,26 +15,25 @@ User = get_user_model()
 class Chat(DateCreatedModel, DateEditedModel):
     """Модель чата."""
 
+    name = models.CharField(
+        'Название',
+        max_length=128,
+        blank=True
+    )
     members = models.ManyToManyField(
         User,
-        through='ChatMembers',
         verbose_name='Участники',
         help_text='Кто может просматривать и отправлять сообщения в чате',
         related_name='chats'
     )
-    is_active = models.BooleanField(
-        default=False,
-        verbose_name='Активен ли чат',
-        help_text='Собеседник ответил пользователю',
-    )
 
-    def __str__(self) -> str:
-        if self.members.count() == 2:
-            return (
-                f'Чат пользователей {self.members.all()[0]} и '
-                f'{self.members.all()[1]}'
-            )
-        return 'Пустой чат'
+    objects = InheritanceManager()
+
+    def get_members_count(self):
+        return self.members.count()
+
+    def __str__(self):
+        return f'{self.name} ({self.get_members_count()})'
 
     class Meta:
         ordering = ['-date_created']
@@ -40,58 +42,25 @@ class Chat(DateCreatedModel, DateEditedModel):
         verbose_name_plural = 'Чаты'
 
 
-class ChatMembers(DateCreatedModel):
-    """Модель участников чата."""
-
-    chat = models.ForeignKey(
-        Chat,
-        on_delete=models.CASCADE,
-        related_name='members_info',
-        verbose_name='Чат',
-        help_text='Чат, в котором участвует пользователь',
-    )
-    member = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='chats_info',
-        verbose_name='Участник чата',
-        help_text='Может просматривать и отправлять сообщения в чате'
-    )
-    chat_is_pinned = models.BooleanField(
-        default=False,
-        verbose_name='Закреплён ли чат',
-        help_text='Пользователь закрепил этот чат для себя'
-    )
-    chat_is_cleared = models.BooleanField(
-        default=False,
-        verbose_name='Очищен ли чат',
-        help_text='Удалены все сообщения в чате пользователем'
-    )
-    is_creator = models.BooleanField(
-        default=False,
-        verbose_name='Является ли создателем чата',
-        help_text='Этот пользователь начал переписку в чате'
-    )
-
-    def __str__(self) -> str:
-        chatmembers_string = (
-            f'Пользователь {self.member} - участник чата {self.chat}'
-        )
-        if self.chat_is_pinned:
-            chatmembers_string += ' (чат закреплён)'
-        return chatmembers_string
+class PersonalChat(Chat):
+    """Модель личного чата."""
 
     class Meta:
         ordering = ['-date_created']
         get_latest_by = 'date_created'
-        verbose_name = 'Участник'
-        verbose_name_plural = 'Участники'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['chat', 'member'],
-                name='уникальные участники'
-            )
-        ]
+        verbose_name = 'Личный чат'
+        verbose_name_plural = 'Личные чаты'
+
+
+class GroupChat(Chat):
+    """Модель группового чата."""
+    # creator = ...
+
+    class Meta:
+        ordering = ['-date_created']
+        get_latest_by = 'date_created'
+        verbose_name = 'Групповой чат'
+        verbose_name_plural = 'Групповые чаты'
 
 
 class Message(DateCreatedModel, DateEditedModel):
@@ -144,10 +113,12 @@ class Message(DateCreatedModel, DateEditedModel):
         verbose_name='Сообщение отправлено',
         help_text='Сообщение отправлено'
     )
-    is_read = models.BooleanField(
-        default=False,
-        verbose_name='Сообщение прочитано',
-        help_text='Сообщение прочитано'
+    read_by = models.ManyToManyField(
+        User,
+        verbose_name='Прочитано пользователем',
+        help_text='Кем прочитано сообщение',
+        related_name='read+',
+        blank=True
     )
     is_pinned = models.BooleanField(
         default=False,
@@ -155,49 +126,19 @@ class Message(DateCreatedModel, DateEditedModel):
         help_text='Сообщение закреплено'
     )
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            chat_messages_count = Message.objects.filter(
-                chat=self.chat
-            ).count()
-            if chat_messages_count == 0:
-                if (
-                    self.file_to_send and self.file_to_send.file
-                ) or (
-                    self.photo_to_send and self.photo_to_send.file
-                ):
-                    raise ValidationError(
-                        "Нельзя отправить фото или файл первым сообщением"
-                    )
-        super().save(*args, **kwargs)
+    @property
+    def is_read(self):
+        return self.read_by.exists()
 
     def __str__(self):
-        return f"Message {self.id}"
+        return (
+            f'From {self.sender} [chat: {self.chat.name}]: '
+            f'{self.text} [{self.date_created}]'
+        )
 
     class Meta:
         verbose_name = 'Сообщение'
         verbose_name_plural = 'Сообщения'
-
-
-class MessageReaders(models.Model):
-    """Модель для отслеживания прочитанных пользователями сообщений."""
-
-    message = models.ForeignKey(
-        Message,
-        on_delete=models.CASCADE,
-        verbose_name='Сообщение',
-        help_text='Сообщение, которое было прочитано'
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Пользователь',
-        help_text='Пользователь, который прочитал сообщение'
-    )
-
-    class Meta:
-        verbose_name = 'Читатель сообщения'
-        verbose_name_plural = 'Читатели сообщений'
 
 
 class Attachment(models.Model):
@@ -225,3 +166,61 @@ class Attachment(models.Model):
     class Meta:
         verbose_name = 'Вложение'
         verbose_name_plural = 'Вложения'
+
+
+class ChatRequest(DateCreatedModel):
+    """Модель для запросов и приглашений."""
+
+    from_user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="requests_from_me"
+    )
+    to_user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="requests_to_me"
+    )
+    message = models.CharField(
+        max_length=512,
+        verbose_name='Текст сообщения',
+        help_text='Текст сообщения'
+    )
+
+    objects = InheritanceManager()
+
+    def __str__(self):
+        return f'Запрос от {self.from_user} к {self.to_user}: {self.message}'
+
+    class Meta:
+        ordering = ['-date_created']
+        get_latest_by = 'date_created'
+        verbose_name = 'Приглашение в чат'
+        verbose_name_plural = 'Приглашения в чаты'
+
+
+class PersonalChatRequest(ChatRequest):
+
+    def __str__(self):
+        return (
+            f'Пользователь {self.from_user} хочет начать общение с '
+            f'{self.to_user}: {self.message}'
+        )
+
+    class Meta:
+        ordering = ['-date_created']
+        get_latest_by = 'date_created'
+        verbose_name = 'Запрос начать личный чат'
+        verbose_name_plural = 'Запросы на личные чаты'
+
+
+class GroupChatRequest(ChatRequest):
+    # chat = ...
+
+    def __str__(self):
+        return (
+            f'Приглашение в чат {self.chat} от {self.from_user}: '
+            f'{self.message}'
+        )
+
+    class Meta:
+        ordering = ['-date_created']
+        get_latest_by = 'date_created'
+        verbose_name = 'Приглашение в групповой чат'
+        verbose_name_plural = 'Приглашения в групповые чаты'

@@ -250,6 +250,18 @@ class UserReprSerializer(serializers.ModelSerializer):
         return None
 
 
+class UserShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'slug',
+            'username',
+            'first_name',
+            'avatar',
+        )
+        read_only_fields = fields
+
+
 class BlacklistEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = BlacklistEntry

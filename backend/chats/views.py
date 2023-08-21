@@ -11,7 +11,7 @@ from rest_framework.response import Response
 
 from chats.models import Chat
 from chats.serializers import (ChatListSerializer, ChatSerializer,
-                               MessageSerializer)
+                               GroupChatCreateSerializer, MessageSerializer)
 from core.pagination import LimitPagination
 from core.permissions import ActiveChatOrReceiverOnly
 
@@ -29,9 +29,9 @@ class ChatViewSet(viewsets.ModelViewSet):
     filter_backends = [
         filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend
     ]
-    search_fields = (
-        'members__username', 'members__first_name'
-    )
+    # search_fields = (
+    #     'members__username', 'members__first_name'
+    # )
     ordering = ('-date_created',)
 
     def get_queryset(self):
@@ -45,8 +45,11 @@ class ChatViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return ChatListSerializer
+        match self.action:
+            case 'create':
+                return GroupChatCreateSerializer
+            case 'list':
+                return ChatListSerializer
         return ChatSerializer
 
     def list(self, request, *args, **kwargs):
@@ -54,20 +57,20 @@ class ChatViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        """Начать чат"""
+        """Создать групповой чат"""
         return super().create(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
         """Просмотреть чат"""
         return super().retrieve(request, *args, **kwargs)
 
-    @action(detail=True, methods=['post'])
-    def clear(self, request, *args, **kwargs):
-        """Очистить сообщения чата"""
-        chat = self.get_object()
-        chat.messages.all().delete()
+    # @action(detail=True, methods=['post'])
+    # def clear(self, request, *args, **kwargs):
+    #     """Очистить сообщения чата"""
+    #     chat = self.get_object()
+    #     chat.messages.all().delete()
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
     def send_message(self, request, pk=None):
