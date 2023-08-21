@@ -11,8 +11,7 @@ from rest_framework.response import Response
 
 from chats.models import Chat
 from chats.serializers import (ChatListSerializer, ChatSerializer,
-                               GroupChatCreateSerializer,
-                               MessageSerializer)
+                               GroupChatCreateSerializer, MessageSerializer)
 from core.pagination import LimitPagination
 from core.permissions import ActiveChatOrReceiverOnly
 
@@ -51,8 +50,7 @@ class ChatViewSet(viewsets.ModelViewSet):
                 return GroupChatCreateSerializer
             case 'list':
                 return ChatListSerializer
-            case _:
-                return ChatSerializer
+        return ChatSerializer
 
     def list(self, request, *args, **kwargs):
         """Просмотреть свои чаты"""

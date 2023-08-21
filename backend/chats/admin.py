@@ -3,7 +3,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from .models import Attachment, Chat, PersonalChat, GroupChat, Message
+from .models import Attachment, Chat, GroupChat, Message, PersonalChat
 
 User = get_user_model()
 
