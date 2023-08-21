@@ -52,9 +52,7 @@ class ChatViewSet(viewsets.ModelViewSet):
                 return GroupChatCreateSerializer
             case 'list':
                 return ChatListSerializer
-            case _:
-                return ChatSerializer
-        return super().get_serializer_class()
+        return ChatSerializer
 
     def list(self, request, *args, **kwargs):
         """Просмотреть свои чаты"""
