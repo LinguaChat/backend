@@ -108,22 +108,29 @@ class ChatViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if chat.members.filter(id=user_to_block.id).exists():
-            if user_to_block in chat.blocked_users.all():
+        if chat.creator == request.user or chat.members.count() == 2:
+            if chat.members.filter(id=user_to_block.id).exists():
+                if user_to_block in chat.blocked_users.all():
+                    return Response(
+                        {"detail": "Пользователь уже заблокирован "
+                         "в этом чате."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                chat.blocked_users.add(user_to_block)
                 return Response(
-                    {"detail": "Пользователь уже заблокирован в этом чате."},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "Пользователь заблокирован в этом чате."},
+                    status=status.HTTP_201_CREATED
                 )
 
-            chat.blocked_users.add(user_to_block)
             return Response(
-                {"detail": "Пользователь заблокирован в этом чате."},
-                status=status.HTTP_201_CREATED
+                {"detail": "Пользователь не является участником чата"},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         return Response(
-            {"detail": "Пользователь не является участником чата"},
-            status=status.HTTP_400_BAD_REQUEST
+            {"detail": "У вас нет прав для блокировки участников этого чата."},
+            status=status.HTTP_403_FORBIDDEN
         )
 
     @action(detail=True, methods=['post'])
@@ -141,20 +148,27 @@ class ChatViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if chat.members.filter(id=user_to_unblock.id).exists():
-            if user_to_unblock in chat.blocked_users.all():
-                chat.blocked_users.remove(user_to_unblock)
+        if chat.creator == request.user or chat.members.count() == 2:
+            if chat.members.filter(id=user_to_unblock.id).exists():
+                if user_to_unblock in chat.blocked_users.all():
+                    chat.blocked_users.remove(user_to_unblock)
+                    return Response(
+                        {"detail": "Пользователь разблокирован в этом чате"},
+                        status=status.HTTP_200_OK
+                    )
+
                 return Response(
-                    {"detail": "Пользователь разблокирован в этом чате"},
-                    status=status.HTTP_200_OK
+                    {"detail": "Пользователь не заблокирован в этом чате"},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
             return Response(
-                {"detail": "Пользователь не заблокирован в этом чате"},
+                {"detail": "Пользователь не является участником чата"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         return Response(
-            {"detail": "Пользователь не является участником чата"},
-            status=status.HTTP_400_BAD_REQUEST
+            {"detail": "Вы не имеете права "
+             "разблокировать участников в этом чате"},
+            status=status.HTTP_403_FORBIDDEN
         )

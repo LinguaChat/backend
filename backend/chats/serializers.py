@@ -159,6 +159,7 @@ class ChatSerializer(serializers.ModelSerializer):
     blocked_users = serializers.StringRelatedField(
         many=True
     )
+    creator = UserShortSerializer()
 
     class Meta:
         model = Chat
@@ -167,6 +168,7 @@ class ChatSerializer(serializers.ModelSerializer):
             'name',
             "messages",
             "blocked_users",
+            "creator",
         )
         read_only_fields = (
             'id',
