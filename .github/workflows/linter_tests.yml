@@ -24,4 +24,4 @@ jobs:
           pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
       - name: Test with flake8
         run: |
-          python -m flake8 --per-file-ignores="backend/backend/settings.py:E501 backend/users/middleware.py:R504"
+          python -m flake8 --per-file-ignores="backend/backend/settings.py:E501 backend/users/middleware.py:R504 backend/core/management/commands/loadtestusers.py:E501"
