@@ -1,8 +1,8 @@
 """Адаптер для авторизации через социальные сети."""
 
 import base64
+
 import django
-from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured
 from django.db.models import ImageField
 from django.db.models.fields import (
@@ -13,6 +13,8 @@ from django.db.models.fields import (
 )
 from django.utils import dateparse
 from django.utils.encoding import force_bytes
+
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 
 
 SERIALIZED_DB_FIELD_PREFIX = "_db_"
