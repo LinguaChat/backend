@@ -5,17 +5,12 @@ import base64
 import django
 from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured
 from django.db.models import ImageField
-from django.db.models.fields import (
-    BinaryField,
-    DateField,
-    DateTimeField,
-    TimeField,
-)
+from django.db.models.fields import (BinaryField, DateField, DateTimeField,
+                                     TimeField)
 from django.utils import dateparse
 from django.utils.encoding import force_bytes
 
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-
 
 SERIALIZED_DB_FIELD_PREFIX = "_db_"
 

@@ -45,13 +45,11 @@ class UserFilter(df.FilterSet):
     age = AgeFilter()
     country = CustomFilterList(
         field_name='country__code', lookup_expr='in')
-    native_languages = CustomFilterList(
-        field_name='native_languages__isocode', lookup_expr='in')
-    foreign_languages = CustomFilterList(
-        field_name='foreign_languages__isocode', lookup_expr='in')
+    languages = CustomFilterList(
+        field_name='languages__isocode', lookup_expr='in')
     skill_level = df.ChoiceFilter(
         choices=LANGUAGE_SKILL_LEVELS,
-        field_name='userforeignlanguage__skill_level'
+        field_name='languages_skill__skill_level'
     )
 
     class Meta:
@@ -60,8 +58,7 @@ class UserFilter(df.FilterSet):
             'age',
             'country',
             'gender',
-            'native_languages',
-            'foreign_languages',
+            'languages',
             'skill_level',
             'is_online',
         )
