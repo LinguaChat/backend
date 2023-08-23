@@ -1,13 +1,12 @@
 """Модели для приложения chats."""
 
 from django.contrib.auth import get_user_model
-# from django.core.exceptions import ValidationError
 from django.db import models
 
-# from polymorphic.models import PolymorphicModel
 from model_utils.managers import InheritanceManager
 
 from core.models import DateCreatedModel, DateEditedModel
+from core.constants import MAX_MESSAGE_LENGTH
 
 User = get_user_model()
 
@@ -15,25 +14,14 @@ User = get_user_model()
 class Chat(DateCreatedModel, DateEditedModel):
     """Модель чата."""
 
-    name = models.CharField(
-        'Название',
-        max_length=128,
-        blank=True
-    )
-    members = models.ManyToManyField(
+    initiator = models.ForeignKey(
         User,
-        verbose_name='Участники',
-        help_text='Кто может просматривать и отправлять сообщения в чате',
-        related_name='chats'
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="chat_starter"
     )
 
     objects = InheritanceManager()
-
-    def get_members_count(self):
-        return self.members.count()
-
-    def __str__(self):
-        return f'{self.name} ({self.get_members_count()})'
 
     class Meta:
         ordering = ['-date_created']
@@ -44,6 +32,16 @@ class Chat(DateCreatedModel, DateEditedModel):
 
 class PersonalChat(Chat):
     """Модель личного чата."""
+    receiver = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="chat_participant"
+    )
+    # is_active = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'Чат между {self.initiator} и {self.receiver}'
 
     class Meta:
         ordering = ['-date_created']
@@ -54,7 +52,32 @@ class PersonalChat(Chat):
 
 class GroupChat(Chat):
     """Модель группового чата."""
-    # creator = ...
+    name = models.CharField(
+        'Название',
+        max_length=128,
+        blank=True
+    )
+    members = models.ManyToManyField(
+        User,
+        verbose_name='Участники',
+        help_text='Кто может просматривать и отправлять сообщения в чате',
+        related_name='group_chats'
+    )
+    # image = ...
+
+    def get_members_count(self):
+        return self.members.count()
+
+    def __str__(self):
+        if self.name:
+            return (
+                f'Чат `{self.name}` на {self.get_members_count()} участников '
+                f'(создатель {self.initiator})'
+            )
+        return (
+            f'Чат на {self.get_members_count()} участников '
+            f'(создатель {self.initiator})'
+        )
 
     class Meta:
         ordering = ['-date_created']
@@ -63,16 +86,17 @@ class GroupChat(Chat):
         verbose_name_plural = 'Групповые чаты'
 
 
-class Message(DateCreatedModel, DateEditedModel):
+class Message(DateEditedModel):
     """Модель сообщения."""
 
     sender = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_DEFAULT,
         verbose_name='Отправитель сообщения',
         help_text='Отправитель сообщения',
-        blank=True,
-        null=True
+        null=False,
+        default='',
+        related_name='message_sender'
     )
     chat = models.ForeignKey(
         Chat,
@@ -82,7 +106,7 @@ class Message(DateCreatedModel, DateEditedModel):
         related_name='messages'
     )
     text = models.TextField(
-        max_length=10000,
+        max_length=MAX_MESSAGE_LENGTH,
         verbose_name='Текст сообщения',
         help_text='Текст сообщения'
     )
@@ -125,6 +149,9 @@ class Message(DateCreatedModel, DateEditedModel):
         verbose_name='Сообщение закреплено',
         help_text='Сообщение закреплено'
     )
+    timestamp = models.DateTimeField(
+        auto_now_add=True
+    )
 
     @property
     def is_read(self):
@@ -132,11 +159,13 @@ class Message(DateCreatedModel, DateEditedModel):
 
     def __str__(self):
         return (
-            f'From {self.sender} [chat: {self.chat.name}]: '
-            f'{self.text} [{self.date_created}]'
+            f'От {self.sender} [чат: {self.chat}]: '
+            f'{self.text} [{self.timestamp}]'
         )
 
     class Meta:
+        ordering = ['-timestamp']
+        get_latest_by = 'timestamp'
         verbose_name = 'Сообщение'
         verbose_name_plural = 'Сообщения'
 
@@ -168,8 +197,8 @@ class Attachment(models.Model):
         verbose_name_plural = 'Вложения'
 
 
-class ChatRequest(DateCreatedModel):
-    """Модель для запросов и приглашений."""
+class GroupChatRequest(DateCreatedModel):
+    """Модель приглашения в групповой чат."""
 
     from_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="requests_from_me"
@@ -182,36 +211,11 @@ class ChatRequest(DateCreatedModel):
         verbose_name='Текст сообщения',
         help_text='Текст сообщения'
     )
-
-    objects = InheritanceManager()
-
-    def __str__(self):
-        return f'Запрос от {self.from_user} к {self.to_user}: {self.message}'
-
-    class Meta:
-        ordering = ['-date_created']
-        get_latest_by = 'date_created'
-        verbose_name = 'Приглашение в чат'
-        verbose_name_plural = 'Приглашения в чаты'
-
-
-class PersonalChatRequest(ChatRequest):
-
-    def __str__(self):
-        return (
-            f'Пользователь {self.from_user} хочет начать общение с '
-            f'{self.to_user}: {self.message}'
-        )
-
-    class Meta:
-        ordering = ['-date_created']
-        get_latest_by = 'date_created'
-        verbose_name = 'Запрос начать личный чат'
-        verbose_name_plural = 'Запросы на личные чаты'
-
-
-class GroupChatRequest(ChatRequest):
-    # chat = ...
+    chat = models.ForeignKey(
+        GroupChat,
+        on_delete=models.CASCADE,
+        related_name='invited'
+    )
 
     def __str__(self):
         return (
