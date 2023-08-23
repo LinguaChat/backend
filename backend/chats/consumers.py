@@ -17,9 +17,8 @@ User = get_user_model()
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
-        print("here")
-        self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
-        self.room_group_name = f"chat_{self.room_name}"
+        self.chat_id = self.scope["url_route"]["kwargs"]["chat_id"]
+        self.room_group_name = f"chat_{self.chat_id}"
 
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
@@ -55,7 +54,7 @@ class ChatConsumer(WebsocketConsumer):
             text_data_json.get("attachment"),
         )
 
-        chat = PersonalChat.objects.get(id=int(self.room_name))
+        chat = PersonalChat.objects.get(id=int(self.chat_id))
         sender = self.scope['user']
 
         # Attachment
