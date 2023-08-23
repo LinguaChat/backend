@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django_filters',
     'djoser',
     'corsheaders',
+    'channels',
     'django_cleanup.apps.CleanupConfig',
     'chats.apps.ChatsConfig',
     'users.apps.UsersConfig',
@@ -86,6 +87,16 @@ CACHES = {
 }
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 DATABASES = {
     'default': {
