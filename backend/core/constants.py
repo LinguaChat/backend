@@ -70,3 +70,5 @@ USERS_GOALS = {
     "product": _("Relocation"),
 }
 GOALS_ICONS_URLS = 'core/icons/goals/'
+
+MAX_MESSAGE_LENGTH = 10000
