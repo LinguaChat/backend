@@ -81,14 +81,20 @@ class MessageSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        file_to_send = validated_data.pop('file_to_send', None)
-        photo_to_send = validated_data.pop('photo_to_send', None)
-        voice_message = validated_data.pop('voice_message', None)
+        file_to_send = validated_data.get('file_to_send', None)
+        photo_to_send = validated_data.get('photo_to_send', None)
+        voice_message = validated_data.get('voice_message', None)
         emojis = validated_data.get('emojis', None)
         text = validated_data.get('text', '')
 
         validated_data['sender'] = self.context['request'].user
         validated_data['sender_keep'] = True
+
+        if voice_message:  # Если есть голосовое сообщение, заменяем текст на информацию о голосовом сообщении
+            text = f'[Voice Message: {voice_message.name}]'
+        if emojis:
+            text += emojis
+
         message = Message.objects.create(**validated_data)
 
         if file_to_send:
@@ -104,19 +110,14 @@ class MessageSerializer(serializers.ModelSerializer):
                 content=photo_to_send.read(),
                 message=message
             )
-        if voice_message:
-            text += f" [Voice Message: {voice_message.name}]"
-        if emojis:
-            text += f"{emojis}"
 
-        validated_data['text'] = text
         message.text = text
         return message
 
     def update(self, instance, validated_data):
-        file_to_send = validated_data.pop('file_to_send', None)
-        photo_to_send = validated_data.pop('photo_to_send', None)
-        voice_message = validated_data.pop('voice_message', None)
+        file_to_send = validated_data.get('file_to_send', None)
+        photo_to_send = validated_data.get('photo_to_send', None)
+        voice_message = validated_data.get('voice_message', None)
         emojis = validated_data.get('emojis', None)
         text = validated_data.get('text', '')
 
@@ -124,11 +125,10 @@ class MessageSerializer(serializers.ModelSerializer):
             setattr(instance, key, value)
 
         if voice_message:
-            text += f" [Voice Message: {voice_message.name}]"
+            text = f'[Voice Message: {voice_message.name}]'
         if emojis:
-            text += f"{emojis}"
+            text += emojis
 
-        validated_data['text'] = text
         instance.text = text
 
         if file_to_send:
