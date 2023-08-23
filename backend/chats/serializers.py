@@ -90,7 +90,7 @@ class MessageSerializer(serializers.ModelSerializer):
         validated_data['sender'] = self.context['request'].user
         validated_data['sender_keep'] = True
 
-        if voice_message:  # Если есть голосовое сообщение, заменяем текст на информацию о голосовом сообщении
+        if voice_message:
             text = f'[Voice Message: {voice_message.name}]'
         if emojis:
             text += emojis

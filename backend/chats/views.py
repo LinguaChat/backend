@@ -120,13 +120,11 @@ class ChatViewSet(viewsets.ModelViewSet):
         """Просмотреть чат и обновить статус 'прочитано' для получателя"""
         chat = self.get_object()
 
-        # Получаем текущего пользователя
         user = self.request.user
 
-        # Обновляем статус 'прочитано' для всех сообщений в чате, если текущий пользователь не отправитель
         if chat.members.filter(id=user.id).exists():
             for message in chat.messages.exclude(read_by=user):
                 message.read_by.add(user)
             return Response({"detail": "Chat read status updated."})
-        else:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        return Response(status=status.HTTP_403_FORBIDDEN)
