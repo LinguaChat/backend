@@ -7,6 +7,9 @@ from rest_framework import serializers
 from chats.models import Attachment, Chat, GroupChat, Message
 from users.serializers import UserShortSerializer
 
+from .validators import (validate_audio_extension, validate_file_size,
+                         validate_image_extension, validate_pdf_extension)
+
 # from django.shortcuts import get_object_or_404
 # from rest_framework.exceptions import PermissionDenied
 
@@ -33,22 +36,28 @@ class MessageSerializer(serializers.ModelSerializer):
     )
     file_to_send = serializers.FileField(
         required=False,
-        allow_empty_file=True
+        allow_empty_file=True,
+        validators=[validate_file_size, validate_pdf_extension]
     )
 
     photo_to_send = serializers.ImageField(
         required=False,
-        allow_empty_file=True
+        allow_empty_file=True,
+        validators=[validate_file_size, validate_image_extension]
     )
     voice_message = serializers.FileField(
         required=False,
-        allow_empty_file=True
+        allow_empty_file=True,
+        validators=[validate_file_size, validate_audio_extension]
     )
     emojis = serializers.CharField(max_length=255, required=False)
 
     def get_is_read(self, instance):
         user = self.context['request'].user
-        return instance.read_by.filter(id=user.id).exists() and user != instance.sender
+        return (
+            instance.read_by.filter(id=user.id).exists() and
+            user != instance.sender
+        )
 
     class Meta:
         model = Message
@@ -75,7 +84,7 @@ class MessageSerializer(serializers.ModelSerializer):
         file_to_send = validated_data.pop('file_to_send', None)
         photo_to_send = validated_data.pop('photo_to_send', None)
         voice_message = validated_data.pop('voice_message', None)
-        emojis = validated_data.pop('emojis', None)
+        emojis = validated_data.get('emojis', None)
         text = validated_data.get('text', '')
 
         validated_data['sender'] = self.context['request'].user
@@ -98,16 +107,17 @@ class MessageSerializer(serializers.ModelSerializer):
         if voice_message:
             text += f" [Voice Message: {voice_message.name}]"
         if emojis:
-            text += f" {emojis}"
+            text += f"{emojis}"
 
         validated_data['text'] = text
+        message.text = text
         return message
 
     def update(self, instance, validated_data):
         file_to_send = validated_data.pop('file_to_send', None)
         photo_to_send = validated_data.pop('photo_to_send', None)
         voice_message = validated_data.pop('voice_message', None)
-        emojis = validated_data.pop('emojis', None)
+        emojis = validated_data.get('emojis', None)
         text = validated_data.get('text', '')
 
         for key, value in validated_data.items():
@@ -116,9 +126,10 @@ class MessageSerializer(serializers.ModelSerializer):
         if voice_message:
             text += f" [Voice Message: {voice_message.name}]"
         if emojis:
-            text += f" {emojis}"
+            text += f"{emojis}"
 
         validated_data['text'] = text
+        instance.text = text
 
         if file_to_send:
             Attachment.objects.create(

@@ -1,7 +1,6 @@
 """View-функции приложения chats."""
 
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
@@ -10,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from chats.models import Chat
+from chats.models import Chat, Message
 from chats.serializers import (ChatListSerializer, ChatSerializer,
                                GroupChatCreateSerializer, MessageSerializer)
 from core.pagination import LimitPagination
@@ -23,7 +22,7 @@ User = get_user_model()
 @extend_schema(tags=['chats'])
 class ChatViewSet(viewsets.ModelViewSet):
     serializer_class = ChatSerializer
-    http_method_names = ['get', 'post', 'head']
+    http_method_names = ['get', 'post', 'head', 'put']
     permission_classes = [
         IsAuthenticated,
     ]
@@ -86,6 +85,33 @@ class ChatViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save(chat=chat)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['put'])
+    def update_message(self, request, pk=None):
+        """Обновить сообщение в чате"""
+        message_id = request.data.get('message_id')
+        chat = self.get_object()
+
+        try:
+            message = chat.messages.get(id=message_id)
+        except Message.DoesNotExist:
+            return Response(
+                {"detail": "Message not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = MessageSerializer(
+            instance=message,
+            data=request.data,
+            context={'request': request},
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
