@@ -17,6 +17,7 @@ def get_user_by_token(token_key):
     except Token.DoesNotExist:
         return AnonymousUser()
 
+
 @database_sync_to_async
 def get_user_by_id(user_id):
     try:
@@ -39,7 +40,9 @@ class WebSocketJWTAuthMiddleware(BaseMiddleware):
             else:
                 try:
                     access_token = AccessToken(token_key)
-                    scope["user"] = await get_user_by_id(access_token["user_id"])
+                    scope["user"] = await get_user_by_id(
+                        access_token["user_id"]
+                    )
                 except TokenError:
                     scope["user"] = AnonymousUser()
         scope["user"] = AnonymousUser()

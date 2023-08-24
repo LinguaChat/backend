@@ -98,17 +98,16 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 {'message': f'Чат с пользователем {user} уже создан.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            chat = PersonalChat.objects.create(
-                initiator=current_user,
-                receiver=user
-            )
-            message_text = serializer.data['message']
-            message = Message.objects.create(
-                sender=current_user,
-                text=message_text,
-                chat=chat
-            )
+        chat = PersonalChat.objects.create(
+            initiator=current_user,
+            receiver=user
+        )
+        message_text = serializer.data['message']
+        Message.objects.create(
+            sender=current_user,
+            text=message_text,
+            chat=chat
+        )
         return Response(
             ChatSerializer(chat).data,
             status=status.HTTP_201_CREATED

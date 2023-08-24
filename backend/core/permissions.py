@@ -14,7 +14,7 @@ class ActiveChatOrReceiverOnly(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return (
-            obj.is_active or obj.receiver==request.user
+            obj.is_active or obj.receiver == request.user
         )
 
 

@@ -147,7 +147,7 @@ class ChatListSerializer(serializers.ModelSerializer):
     def get_last_message(self, obj):
         message = obj.messages.first()
         return MessageSerializer(message).data
-    
+
     def get_unread(self, obj):
         return obj.messages.filter(read_by=None).count()
 
