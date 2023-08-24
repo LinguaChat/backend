@@ -13,3 +13,6 @@ factory-boy==3.3.0
 django-cleanup==8.0.0
 django-allauth==0.54.0
 django-model-utils==4.3.1
+channels==4.0.0
+daphne==4.0.0
+channels_redis==4.1.0
