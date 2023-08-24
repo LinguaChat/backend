@@ -5,8 +5,8 @@ from django.db import models
 
 from model_utils.managers import InheritanceManager
 
-from core.models import DateCreatedModel, DateEditedModel
 from core.constants import MAX_MESSAGE_LENGTH
+from core.models import DateCreatedModel, DateEditedModel
 
 User = get_user_model()
 
@@ -99,7 +99,7 @@ class Message(DateEditedModel):
         related_name='message_sender'
     )
     chat = models.ForeignKey(
-        Chat,
+        PersonalChat,
         on_delete=models.CASCADE,
         verbose_name='Чат',
         help_text='Чат, к которому относится сообщение',
