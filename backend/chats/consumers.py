@@ -1,22 +1,27 @@
-import base64
+# import base64
 import json
-import secrets
-from datetime import datetime
+
+# from django.core.files.base import ContentFile
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
-from django.core.files.base import ContentFile
-from django.contrib.auth import get_user_model
 
-# from users.models import User
 from .models import Message, PersonalChat
 from .serializers import MessageSerializer
+
+# import secrets
+# from datetime import datetime
 
 User = get_user_model()
 
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
+        if isinstance(self.scope["user"], AnonymousUser):
+            self.close()
+
         self.chat_id = self.scope["url_route"]["kwargs"]["chat_id"]
         self.room_group_name = f"chat_{self.chat_id}"
 
@@ -51,7 +56,7 @@ class ChatConsumer(WebsocketConsumer):
         text_data_json.pop("type")
         message, attachment = (
             text_data_json["message"],
-            text_data_json.get("attachment"),
+            text_data_json.get("attachment", None),
         )
 
         chat = PersonalChat.objects.get(id=int(self.chat_id))
