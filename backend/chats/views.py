@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -24,6 +24,26 @@ User = get_user_model()
 
 
 @extend_schema(tags=['chats'])
+@extend_schema_view(
+    list=extend_schema(
+        summary='Просмотреть список чатов',
+        description=(
+            'Просмотреть список всех своих личных чатов'
+        ),
+    ),
+    retrieve=extend_schema(
+        summary='Просмотреть чат',
+        description='Просмотреть чат и историю сообщений',
+    ),
+    start_personal_chat=extend_schema(
+        summary='Начать чат с пользователем',
+        description='Начать чат с пользователем, отправить первое сообщение',
+    ),
+    send_message=extend_schema(
+        summary='Отправить сообщение',
+        description='Отправить сообщение в чат',
+    ),
+)
 class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                   viewsets.GenericViewSet):
     serializer_class = ChatSerializer
