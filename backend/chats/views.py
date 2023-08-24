@@ -4,17 +4,20 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
-from rest_framework import filters, status, viewsets, mixins
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from chats.models import Chat, PersonalChat, Message
+from chats.models import Chat, Message, PersonalChat
 from chats.serializers import (ChatListSerializer, ChatSerializer,
                                ChatStartSerializer, MessageSerializer)
 from core.pagination import LimitPagination
+
 # from core.permissions import ActiveChatOrReceiverOnly
 
 User = get_user_model()
@@ -33,7 +36,6 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend
     ]
     search_fields = (
-        # 'members__username', 'members__first_name',
         'initiator__username', 'initiator__first_name',
         'receiver__username', 'receiver__first_name',
     )
@@ -123,12 +125,18 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         """Отправить сообщение в чат"""
         chat = self.get_object()
         serializer = self.get_serializer(data={
-            # 'chat': pk,
-            # 'sender': request.user,
             **request.data
         })
         serializer.is_valid(raise_exception=True)
-        serializer.save(chat=chat, sender=request.user)
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "general",
+            {
+                "type": "chat_message",
+                "message": serializer['text']
+            }
+        )
         return Response(
             ChatSerializer(chat).data,
             status=status.HTTP_201_CREATED
