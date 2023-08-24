@@ -5,8 +5,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from chats.models import Attachment, GroupChat, Message, PersonalChat
-from users.serializers import UserShortSerializer
 from core.constants import MAX_MESSAGE_LENGTH
+from users.serializers import UserShortSerializer
 
 # from django.shortcuts import get_object_or_404
 
@@ -53,6 +53,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'is_read',
             'is_pinned',
             'read_by',
+            'timestamp',
             'chat',
         ]
         extra_kwargs = {
@@ -65,6 +66,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'is_read',
             'is_pinned',
             'read_by',
+            'timestamp',
         )
 
     # def create(self, validated_data):
