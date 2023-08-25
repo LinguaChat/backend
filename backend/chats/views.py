@@ -143,29 +143,28 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     def send_message(self, request, pk=None):
         """Отправить сообщение в чат"""
         chat = self.get_object()
-        serializer = self.get_serializer(data={
-            **request.data
-        })
+
+        serializer = self.get_serializer(
+            data={**request.data},
+            # Передаем chat через контекст
+            context={'request': request, 'chat': chat}
+        )
+
         serializer.is_valid(raise_exception=True)
+        serializer.save()  # Сохраняем сообщение и получаем его объект
 
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             "general",
             {
                 "type": "chat_message",
-                "message": serializer.validated_data['text']
+                "message": serializer['text']
             }
         )
         return Response(
             ChatSerializer(chat).data,
             status=status.HTTP_201_CREATED
         )
-
-        if serializer.is_valid():
-            serializer.save(chat=chat)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['put'])
     def update_message(self, request, pk=None):
