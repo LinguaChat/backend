@@ -1,14 +1,17 @@
 """Сериализаторы приложения chats."""
 
-from django.contrib.auth import get_user_model
 import logging
+
+from django.contrib.auth import get_user_model
+
 from rest_framework import serializers
 
 from chats.models import Attachment, GroupChat, Message, PersonalChat
 from core.constants import MAX_MESSAGE_LENGTH
 from users.serializers import UserShortSerializer
-from .validators import (validate_file_size, validate_pdf_extension,
-                         validate_image_extension, validate_audio_extension)
+
+from .validators import (validate_audio_extension, validate_file_size,
+                         validate_image_extension, validate_pdf_extension)
 
 # from django.shortcuts import get_object_or_404
 # from rest_framework.exceptions import PermissionDenied
@@ -150,6 +153,10 @@ class MessageSerializer(serializers.ModelSerializer):
         voice_message = validated_data.get('voice_message', None)
         emojis = validated_data.get('emojis', None)
         text = validated_data.get('text', '')
+        chat = self.context.get('chat')
+        if not chat:
+            raise serializers.ValidationError(
+                "Chat object is missing in the context")
 
         for key, value in validated_data.items():
             setattr(instance, key, value)
