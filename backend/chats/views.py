@@ -2,6 +2,7 @@
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 
 from asgiref.sync import async_to_sync
@@ -200,9 +201,11 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
         user = self.request.user
 
-        if chat.members.filter(id=user.id).exists():
+        if chat.initiator == user or chat.receiver == user:
             for message in chat.messages.exclude(read_by=user):
                 message.read_by.add(user)
             return Response({"detail": "Chat read status updated."})
-
-        return Response(status=status.HTTP_403_FORBIDDEN)
+        else:
+            return HttpResponseForbidden(
+                "You don't have permission to access this chat."
+            )

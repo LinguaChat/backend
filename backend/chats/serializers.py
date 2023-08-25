@@ -1,6 +1,5 @@
 """Сериализаторы приложения chats."""
 
-import logging
 
 from django.contrib.auth import get_user_model
 
@@ -19,7 +18,6 @@ from .validators import (validate_audio_extension, validate_file_size,
 # from django.shortcuts import get_object_or_404
 # from .models import Chat
 User = get_user_model()
-logger = logging.getLogger(__name__)
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -29,7 +27,7 @@ class MessageSerializer(serializers.ModelSerializer):
         allow_null=True,
         max_length=10000
     )
-    # is_read = serializers.SerializerMethodField()
+    is_read = serializers.SerializerMethodField()
     read_by = UserShortSerializer(
         many=True,
         read_only=True
@@ -60,12 +58,15 @@ class MessageSerializer(serializers.ModelSerializer):
     )
     chat = serializers.HiddenField(default=None)
 
-    # def get_is_read(self, instance):
-    #     user = self.context['request'].user
-    #     return (
-    #         instance.read_by.filter(id=user.id).exists() and
-    #         user != instance.sender
-    #     )
+    def get_is_read(self, instance):
+        user = self.context.get(
+            'request').user if self.context.get('request') else None
+        if user is None:
+            return False
+        return (
+            instance.read_by.filter(id=user.id).exists() and
+            user != instance.sender
+        )
 
     class Meta:
         model = Message
@@ -99,7 +100,6 @@ class MessageSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        logger.info("Creating a new message")
 
         file_to_send = validated_data.get('file_to_send', None)
         photo_to_send = validated_data.get('photo_to_send', None)
@@ -109,13 +109,12 @@ class MessageSerializer(serializers.ModelSerializer):
         # chatname = validated_data['chat']
 
         validated_data['sender_keep'] = True
-        # Получение объекта чата из контекста представления
+
         chat = self.context.get('chat')
 
         if not chat:
             raise serializers.ValidationError(
                 "Chat object is missing in the context")
-        # chat = get_object_or_404(Chat, pk=chat_id)
         validated_data['chat'] = chat
         if not chat.messages.exists() and (file_to_send or photo_to_send):
             raise serializers.ValidationError(
