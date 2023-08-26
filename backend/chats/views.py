@@ -205,7 +205,7 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             for message in chat.messages.exclude(read_by=user):
                 message.read_by.add(user)
             return Response({"detail": "Chat read status updated."})
-        else:
-            return HttpResponseForbidden(
-                "You don't have permission to access this chat."
-            )
+
+        return HttpResponseForbidden(
+            "You don't have permission to access this chat."
+        )
