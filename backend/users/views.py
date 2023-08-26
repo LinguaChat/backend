@@ -13,7 +13,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from chats.models import PersonalChatRequest
 from core.permissions import (CanAccessProfileDetails,
                               IsAdminOrModeratorReadOnly)
 from users.filters import UserFilter
@@ -298,27 +297,6 @@ class UserViewSet(DjoserViewSet):
         reports = Report.objects.filter(reported_user=user)
         serializer = ReportSerializer(reports, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(
-        methods=["post"],
-        detail=True,
-        permission_classes=(IsAuthenticated,),
-        serializer_class=None
-    )
-    def start_chat(self, request, slug=None):
-        """Отправка запроса на личный чат."""
-        user = self.get_object()
-        current_user = request.user
-        message = request.data.pop('message', None)
-
-        user_request, created = PersonalChatRequest.objects.get_or_create(
-            from_user=current_user,
-            to_user=user,
-            message=message
-        )
-        if not created:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return Response(status=status.HTTP_201_CREATED)
 
 
 @extend_schema(tags=['languages'])

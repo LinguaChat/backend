@@ -17,6 +17,7 @@ DEBUG = os.getenv('DEBUG', default=False)
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='localhost,127.0.0.1,').split(',')
 
 INSTALLED_APPS = [
+    "daphne",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -28,6 +29,7 @@ INSTALLED_APPS = [
     'django_filters',
     'djoser',
     'corsheaders',
+    'channels',
     'django_cleanup.apps.CleanupConfig',
     'chats.apps.ChatsConfig',
     'users.apps.UsersConfig',
@@ -86,6 +88,16 @@ CACHES = {
 }
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 DATABASES = {
     'default': {
@@ -183,6 +195,8 @@ SPECTACULAR_SETTINGS = {
 LANGUAGE_CODE = 'ru-ru'
 
 TIME_ZONE = 'UTC'
+
+DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
 
 USE_I18N = True
 
