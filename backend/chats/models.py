@@ -20,13 +20,6 @@ class Chat(DateCreatedModel, DateEditedModel):
         null=True,
         related_name="chat_starter"
     )
-    creator = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Создатель чата',
-        help_text='Пользователь, создавший чат',
-        related_name='created_chats'
-    )
     blocked_users = models.ManyToManyField(
         User,
         verbose_name='Заблокированные пользователи',

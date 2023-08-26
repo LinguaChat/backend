@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 
-from chats.models import Attachment, GroupChat, Message, PersonalChat
+from chats.models import GroupChat, Message, PersonalChat
 from core.constants import MAX_MESSAGE_LENGTH
 from users.serializers import UserShortSerializer
 
@@ -174,7 +174,6 @@ class ChatSerializer(serializers.ModelSerializer):
             'receiver',
             "messages",
             "blocked_users",
-            "creator",
         )
         read_only_fields = (
             'id',
