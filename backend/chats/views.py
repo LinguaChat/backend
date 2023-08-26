@@ -152,11 +152,11 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         )
 
         serializer.is_valid(raise_exception=True)
-        serializer.save()  # Сохраняем сообщение и получаем его объект
+        serializer.save(chat=chat, sender=request.user)
 
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            "general",
+            f"chat_{chat.pk}",
             {
                 "type": "chat_message",
                 "message": serializer['text']
