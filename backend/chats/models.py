@@ -67,6 +67,10 @@ class PersonalChat(Chat):
         verbose_name = 'Личный чат'
         verbose_name_plural = 'Личные чаты'
 
+    def block_user(self, user):
+        if user not in [self.initiator, self.receiver]:
+            self.blocked_users.add(user)
+
 
 class GroupChat(Chat):
     """Модель группового чата."""

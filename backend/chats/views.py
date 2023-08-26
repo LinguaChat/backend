@@ -175,8 +175,12 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if chat.initiator == request.user or chat.members.count() == 2:
-            if chat.members.filter(id=user_to_block.id).exists():
+        if chat.initiator == request.user or chat.receiver == request.user:
+            if (
+                user_to_block == chat.initiator
+                    or user_to_block == chat.receiver
+            ):
+                # if chat.members.filter(id=user_to_block.id).exists():
                 if user_to_block in chat.blocked_users.all():
                     return Response(
                         {"detail": "Пользователь уже заблокирован "
@@ -215,8 +219,12 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if chat.initiator == request.user or chat.members.count() == 2:
-            if chat.members.filter(id=user_to_unblock.id).exists():
+        if chat.initiator == request.user or chat.receiver == request.user:
+            if (
+                user_to_unblock == chat.initiator
+                    or user_to_unblock == chat.receiver
+            ):
+                # if chat.members.filter(id=user_to_unblock.id).exists():
                 if user_to_unblock in chat.blocked_users.all():
                     chat.blocked_users.remove(user_to_unblock)
                     return Response(
