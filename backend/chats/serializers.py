@@ -203,9 +203,26 @@ class ChatStartSerializer(serializers.ModelSerializer):
         )
 
 
+class GroupChatSerializer(serializers.ModelSerializer):
+    """Сериализатор для группового чата."""
+
+    initiator = UserShortSerializer(many=False, read_only=True)
+    members = UserShortSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = GroupChat
+        fields = (
+            'id',
+            'name',
+            'initiator',
+            'members',
+        )
+
+
 class GroupChatCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания группового чата."""
 
+    initiator = UserShortSerializer(many=False, read_only=True)
     members = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=User.objects.all(),
@@ -216,24 +233,6 @@ class GroupChatCreateSerializer(serializers.ModelSerializer):
         model = GroupChat
         fields = (
             'name',
+            'initiator',
             "members",
         )
-
-    # def to_representation(self, instance):
-    #     return ChatReprSerializer(
-    #         instance,
-    #         context={'request': self.context.get('request')}
-    #     ).data
-
-    # def create(self, validated_data):
-    #     chat = Chat.objects.create(**validated_data)
-    #     # ChatMembers.objects.create(
-    #     #     chat=chat,
-    #     #     member=creator,
-    #     #     is_creator=True
-    #     # )
-    #     # ChatMembers.objects.create(
-    #     #     chat=chat,
-    #     #     member=companion
-    #     # )
-    #     return chat
