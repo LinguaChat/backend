@@ -189,6 +189,17 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                     )
 
                 chat.blocked_users.add(user_to_block)
+                # Отправить обновление через веб-сокеты
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"chat_{chat.pk}",
+                    {
+                        "type": "block_user",
+                        "user_slug": user_slug,
+                        "blocked": True
+                    }
+                )
+
                 return Response(
                     {"detail": "Пользователь заблокирован в этом чате."},
                     status=status.HTTP_201_CREATED
@@ -227,6 +238,16 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 # if chat.members.filter(id=user_to_unblock.id).exists():
                 if user_to_unblock in chat.blocked_users.all():
                     chat.blocked_users.remove(user_to_unblock)
+
+                    channel_layer = get_channel_layer()
+                    async_to_sync(channel_layer.group_send)(
+                        f"chat_{chat.pk}",
+                        {
+                            "type": "block_user",
+                            "user_slug": user_slug,
+                            "blocked": False
+                        }
+                    )
                     return Response(
                         {"detail": "Пользователь разблокирован в этом чате"},
                         status=status.HTTP_200_OK
