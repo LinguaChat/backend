@@ -211,8 +211,14 @@ class UserReprSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
-    is_online = serializers.SerializerMethodField()
-    role = serializers.CharField(source='get_role_display', read_only=True)
+    is_online = serializers.BooleanField(
+        source='get_is_online',
+        read_only=True
+    )
+    role = serializers.CharField(
+        source='get_role_display',
+        read_only=True
+    )
 
     class Meta:
         model = User
