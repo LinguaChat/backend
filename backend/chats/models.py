@@ -20,6 +20,13 @@ class Chat(DateCreatedModel, DateEditedModel):
         null=True,
         related_name="chat_starter"
     )
+    messages = models.ManyToManyField(
+        'Message',
+        verbose_name='Сообщения',
+        related_name='chat_messages',
+        blank=True,
+        help_text='Сообщения чата.'
+    )
     blocked_users = models.ManyToManyField(
         User,
         verbose_name='Заблокированные пользователи',
@@ -121,11 +128,11 @@ class Message(DateEditedModel):
         related_name='message_sender'
     )
     chat = models.ForeignKey(
-        PersonalChat,
+        Chat,
         on_delete=models.CASCADE,
         verbose_name='Чат',
         help_text='Чат, к которому относится сообщение',
-        related_name='messages'
+        related_name='chat_messages'
     )
     text = models.TextField(
         max_length=MAX_MESSAGE_LENGTH,

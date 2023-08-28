@@ -1,10 +1,12 @@
 """Сериализаторы приложения chats."""
 
+from collections import OrderedDict
+
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 
-from chats.models import GroupChat, Message, PersonalChat
+from chats.models import Attachment, GroupChat, Message, PersonalChat
 from core.constants import MAX_MESSAGE_LENGTH
 from users.serializers import UserShortSerializer
 
@@ -20,6 +22,7 @@ class MessageSerializer(serializers.ModelSerializer):
         allow_null=True,
         max_length=10000
     )
+    is_read = serializers.SerializerMethodField()
     read_by = UserShortSerializer(
         many=True,
         read_only=True
@@ -39,6 +42,16 @@ class MessageSerializer(serializers.ModelSerializer):
         read_only=True
     )
     chat = serializers.HiddenField(default=None)
+
+    def get_is_read(self, instance):
+        user = self.context.get(
+            'request').user if self.context.get('request') else None
+        if user is None:
+            return False
+        return (
+            instance.read_by.filter(id=user.id).exists() and
+            user != instance.sender
+        )
 
     class Meta:
         model = Message
@@ -69,60 +82,91 @@ class MessageSerializer(serializers.ModelSerializer):
             'timestamp',
         )
 
-    # def create(self, validated_data):
-    #     file_to_send = validated_data.pop('file_to_send', None)
-    #     photo_to_send = validated_data.pop('photo_to_send', None)
+    def create(self, validated_data):
+
+        file_to_send = validated_data.get('file_to_send', None)
+        photo_to_send = validated_data.get('photo_to_send', None)
+        voice_message = validated_data.get('voice_message', None)
+        emojis = validated_data.get('emojis', None)
+        text = validated_data.get('text', '')
         # chatname = validated_data['chat']
-        # chat = get_object_or_404(Chat, name=chatname)
 
-        # if not chat.messages.exists() and (file_to_send or photo_to_send):
-        #     raise serializers.ValidationError(
-        #         "Нельзя отправить фото или файл первым сообщением"
-        #     )
+        validated_data['sender_keep'] = True
 
-        # validated_data['sender'] = self.context['request'].user
-        # message = Message.objects.create(**validated_data)
+        chat = self.context.get('chat')
 
-        # if file_to_send:
-        #     Attachment.objects.create(
-        #         name=file_to_send.name,
-        #         content=file_to_send.read(),
-        #         message=message
-        #     )
+        if not chat:
+            raise serializers.ValidationError(
+                "Chat object is missing in the context")
+        validated_data['chat'] = chat
+        if not chat.messages.exists() and (file_to_send or photo_to_send):
+            raise serializers.ValidationError(
+                "Нельзя отправить фото или файл первым сообщением"
+            )
+        if voice_message:
+            text = f'[Voice Message: {voice_message.name}]'
+        if emojis:
+            text += emojis
 
-        # if photo_to_send:
-        #     Attachment.objects.create(
-        #         name=photo_to_send.name,
-        #         content=photo_to_send.read(),
-        #         message=message
-        #     )
+        validated_data['sender'] = self.context['request'].user
+        message = Message.objects.create(**validated_data)
 
-        # return message
+        if file_to_send:
+            Attachment.objects.create(
+                name=file_to_send.name,
+                content=file_to_send.read(),
+                message=message
+            )
 
-    # def update(self, instance, validated_data):
-    #     file_to_send = validated_data.pop('file_to_send', None)
-    #     photo_to_send = validated_data.pop('photo_to_send', None)
+        if photo_to_send:
+            Attachment.objects.create(
+                name=photo_to_send.name,
+                content=photo_to_send.read(),
+                message=message
+            )
 
-    #     for key, value in validated_data.items():
-    #         setattr(instance, key, value)
+        message.text = text
+        message.save()
+        return message
 
-    #     if file_to_send:
-    #         Attachment.objects.create(
-    #             name=file_to_send.name,
-    #             content=file_to_send.read(),
-    #             message=instance
-    #         )
+    def update(self, instance, validated_data):
+        file_to_send = validated_data.get('file_to_send', None)
+        photo_to_send = validated_data.get('photo_to_send', None)
+        voice_message = validated_data.get('voice_message', None)
+        emojis = validated_data.get('emojis', None)
+        text = validated_data.get('text', '')
+        chat = self.context.get('chat')
+        if not chat:
+            raise serializers.ValidationError(
+                "Chat object is missing in the context")
 
-    #     if photo_to_send:
-    #         Attachment.objects.create(
-    #             name=photo_to_send.name,
-    #             content=photo_to_send.read(),
-    #             message=instance
-    #         )
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
 
-    #     instance.save()
+        if voice_message:
+            text = f'[Voice Message: {voice_message.name}]'
+        if emojis:
+            text += emojis
 
-    #     return instance
+        instance.text = text
+
+        if file_to_send:
+            Attachment.objects.create(
+                name=file_to_send.name,
+                content=file_to_send.read(),
+                message=instance
+            )
+
+        if photo_to_send:
+            Attachment.objects.create(
+                name=photo_to_send.name,
+                content=photo_to_send.read(),
+                message=instance
+            )
+
+        instance.save()
+
+        return instance
 
 
 class ChatListSerializer(serializers.ModelSerializer):
@@ -145,11 +189,43 @@ class ChatListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_last_message(self, obj):
-        message = obj.messages.first()
-        return MessageSerializer(message).data
+        message = obj.chat_messages.first()
+        if message:
+            return MessageSerializer(message).data
+        return None
 
     def get_unread(self, obj):
-        return obj.messages.filter(read_by=None).count()
+        unread_count = obj.chat_messages.filter(read_by=None).count()
+        return unread_count
+
+    def get_members(self, obj):
+        if isinstance(obj, GroupChat):
+            # Возвращает QuerySet слагов пользователей
+            return obj.members.values_list('slug', flat=True)
+        return []
+
+    def get_name(self, obj):
+        if isinstance(obj, GroupChat):
+            return obj.groupchat.name  # Получаем название чата для групповых чатов
+        return None
+
+    def to_representation(self, instance):
+        """
+        Переопределение метода для добавления поля
+        members только для групповых чатов.
+        """
+        data = super().to_representation(instance)
+        ordered_data = OrderedDict()
+
+        if isinstance(instance, GroupChat):
+            ordered_data['id'] = data['id']
+            ordered_data['name'] = self.get_name(instance)
+            ordered_data['members'] = self.get_members(instance)
+            ordered_data.update(data)
+        else:
+            ordered_data.update(data)
+
+        return ordered_data
 
 
 class ChatSerializer(serializers.ModelSerializer):
@@ -158,6 +234,7 @@ class ChatSerializer(serializers.ModelSerializer):
     initiator = UserShortSerializer(many=False, read_only=True)
     receiver = UserShortSerializer(many=False, read_only=True)
     messages = MessageSerializer(
+        source='chat_messages',
         many=True,
         read_only=True
     )
@@ -208,6 +285,11 @@ class GroupChatSerializer(serializers.ModelSerializer):
 
     initiator = UserShortSerializer(many=False, read_only=True)
     members = UserShortSerializer(many=True, read_only=True)
+    messages = MessageSerializer(
+        source='chat_messages',
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = GroupChat
@@ -216,6 +298,7 @@ class GroupChatSerializer(serializers.ModelSerializer):
             'name',
             'initiator',
             'members',
+            'messages'
         )
 
 

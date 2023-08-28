@@ -68,7 +68,12 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 Q(initiator=self.request.user) |
                 Q(receiver=self.request.user)
             )
-        return Chat.objects.none()
+        return PersonalChat.objects.none()
+
+    def get_group_queryset(self):
+        if self.request.user.is_authenticated:
+            return GroupChat.objects.filter(members=self.request.user)
+        return GroupChat.objects.none()
 
     def get_permissions(self):
         # if self.action == 'send_message':
@@ -85,15 +90,37 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                 return ChatStartSerializer
             case 'start_group_chat':
                 return GroupChatCreateSerializer
+            case 'retrieve':
+                return GroupChatSerializer
         return ChatSerializer
 
     def list(self, request, *args, **kwargs):
-        """Просмотреть свои чаты"""
-        return super().list(request, *args, **kwargs)
+        personal_chats = self.get_queryset()
+        group_chats = self.get_group_queryset()
+
+        all_chats = list(personal_chats) + list(group_chats)
+
+        sorted_chats = sorted(
+            all_chats, key=lambda chat: chat.date_created, reverse=True)
+
+        serializer = ChatListSerializer(sorted_chats, many=True)
+        return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
-        """Просмотреть чат"""
-        return super().retrieve(request, *args, **kwargs)
+        chat_id = self.kwargs['pk']
+        try:
+            chat = PersonalChat.objects.get(pk=chat_id)
+        except PersonalChat.DoesNotExist:
+            try:
+                chat = GroupChat.objects.get(pk=chat_id)
+            except GroupChat.DoesNotExist:
+                return Response(
+                    {"detail": "Чат не найден."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+        serializer = self.get_serializer(chat)
+        return Response(serializer.data)
 
     @action(
         methods=['post'],
@@ -161,6 +188,14 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             name=serializer.validated_data["name"]
         )
         group_chat.members.set(serializer.validated_data["members"])
+        message_text = serializer.validated_data.get("message")
+        if message_text:
+            Message.objects.create(
+                sender=current_user,
+                text=message_text,
+                chat=group_chat
+            )
+
         return Response(
             GroupChatSerializer(group_chat).data,
             status=status.HTTP_201_CREATED
@@ -176,9 +211,12 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     def send_message(self, request, pk=None):
         """Отправить сообщение в чат"""
         chat = self.get_object()
-        serializer = self.get_serializer(data={
-            **request.data
-        })
+
+        serializer = self.get_serializer(
+            data={**request.data},
+            context={'request': request, 'chat': chat}
+        )
+
         serializer.is_valid(raise_exception=True)
         serializer.save(chat=chat, sender=request.user)
 
