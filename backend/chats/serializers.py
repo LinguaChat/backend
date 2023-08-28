@@ -200,13 +200,12 @@ class ChatListSerializer(serializers.ModelSerializer):
 
     def get_members(self, obj):
         if isinstance(obj, GroupChat):
-            # Возвращает QuerySet слагов пользователей
             return obj.members.values_list('slug', flat=True)
         return []
 
     def get_name(self, obj):
         if isinstance(obj, GroupChat):
-            return obj.groupchat.name  # Получаем название чата для групповых чатов
+            return obj.groupchat.name
         return None
 
     def to_representation(self, instance):

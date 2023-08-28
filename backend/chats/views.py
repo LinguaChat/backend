@@ -13,7 +13,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from chats.models import Chat, GroupChat, Message, PersonalChat
+from chats.models import GroupChat, Message, PersonalChat
 from chats.serializers import (ChatListSerializer, ChatSerializer,
                                ChatStartSerializer, GroupChatCreateSerializer,
                                GroupChatSerializer, MessageSerializer)
