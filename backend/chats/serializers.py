@@ -195,8 +195,7 @@ class ChatListSerializer(serializers.ModelSerializer):
         return None
 
     def get_unread(self, obj):
-        unread_count = obj.chat_messages.filter(read_by=None).count()
-        return unread_count
+        return obj.chat_messages.filter(read_by=None).count()
 
     def get_members(self, obj):
         if isinstance(obj, GroupChat):
@@ -205,7 +204,7 @@ class ChatListSerializer(serializers.ModelSerializer):
 
     def get_name(self, obj):
         if isinstance(obj, GroupChat):
-            return obj.groupchat.name
+            return obj.name
         return None
 
     def to_representation(self, instance):
