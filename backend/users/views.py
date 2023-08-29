@@ -288,7 +288,7 @@ class UserViewSet(DjoserViewSet):
 
                 if close_user_access:
                     if existing_block_entry:
-                        existing_block_entry.save()  # Обновляем существующую запись
+                        existing_block_entry.save()
                     else:
                         BlacklistEntry.objects.create(
                             user=current_user,
@@ -300,10 +300,9 @@ class UserViewSet(DjoserViewSet):
                     {"detail": "Жалоба успешно отправлена."},
                     status=status.HTTP_200_OK
                 )
-            else:
-                return Response(
-                    serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
 
         reports = Report.objects.filter(reported_user=user)
         serializer = ReportSerializer(reports, many=True)
