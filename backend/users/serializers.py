@@ -81,112 +81,6 @@ class UserCreateSerializer(DjoserCreateSerializer):
         }
 
 
-class UserProfileSerializer(DjoserSerializer):
-    """Сериализатор для заполнения профиля пользователя."""
-
-    avatar = Base64ImageField(required=False, allow_null=True)
-    country = serializers.SlugRelatedField(
-        many=False,
-        read_only=False,
-        required=False,
-        slug_field='code',
-        queryset=Country.objects.all()
-    )
-    interests = CreatableSlugRelatedField(
-        many=True,
-        read_only=False,
-        required=False,
-        slug_field='name',
-        queryset=Interest.objects.all()
-    )
-    goals = serializers.SlugRelatedField(
-        many=True,
-        read_only=False,
-        required=False,
-        slug_field='name',
-        queryset=Goal.objects.all()
-    )
-    languages = UserLanguageSerializer(
-        source='languages_skill',
-        many=True,
-        read_only=False,
-        required=False
-    )
-
-    default_error_messages = {
-        'out_of_range': (
-            'Кол-во {objects} не должно превышать {max_amount}.'
-        ),
-        'language_duplicate': (
-            'Языки повторяются.'
-        )
-    }
-
-    class Meta:
-        model = User
-        fields = (
-            'first_name',
-            'avatar',
-            'country',
-            'birth_date',
-            'languages',
-            'gender',
-            'goals',
-            'interests',
-            'about',
-        )
-
-    def validate_birth_date(self, value):
-        dif = (timezone.now().date() - value)
-        age = int(dif.days / 365.25)
-        if age not in range(MIN_AGE, MAX_AGE + 1):
-            raise serializers.ValidationError("Некорректная дата рождения.")
-        return value
-
-    def validate_languages(self, value):
-        isocodes = [data['language']['isocode'] for data in value]
-        if len(isocodes) != len(set(isocodes)):
-            self.fail('language_duplicate')
-
-        skill_levels = [data['skill_level'] for data in value]
-        if skill_levels.count('Native') > MAX_NATIVE_LANGUAGES:
-            self.fail(
-                'out_of_range',
-                objects='родных языков',
-                max_amount=MAX_NATIVE_LANGUAGES
-            )
-
-        not_native = list(filter('Native'.__ne__, skill_levels))
-        if len(not_native) > MAX_FOREIGN_LANGUAGES:
-            self.fail(
-                'out_of_range',
-                objects='изучаемых языков',
-                max_amount=MAX_FOREIGN_LANGUAGES
-            )
-
-        return value
-
-    def update(self, instance, validated_data):
-        if 'languages_skill' in validated_data:
-            languages = validated_data.pop('languages_skill')
-            UserLanguage.objects.filter(user=instance).delete()
-            for data in languages:
-                language_isocode = data['language'].get('isocode')
-                language = Language.objects.get(isocode=language_isocode)
-                UserLanguage.objects.create(
-                    user=instance,
-                    language=language,
-                    skill_level=data.get('skill_level'),
-                )
-        return super().update(instance, validated_data)
-
-    def to_representation(self, instance):
-        return UserReprSerializer(
-            instance,
-            context={'request': self.context.get('request')}
-        ).data
-
-
 class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
@@ -254,6 +148,111 @@ class UserReprSerializer(serializers.ModelSerializer):
             age_days = (timezone.now().date() - obj.birth_date).days
             return int(age_days / 365)
         return None
+
+
+class UserProfileSerializer(DjoserSerializer, UserReprSerializer):
+    """Сериализатор для заполнения профиля пользователя."""
+
+    avatar = Base64ImageField(
+        required=False,
+        allow_null=True
+    )
+    country = serializers.SlugRelatedField(
+        many=False,
+        read_only=False,
+        required=False,
+        slug_field='code',
+        queryset=Country.objects.all()
+    )
+    interests = CreatableSlugRelatedField(
+        many=True,
+        read_only=False,
+        required=False,
+        slug_field='name',
+        queryset=Interest.objects.all()
+    )
+    goals = serializers.SlugRelatedField(
+        many=True,
+        read_only=False,
+        required=False,
+        slug_field='name',
+        queryset=Goal.objects.all()
+    )
+    languages = UserLanguageSerializer(
+        source='languages_skill',
+        many=True,
+        read_only=False,
+        required=False
+    )
+
+    default_error_messages = {
+        'out_of_range': (
+            'Кол-во {objects} не должно превышать {max_amount}.'
+        ),
+        'language_duplicate': (
+            'Языки повторяются.'
+        )
+    }
+
+    class Meta:
+        model = User
+        fields = UserReprSerializer.Meta.fields + (
+            'birth_date',
+        )
+        read_only_fields = (
+            'username',
+            'age',
+            'slug',
+            'last_activity',
+            'is_online',
+            'gender_is_hidden',
+            'age_is_hidden',
+            'role',
+        )
+
+    def validate_birth_date(self, value):
+        dif = (timezone.now().date() - value)
+        age = int(dif.days / 365.25)
+        if age not in range(MIN_AGE, MAX_AGE + 1):
+            raise serializers.ValidationError("Некорректная дата рождения.")
+        return value
+
+    def validate_languages(self, value):
+        isocodes = [data['language']['isocode'] for data in value]
+        if len(isocodes) != len(set(isocodes)):
+            self.fail('language_duplicate')
+
+        skill_levels = [data['skill_level'] for data in value]
+        if skill_levels.count('Native') > MAX_NATIVE_LANGUAGES:
+            self.fail(
+                'out_of_range',
+                objects='родных языков',
+                max_amount=MAX_NATIVE_LANGUAGES
+            )
+
+        not_native = list(filter('Native'.__ne__, skill_levels))
+        if len(not_native) > MAX_FOREIGN_LANGUAGES:
+            self.fail(
+                'out_of_range',
+                objects='изучаемых языков',
+                max_amount=MAX_FOREIGN_LANGUAGES
+            )
+
+        return value
+
+    def update(self, instance, validated_data):
+        if 'languages_skill' in validated_data:
+            languages = validated_data.pop('languages_skill')
+            UserLanguage.objects.filter(user=instance).delete()
+            for data in languages:
+                language_isocode = data['language'].get('isocode')
+                language = Language.objects.get(isocode=language_isocode)
+                UserLanguage.objects.create(
+                    user=instance,
+                    language=language,
+                    skill_level=data.get('skill_level'),
+                )
+        return super().update(instance, validated_data)
 
 
 class UserShortSerializer(serializers.ModelSerializer):
