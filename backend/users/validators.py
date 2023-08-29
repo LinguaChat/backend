@@ -126,3 +126,24 @@ def validate_first_name(value):
     ):
         raise ValidationError(
             _('Длина имени должна быть от 2 до 12 символов.'))
+
+
+class ReportDescriptionValidator:
+    """
+    Валадатор поля description
+    """
+
+    def __call__(self, value):
+        valid_chars = re.compile(
+            r'^[0-9a-zA-ZА-Яа-я?!@#%^$*+&_\-\[\]{};:,./\s]*$')
+        if not valid_chars.match(value):
+            raise ValidationError(
+                "Описание содержит недопустимые символы.")
+
+        if len(value) < 6:
+            raise ValidationError(
+                "Описание слишком короткое. Минимум 6 символов.")
+
+        if len(value) > 6000:
+            raise ValidationError(
+                "Описание слишком длинное. Максимум 6000 символов.")

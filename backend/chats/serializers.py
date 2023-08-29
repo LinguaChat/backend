@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 
-from chats.models import Attachment, GroupChat, Message, PersonalChat
+from chats.models import GroupChat, Message, PersonalChat
 from core.constants import MAX_MESSAGE_LENGTH
 from users.serializers import UserShortSerializer
 
@@ -161,6 +161,9 @@ class ChatSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
+    blocked_users = serializers.StringRelatedField(
+        many=True
+    )
 
     class Meta:
         model = PersonalChat
@@ -169,6 +172,7 @@ class ChatSerializer(serializers.ModelSerializer):
             'initiator',
             'receiver',
             "messages",
+            "blocked_users",
         )
         read_only_fields = (
             'id',
@@ -199,9 +203,26 @@ class ChatStartSerializer(serializers.ModelSerializer):
         )
 
 
+class GroupChatSerializer(serializers.ModelSerializer):
+    """Сериализатор для группового чата."""
+
+    initiator = UserShortSerializer(many=False, read_only=True)
+    members = UserShortSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = GroupChat
+        fields = (
+            'id',
+            'name',
+            'initiator',
+            'members',
+        )
+
+
 class GroupChatCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания группового чата."""
 
+    initiator = UserShortSerializer(many=False, read_only=True)
     members = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=User.objects.all(),
@@ -212,38 +233,6 @@ class GroupChatCreateSerializer(serializers.ModelSerializer):
         model = GroupChat
         fields = (
             'name',
+            'initiator',
             "members",
         )
-
-    # def to_representation(self, instance):
-    #     return ChatReprSerializer(
-    #         instance,
-    #         context={'request': self.context.get('request')}
-    #     ).data
-
-    # def create(self, validated_data):
-    #     chat = Chat.objects.create(**validated_data)
-    #     # ChatMembers.objects.create(
-    #     #     chat=chat,
-    #     #     member=creator,
-    #     #     is_creator=True
-    #     # )
-    #     # ChatMembers.objects.create(
-    #     #     chat=chat,
-    #     #     member=companion
-    #     # )
-    #     return chat
-
-
-class AttachmentSerializer(serializers.ModelSerializer):
-    """Сериализатор модели Attachment."""
-
-    content = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = Attachment
-        fields = [
-            'name',
-            'content',
-            'message'
-        ]

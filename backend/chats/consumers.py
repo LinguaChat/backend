@@ -41,6 +41,19 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data=None, bytes_data=None):
         # parse the json data into dictionary object
         text_data_json = json.loads(text_data)
+        if text_data_json['type'] == 'block_user':
+            user_slug = text_data_json['user_slug']
+            blocked = text_data_json['blocked']
+
+            # Отправить уведомление о блокировке/разблокировке через WebSocket
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'block_user_notification',
+                    'user_slug': user_slug,
+                    'blocked': blocked,
+                }
+            )
 
         # Send message to room group
         chat_type = {"type": "chat_message"}
@@ -90,3 +103,12 @@ class ChatConsumer(WebsocketConsumer):
                 serializer.data
             )
         )
+
+    def block_user_notification(self, event):
+        user_slug = event['user_slug']
+        blocked = event['blocked']
+        self.send(text_data=json.dumps({
+            'type': 'block_user',
+            'user_slug': user_slug,
+            'blocked': blocked
+        }))

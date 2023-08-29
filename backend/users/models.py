@@ -384,6 +384,14 @@ class BlacklistEntry(DateCreatedModel):
 
 
 class Report(DateCreatedModel, DateEditedModel):
+    REASON_CHOICES = [
+        ('pornography', 'Порнография'),
+        ('spam', 'Рассылка спама'),
+        ('fraud', 'Мошенничество'),
+        ('offensive_behavior', 'Оскорбительное поведение'),
+        ('copyright_violation', 'Нарушение авторских прав'),
+    ]
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -400,13 +408,19 @@ class Report(DateCreatedModel, DateEditedModel):
     )
     reason = models.CharField(
         max_length=100,
+        choices=REASON_CHOICES,
         verbose_name='Причина жалобы',
-        help_text='Укажите причину данной жалобы.',
+        help_text='Выберите причину данной жалобы.',
     )
     description = models.TextField(
         verbose_name='Описание',
         max_length=1000,
         help_text='Подробное описание проблемы или причины жалобы.',
+        blank=True,
+    )
+    close_user_access = models.BooleanField(
+        default=False,
+        verbose_name='Закрыть пользователю доступ к моей странице'
     )
 
     def __str__(self):
