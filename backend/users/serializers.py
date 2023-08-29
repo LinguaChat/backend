@@ -81,10 +81,82 @@ class UserCreateSerializer(DjoserCreateSerializer):
         }
 
 
-class UserProfileSerializer(DjoserSerializer):
+class GoalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Goal
+        fields = ('name', 'icon')
+        read_only_fields = fields
+
+
+class UserReprSerializer(serializers.ModelSerializer):
+    """Сериализатор для просмотра пользователя."""
+
+    age = serializers.SerializerMethodField()
+    avatar = Base64ImageField(read_only=True)
+    country = CountrySerializer(read_only=True, many=False)
+    goals = GoalSerializer(read_only=True, many=True)
+    interests = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+    languages = UserLanguageSerializer(
+        source='languages_skill',
+        many=True,
+        read_only=True
+    )
+    is_online = serializers.BooleanField(
+        source='get_is_online',
+        read_only=True
+    )
+    role = serializers.CharField(
+        source='get_role_display',
+        read_only=True
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'first_name',
+            'avatar',
+            'age',
+            'slug',
+            'country',
+            'languages',
+            'gender',
+            'goals',
+            'interests',
+            'about',
+            'last_activity',
+            'is_online',
+            'gender_is_hidden',
+            'age_is_hidden',
+            'role',
+        )
+        read_only_fields = fields
+
+    def get_is_online(self, obj):
+        last_seen = cache.get(f'last-seen-{obj.id}')
+        return last_seen is not None and (
+            timezone.now() < last_seen + timezone.timedelta(seconds=300)
+        )
+
+    def get_age(self, obj):
+        """Вычисление возраста пользователя."""
+        if obj.birth_date:
+            age_days = (timezone.now().date() - obj.birth_date).days
+            return int(age_days / 365)
+        return None
+
+
+class UserProfileSerializer(DjoserSerializer, UserReprSerializer):
     """Сериализатор для заполнения профиля пользователя."""
 
-    avatar = Base64ImageField(required=False, allow_null=True)
+    avatar = Base64ImageField(
+        required=False,
+        allow_null=True
+    )
     country = serializers.SlugRelatedField(
         many=False,
         read_only=False,
@@ -124,16 +196,18 @@ class UserProfileSerializer(DjoserSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'first_name',
-            'avatar',
-            'country',
+        fields = UserReprSerializer.Meta.fields + (
             'birth_date',
-            'languages',
-            'gender',
-            'goals',
-            'interests',
-            'about',
+        )
+        read_only_fields = (
+            'username',
+            'age',
+            'slug',
+            'last_activity',
+            'is_online',
+            'gender_is_hidden',
+            'age_is_hidden',
+            'role',
         )
 
     def validate_birth_date(self, value):
@@ -179,75 +253,6 @@ class UserProfileSerializer(DjoserSerializer):
                     skill_level=data.get('skill_level'),
                 )
         return super().update(instance, validated_data)
-
-    def to_representation(self, instance):
-        return UserReprSerializer(
-            instance,
-            context={'request': self.context.get('request')}
-        ).data
-
-
-class GoalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Goal
-        fields = ('name', 'icon')
-        read_only_fields = fields
-
-
-class UserReprSerializer(serializers.ModelSerializer):
-    """Сериализатор для просмотра пользователя."""
-
-    age = serializers.SerializerMethodField()
-    avatar = Base64ImageField(read_only=True)
-    country = CountrySerializer(read_only=True, many=False)
-    goals = GoalSerializer(read_only=True, many=True)
-    interests = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='name'
-    )
-    languages = UserLanguageSerializer(
-        source='languages_skill',
-        many=True,
-        read_only=True
-    )
-    is_online = serializers.SerializerMethodField()
-    role = serializers.CharField(source='get_role_display', read_only=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'first_name',
-            'avatar',
-            'age',
-            'slug',
-            'country',
-            'languages',
-            'gender',
-            'goals',
-            'interests',
-            'about',
-            'last_activity',
-            'is_online',
-            'gender_is_hidden',
-            'age_is_hidden',
-            'role',
-        )
-        read_only_fields = fields
-
-    def get_is_online(self, obj):
-        last_seen = cache.get(f'last-seen-{obj.id}')
-        return last_seen is not None and (
-            timezone.now() < last_seen + timezone.timedelta(seconds=300)
-        )
-
-    def get_age(self, obj):
-        """Вычисление возраста пользователя."""
-        if obj.birth_date:
-            age_days = (timezone.now().date() - obj.birth_date).days
-            return int(age_days / 365)
-        return None
 
 
 class UserShortSerializer(serializers.ModelSerializer):

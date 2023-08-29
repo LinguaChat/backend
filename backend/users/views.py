@@ -28,7 +28,6 @@ from users.serializers import (CountrySerializer, GoalSerializer,
 @extend_schema_view(
     list=extend_schema(
         summary='Просмотреть всех пользователей',
-        request=UserProfileSerializer,
         responses={
             status.HTTP_200_OK: UserReprSerializer,
         },
@@ -128,9 +127,6 @@ class UserViewSet(DjoserViewSet):
         summary='Просмотреть свой профиль',
         description='Просмотреть свой профиль',
         methods=["get"],
-        responses={
-            status.HTTP_200_OK: UserReprSerializer,
-        },
     )
     @extend_schema(
         summary='Удалить свой аккаунт',
@@ -141,6 +137,7 @@ class UserViewSet(DjoserViewSet):
         methods=["get", "patch", "delete"],
         detail=False,
         permission_classes=(IsAuthenticated,),
+        serializer_class=UserProfileSerializer
     )
     def me(self, request, *args, **kwargs):
         """Взаимодействие со своим профилем"""
