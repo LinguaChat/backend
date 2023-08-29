@@ -13,6 +13,8 @@ from users.fields import Base64ImageField, CreatableSlugRelatedField
 from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
                           Report, User, UserLanguage)
 
+from .validators import ReportDescriptionValidator
+
 
 class LanguageSerializer(serializers.ModelSerializer):
     """Сериализатор модели языка."""
@@ -113,6 +115,13 @@ class UserReprSerializer(serializers.ModelSerializer):
         source='get_role_display',
         read_only=True
     )
+    is_blocked = serializers.SerializerMethodField()
+
+    def get_is_blocked(self, obj):
+        current_user = self.context['request'].user
+        return obj.blacklist_entries_received.filter(
+            user=current_user
+        ).exists()
 
     class Meta:
         model = User
@@ -133,6 +142,7 @@ class UserReprSerializer(serializers.ModelSerializer):
             'gender_is_hidden',
             'age_is_hidden',
             'role',
+            'is_blocked',
         )
         read_only_fields = fields
 
@@ -268,6 +278,7 @@ class UserShortSerializer(serializers.ModelSerializer):
 
 
 class BlacklistEntrySerializer(serializers.ModelSerializer):
+    """Сериализатор блокировки"""
     class Meta:
         model = BlacklistEntry
         fields = '__all__'
@@ -275,9 +286,19 @@ class BlacklistEntrySerializer(serializers.ModelSerializer):
 
 
 class ReportSerializer(serializers.ModelSerializer):
+    """Сериализатор жалоб"""
+    description = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        validators=[ReportDescriptionValidator()]
+    )
+    close_user_access = serializers.BooleanField(
+        help_text="Закрыть пользователю доступ к моей странице",
+    )
+
     class Meta:
         model = Report
-        fields = ('reason', 'description')
+        fields = ('reason', 'description', 'close_user_access')
         read_only_fields = ('reported_user',)
 
 

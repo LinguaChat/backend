@@ -250,46 +250,60 @@ class UserViewSet(DjoserViewSet):
         methods=["post", "get"],
         detail=True,
         permission_classes=(IsAuthenticated, IsAdminOrModeratorReadOnly),
-        serializer_class=None
+        serializer_class=ReportSerializer
     )
     def report_user(self, request, slug=None):
         """Просмотр и отправка жалоб."""
         user = self.get_object()
         current_user = request.user
 
+        if user == current_user:
+            return Response(
+                {"detail": "Вы не можете отправлять жалобу на самого себя."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         if request.method == 'POST':
             existing_report = Report.objects.filter(
                 user=current_user, reported_user=user).first()
 
             if existing_report and (
-                    existing_report.date_created + timezone.timedelta(weeks=1)
-                    > timezone.now()
+                existing_report.date_created +
+                timezone.timedelta(weeks=1)
+                > timezone.now()
             ):
                 return Response(
                     {"detail": "Вы не можете отправлять жалобу часто."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            serializer = ReportSerializer(
+                data=request.data, context={'request': request})
+            if serializer.is_valid():
+                close_user_access = serializer.validated_data.get(
+                    "close_user_access", False)
 
-            if existing_report:
-                existing_report.date_created = timezone.now()
-                existing_report.reason = request.data.get(
-                    'reason', existing_report.reason)
-                existing_report.description = request.data.get(
-                    'description', existing_report.description)
-                existing_report.save()
+                existing_block_entry = BlacklistEntry.objects.filter(
+                    user=current_user, blocked_user=user
+                ).first()
+
+                if close_user_access:
+                    if existing_block_entry:
+                        existing_block_entry.save()  # Обновляем существующую запись
+                    else:
+                        BlacklistEntry.objects.create(
+                            user=current_user,
+                            blocked_user=user,
+                        )
+
+                serializer.save(user=current_user, reported_user=user)
+                return Response(
+                    {"detail": "Жалоба успешно отправлена."},
+                    status=status.HTTP_200_OK
+                )
             else:
-                serializer = ReportSerializer(data=request.data)
-                if serializer.is_valid():
-                    serializer.save(user=current_user, reported_user=user)
-                else:
-                    return Response(
-                        serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                    )
-
-            return Response(
-                {"detail": "Жалоба успешно отправлена."},
-                status=status.HTTP_200_OK
-            )
+                return Response(
+                    serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
 
         reports = Report.objects.filter(reported_user=user)
         serializer = ReportSerializer(reports, many=True)
