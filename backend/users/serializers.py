@@ -115,13 +115,10 @@ class UserReprSerializer(serializers.ModelSerializer):
         source='get_role_display',
         read_only=True
     )
-    is_blocked = serializers.SerializerMethodField()
-
-    def get_is_blocked(self, obj):
-        current_user = self.context['request'].user
-        return obj.blacklist_entries_received.filter(
-            user=current_user
-        ).exists()
+    is_blocked = serializers.BooleanField(
+        source='get_is_blocked',
+        read_only=True
+    )
 
     class Meta:
         model = User
@@ -158,6 +155,12 @@ class UserReprSerializer(serializers.ModelSerializer):
             age_days = (timezone.now().date() - obj.birth_date).days
             return int(age_days / 365)
         return None
+
+    def get_is_blocked(self, obj):
+        current_user = self.context['request'].user
+        return obj.blacklist_entries_received.filter(
+            user=current_user
+        ).exists()
 
 
 class UserProfileSerializer(DjoserSerializer, UserReprSerializer):
