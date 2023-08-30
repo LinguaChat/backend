@@ -176,9 +176,19 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     def send_message(self, request, pk=None):
         """Отправить сообщение в чат"""
         chat = self.get_object()
+
+        if chat.is_user_blocked(request.user):
+            return Response(
+                {
+                    "detail": "Вы не можете отправлять сообщения,"
+                    " так как вы заблокированы в этом чате."
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
         serializer = self.get_serializer(data={
             **request.data
         })
+
         serializer.is_valid(raise_exception=True)
         serializer.save(chat=chat, sender=request.user)
 

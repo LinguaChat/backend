@@ -10,9 +10,11 @@ from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
                                    inline_serializer)
 from rest_framework import filters, mixins, serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from chats.models import PersonalChat
 from core.permissions import (CanAccessProfileDetails,
                               IsAdminOrModeratorReadOnly)
 from users.filters import UserFilter
@@ -117,6 +119,22 @@ class UserViewSet(DjoserViewSet):
     def get_queryset(self):
         """Исключение админов и модераторов из выборки."""
         return User.objects.filter(Q(is_staff=False) | Q(role="User"))
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        current_user = request.user
+
+        blocked_chats = PersonalChat.objects.filter(
+            Q(initiator=instance, blocked_users=current_user) |
+            Q(receiver=instance, blocked_users=current_user)
+        )
+
+        if blocked_chats.exists():
+            raise PermissionDenied(
+                "Вы заблокированы и не можете просматривать этот профиль.")
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @extend_schema(
         summary='Редактировать свой профиль',
