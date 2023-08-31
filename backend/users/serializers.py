@@ -174,7 +174,7 @@ class UserProfileSerializer(DjoserSerializer, UserReprSerializer):
         many=False,
         read_only=False,
         required=False,
-        slug_field='code',
+        slug_field='name',
         queryset=Country.objects.all()
     )
     interests = CreatableSlugRelatedField(

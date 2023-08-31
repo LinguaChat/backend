@@ -126,7 +126,7 @@ class UserViewSet(DjoserViewSet):
     @extend_schema(
         summary='Просмотреть свой профиль',
         description='Просмотреть свой профиль',
-        methods=["get"],
+        methods=["get"]
     )
     @extend_schema(
         summary='Удалить свой аккаунт',

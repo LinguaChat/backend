@@ -44,7 +44,7 @@ class UserFilter(df.FilterSet):
 
     age = AgeFilter()
     country = CustomFilterList(
-        field_name='country__code', lookup_expr='in')
+        field_name='country__name', lookup_expr='in')
     languages = CustomFilterList(
         field_name='languages__isocode', lookup_expr='in')
     skill_level = df.ChoiceFilter(
