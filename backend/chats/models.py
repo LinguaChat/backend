@@ -146,6 +146,19 @@ class Message(DateEditedModel):
         verbose_name='Фото для отправки',
         help_text='Фото для отправки'
     )
+    voice_message = models.FileField(
+        upload_to='voice_messages/',
+        blank=True,
+        null=True,
+        verbose_name='Голосовое сообщение',
+        help_text='Голосовое сообщение'
+    )
+    emojis = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name='Смайлы',
+        help_text='Текстовые символы смайлов'
+    )
     responding_to = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
