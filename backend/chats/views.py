@@ -2,6 +2,7 @@
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 
 from asgiref.sync import async_to_sync
@@ -48,7 +49,7 @@ User = get_user_model()
 class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                   viewsets.GenericViewSet):
     serializer_class = ChatSerializer
-    http_method_names = ['get', 'post', 'head']
+    http_method_names = ['get', 'post', 'head', 'put']
     permission_classes = [
         IsAuthenticated,
     ]
@@ -176,9 +177,13 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     def send_message(self, request, pk=None):
         """Отправить сообщение в чат"""
         chat = self.get_object()
-        serializer = self.get_serializer(data={
-            **request.data
-        })
+
+        serializer = self.get_serializer(
+            data={**request.data},
+            # Передаем chat через контекст
+            context={'request': request, 'chat': chat}
+        )
+
         serializer.is_valid(raise_exception=True)
         serializer.save(chat=chat, sender=request.user)
 
@@ -194,6 +199,48 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             ChatSerializer(chat).data,
             status=status.HTTP_201_CREATED
         )
+
+    @action(detail=True, methods=['put'])
+    def update_message(self, request, pk=None):
+        """Обновить сообщение в чате"""
+        message_id = request.data.get('message_id')
+        chat = self.get_object()
+
+        try:
+            message = chat.messages.get(id=message_id)
+        except Message.DoesNotExist:
+            return Response(
+                {"detail": "Message not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = MessageSerializer(
+            instance=message,
+            data=request.data,
+            context={'request': request},
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'])
+    def view_chat(self, request, pk=None):
+        """Просмотреть чат и обновить статус 'прочитано' для получателя"""
+        chat = self.get_object()
+
+        user = self.request.user
+
+        if chat.initiator == user or chat.receiver == user:
+            for message in chat.messages.exclude(read_by=user):
+                message.read_by.add(user)
+            return Response({"detail": "Chat read status updated."})
+
+        return HttpResponseForbidden(
+            "You don't have permission to access this chat."
 
     @action(detail=True, methods=['post'])
     def block_user(self, request, pk=None):
