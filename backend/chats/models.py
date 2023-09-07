@@ -20,6 +20,24 @@ class Chat(DateCreatedModel, DateEditedModel):
         null=True,
         related_name="chat_starter"
     )
+    blocked_users = models.ManyToManyField(
+        User,
+        verbose_name='Заблокированные пользователи',
+        related_name='bloked_chats',
+        blank=True,
+        help_text='Список пользователей, которых вы заблокировали в этом чате.'
+    )
+
+    def block_user(self, user):
+        if user not in self.blocked_users.all():
+            self.blocked_users.add(user)
+
+    def unblock_user(self, user):
+        if user in self.blocked_users.all():
+            self.blocked_users.remove(user)
+
+    def is_user_blocked(self, user):
+        return user in self.blocked_users.all()
 
     objects = InheritanceManager()
 
@@ -48,6 +66,10 @@ class PersonalChat(Chat):
         get_latest_by = 'date_created'
         verbose_name = 'Личный чат'
         verbose_name_plural = 'Личные чаты'
+
+    def block_user(self, user):
+        if user not in [self.initiator, self.receiver]:
+            self.blocked_users.add(user)
 
 
 class GroupChat(Chat):
