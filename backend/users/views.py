@@ -19,11 +19,11 @@ from core.permissions import (CanAccessProfileDetails,
                               IsAdminOrModeratorReadOnly)
 from users.filters import UserFilter
 from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
-                          Report, User)
+                          Report, User, Review)
 from users.serializers import (CountrySerializer, GoalSerializer,
                                InterestSerializer, LanguageSerializer,
                                ReportSerializer, UserProfileSerializer,
-                               UserReprSerializer)
+                               UserReprSerializer, ReviewSerializer)
 
 
 @extend_schema(tags=['users'])
@@ -250,6 +250,21 @@ class UserViewSet(DjoserViewSet):
             {"detail": "Пользователь не заблокирован"},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+    @action(detail=True, methods=['get'])
+    def reviews(self, request, pk=None):
+        user = self.get_object()
+        reviews = Review.objects.filter(recipient=user)
+
+        if not reviews.exists():
+            return Response(
+                "У вас пока нет отзывов, начните общаться,"
+                " и через неделю ваш собеседник сможет оставить здесь отзыв",
+                status=status.HTTP_200_OK
+            )
+
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
         summary='Просмотреть все жалобы на пользователя',

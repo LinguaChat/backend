@@ -429,3 +429,18 @@ class Report(DateCreatedModel, DateEditedModel):
     class Meta:
         verbose_name = 'Жалоба на пользователя'
         verbose_name_plural = 'Жалобы на пользователей'
+
+
+class Review(DateCreatedModel, DateEditedModel):
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+    recipient = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='received_reviews'
+    )
+    text = models.TextField()
+
+    def __str__(self):
+        return f"Review from {self.author} to {self.recipient}"

@@ -11,7 +11,7 @@ from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
                             MAX_NATIVE_LANGUAGES, MIN_AGE)
 from users.fields import Base64ImageField, CreatableSlugRelatedField
 from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
-                          Report, User, UserLanguage)
+                          Report, User, UserLanguage, Review)
 
 from .validators import ReportDescriptionValidator
 
@@ -310,3 +310,9 @@ class InterestSerializer(serializers.ModelSerializer):
         model = Interest
         fields = ('name', 'sorting')
         read_only_fields = fields
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ('text')
