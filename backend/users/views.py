@@ -23,7 +23,8 @@ from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
 from users.serializers import (CountrySerializer, GoalSerializer,
                                InterestSerializer, LanguageSerializer,
                                ReportSerializer, UserProfileSerializer,
-                               UserReprSerializer, ReviewSerializer)
+                               UserReprSerializer, ReviewSerializer,
+                               ReviewCreateSerializer)
 
 
 @extend_schema(tags=['users'])
@@ -255,15 +256,34 @@ class UserViewSet(DjoserViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    @action(detail=True, methods=['get'])
-    def reviews(self, request, pk=None):
+    @action(detail=True, methods=['get', 'post'])
+    def reviews(self, request, slug=None):
         user = self.get_object()
-        reviews = Review.objects.filter(recipient=user)
 
+        if request.method == 'POST':
+            if user == request.user:
+                return Response(
+                    {"detail": "Вы не можете оставить отзыв на самого себя."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            serializer = ReviewCreateSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(recipient=user, author=request.user)
+                return Response(
+                    {"detail": "Отзыв успешно создан"},
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reviews = Review.objects.filter(recipient=user)
         if not reviews.exists():
             return Response(
-                "У вас пока нет отзывов, начните общаться,"
-                " и через неделю ваш собеседник сможет оставить здесь отзыв",
+                {"detail":
+                 "У вас пока нет отзывов, начните общаться,"
+                 " и через неделю ваш собеседник сможет оставить здесь отзыв"},
                 status=status.HTTP_200_OK
             )
 

@@ -90,6 +90,33 @@ class GoalSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class UserShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'slug',
+            'username',
+            'first_name',
+            'avatar',
+        )
+        read_only_fields = fields
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = UserShortSerializer()
+    recipient = UserShortSerializer()
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ('text',)
+
+
 class UserReprSerializer(serializers.ModelSerializer):
     """Сериализатор для просмотра пользователя."""
 
@@ -197,6 +224,7 @@ class UserProfileSerializer(DjoserSerializer, UserReprSerializer):
         read_only=False,
         required=False
     )
+    reviews = ReviewSerializer(many=True, read_only=True)
 
     default_error_messages = {
         'out_of_range': (
@@ -211,6 +239,7 @@ class UserProfileSerializer(DjoserSerializer, UserReprSerializer):
         model = User
         fields = UserReprSerializer.Meta.fields + (
             'birth_date',
+            'reviews',
         )
         read_only_fields = (
             'username',
@@ -268,18 +297,6 @@ class UserProfileSerializer(DjoserSerializer, UserReprSerializer):
         return super().update(instance, validated_data)
 
 
-class UserShortSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            'slug',
-            'username',
-            'first_name',
-            'avatar',
-        )
-        read_only_fields = fields
-
-
 class BlacklistEntrySerializer(serializers.ModelSerializer):
     """Сериализатор блокировки"""
     class Meta:
@@ -310,9 +327,3 @@ class InterestSerializer(serializers.ModelSerializer):
         model = Interest
         fields = ('name', 'sorting')
         read_only_fields = fields
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Review
-        fields = ('text')
