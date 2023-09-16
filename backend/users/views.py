@@ -124,6 +124,10 @@ class UserViewSet(DjoserViewSet):
         instance = self.get_object()
         current_user = request.user
 
+        if instance == current_user:
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+
         blocked_chats = PersonalChat.objects.filter(
             Q(initiator=instance, blocked_users=current_user) |
             Q(receiver=instance, blocked_users=current_user)

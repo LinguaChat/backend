@@ -252,7 +252,8 @@ class ChatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             return Response({"detail": "Chat read status updated."})
 
         return HttpResponseForbidden(
-            "You don't have permission to access this chat.")
+            "You don't have permission to access this chat."
+        )
 
     @action(detail=True, methods=['post'])
     def block_user(self, request, pk=None):
