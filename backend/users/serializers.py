@@ -11,9 +11,9 @@ from core.constants import (MAX_AGE, MAX_FOREIGN_LANGUAGES,
                             MAX_NATIVE_LANGUAGES, MIN_AGE)
 from users.fields import Base64ImageField, CreatableSlugRelatedField
 from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
-                          Report, User, UserLanguage, Review)
+                          Report, Review, User, UserLanguage)
 
-from .validators import ReportDescriptionValidator
+from .validators import ReportDescriptionValidator, ReviewTextValidator
 
 
 class LanguageSerializer(serializers.ModelSerializer):
@@ -112,9 +112,12 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ReviewCreateSerializer(serializers.ModelSerializer):
+    text = serializers.CharField(validators=[ReviewTextValidator()])
+    is_approved = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = Review
-        fields = ('text',)
+        fields = ('text', 'is_approved')
 
 
 class UserReprSerializer(serializers.ModelSerializer):

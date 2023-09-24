@@ -1,5 +1,7 @@
 """View-функции приложения users."""
 
+from datetime import timedelta
+
 from django.db.models import Count, Q
 from django.utils import timezone
 
@@ -19,12 +21,12 @@ from core.permissions import (CanAccessProfileDetails,
                               IsAdminOrModeratorReadOnly)
 from users.filters import UserFilter
 from users.models import (BlacklistEntry, Country, Goal, Interest, Language,
-                          Report, User, Review)
+                          Report, Review, User)
 from users.serializers import (CountrySerializer, GoalSerializer,
                                InterestSerializer, LanguageSerializer,
-                               ReportSerializer, UserProfileSerializer,
-                               UserReprSerializer, ReviewSerializer,
-                               ReviewCreateSerializer)
+                               ReportSerializer, ReviewCreateSerializer,
+                               ReviewSerializer, UserProfileSerializer,
+                               UserReprSerializer)
 
 
 @extend_schema(tags=['users'])
@@ -115,7 +117,7 @@ class UserViewSet(DjoserViewSet):
     ordering_fields = ['date_joined']
     ordering = ['?']
     lookup_field = 'slug'
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = ['get', 'post', 'patch', 'delete', 'put']
 
     def get_queryset(self):
         """Исключение админов и модераторов из выборки."""
@@ -256,7 +258,7 @@ class UserViewSet(DjoserViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    @action(detail=True, methods=['get', 'post'])
+    @action(detail=True, methods=['get', 'post', 'put'])
     def reviews(self, request, slug=None):
         user = self.get_object()
 
@@ -266,19 +268,53 @@ class UserViewSet(DjoserViewSet):
                     {"detail": "Вы не можете оставить отзыв на самого себя."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+
+            last_review = Review.objects.filter(
+                author=request.user, recipient=user
+            ).order_by('-date_created').first()
+            if last_review:
+                time_since_last_review = (
+                    timezone.now() - last_review.date_created
+                )
+
+                if time_since_last_review < timedelta(days=7):
+                    return Response(
+                        {"detail": "Вы можете отправить новый"
+                         " отзыв только раз в неделю."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
             serializer = ReviewCreateSerializer(data=request.data)
             if serializer.is_valid():
-                serializer.save(recipient=user, author=request.user)
+                serializer.save(
+                    recipient=user, author=request.user, is_approved=False)
                 return Response(
-                    {"detail": "Отзыв успешно создан"},
+                    {"detail": "Отзыв успешно создан и ожидает модерации"},
                     status=status.HTTP_201_CREATED
                 )
             return Response(
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
+        elif request.method == 'PUT':
+            review_id = request.data.get('review_id')
+            review = Review.objects.get(id=review_id)
 
-        reviews = Review.objects.filter(recipient=user)
+            if review.author == request.user:
+
+                review.is_approved = False
+                review.text = request.data.get('text')
+                review.save()
+                return Response(
+                    {"detail": "Отзыв успешно обновлен и и ожидает модерации"},
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    {"detail": "Вы не можете редактировать этот отзыв,"
+                     " так как вы не являетесь его автором."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        reviews = Review.objects.filter(recipient=user, is_approved=True)
         if not reviews.exists():
             return Response(
                 {"detail":

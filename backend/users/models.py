@@ -441,6 +441,8 @@ class Review(DateCreatedModel, DateEditedModel):
         related_name='received_reviews'
     )
     text = models.TextField()
+    is_approved = models.BooleanField(
+        default=False, verbose_name='Модерация отзыва')
 
     def __str__(self):
         return f"Review from {self.author} to {self.recipient}"

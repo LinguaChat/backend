@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .models import (BlacklistEntry, Country, Goal, Interest, Language, Report,
-                     User)
+                     Review, User)
 
 
 class UserLanguageInlineAdmin(admin.TabularInline):
@@ -123,6 +123,43 @@ class CustomUserAdmin(UserAdmin):
     #     )
 
     # _foreign_languages.short_description = 'Изучаемые языки'
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('id', 'get_author_username',
+                    'get_recipient_username', 'get_text', 'is_approved')
+    list_filter = ('is_approved',)
+    search_fields = ('author__username', 'recipient__username', 'text')
+
+    def get_author_username(self, obj):
+        return obj.author.username if obj.author else None
+
+    get_author_username.short_description = 'Автор'
+
+    def get_recipient_username(self, obj):
+        return obj.recipient.username if obj.recipient else None
+
+    get_recipient_username.short_description = 'Получатель'
+
+    def get_text(self, obj):
+        return obj.text
+
+    get_text.short_description = 'Текст'
+
+    actions = ['approve_reviews', 'reject_reviews']
+
+    def approve_reviews(self, request, queryset):
+        queryset.update(is_approved=True)
+        self.message_user(request, "Выбранные отзывы одобрены")
+
+    approve_reviews.short_description = "Одобрить выбранные отзывы"
+
+    def reject_reviews(self, request, queryset):
+        queryset.update(is_approved=False)
+        self.message_user(request, "Выбранные отзывы отклонены")
+
+    reject_reviews.short_description = "Отклонить выбранные отзывы"
 
 
 admin.site.register(Language)
