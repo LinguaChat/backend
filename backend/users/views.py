@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 
+from django.contrib.auth.models import AnonymousUser
 from django.db.models import Count, Q
 from django.utils import timezone
 
@@ -122,6 +123,13 @@ class UserViewSet(DjoserViewSet):
     def get_queryset(self):
         """Исключение админов и модераторов из выборки."""
         return User.objects.filter(Q(is_staff=False) | Q(role="User"))
+
+    # def get_permissions(self):
+
+    #     if self.action == 'reviews':
+    #         return [UnauthenticatedUserReviewPermission()]
+
+    #     return [CanAccessProfileDetails()]
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -258,11 +266,21 @@ class UserViewSet(DjoserViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    @action(detail=True, methods=['get', 'post', 'put'])
+    @action(
+        detail=True, methods=['get', 'post', 'put'],
+        permission_classes=[AllowAny]
+    )
     def reviews(self, request, slug=None):
         user = self.get_object()
 
         if request.method == 'POST':
+            if isinstance(request.user, AnonymousUser):
+                return Response(
+                    {"detail": "Только аутентифицированные пользователи могут"
+                     " оставлять отзывы."},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
             if user == request.user:
                 return Response(
                     {"detail": "Вы не можете оставить отзыв на самого себя."},
@@ -296,11 +314,17 @@ class UserViewSet(DjoserViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         elif request.method == 'PUT':
+            if isinstance(request.user, AnonymousUser):
+                return Response(
+                    {"detail": "Только аутентифицированные пользователи могут"
+                     " редактировать отзывы."},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
             review_id = request.data.get('review_id')
             review = Review.objects.get(id=review_id)
 
             if review.author == request.user:
-
                 review.is_approved = False
                 review.text = request.data.get('text')
                 review.save()
@@ -314,12 +338,12 @@ class UserViewSet(DjoserViewSet):
                      " так как вы не являетесь его автором."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+
         reviews = Review.objects.filter(recipient=user, is_approved=True)
         if not reviews.exists():
             return Response(
                 {"detail":
-                 "У вас пока нет отзывов, начните общаться,"
-                 " и через неделю ваш собеседник сможет оставить здесь отзыв"},
+                 "Отзывов пока нет, или проходят модерацию"},
                 status=status.HTTP_200_OK
             )
 
