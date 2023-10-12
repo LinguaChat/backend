@@ -1,6 +1,7 @@
 """Настройки проекта."""
 
 import os
+import dj_database_url
 from datetime import timedelta
 from pathlib import Path
 
@@ -15,6 +16,10 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='not-a-secret')
 DEBUG = os.getenv('DEBUG', default=False)
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='localhost,127.0.0.1,').split(',')
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 INSTALLED_APPS = [
     "daphne",
@@ -99,15 +104,21 @@ CHANNEL_LAYERS = {
     },
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
+#         'NAME': os.getenv('DB_NAME', default='postgres'),
+#         'USER': os.getenv('DB_USER', default=''),
+#         'PASSWORD': os.getenv('DB_PASSWORD', default=''),
+#         'HOST': os.getenv('DB_HOST', default=''),
+#         'PORT': os.getenv('DB_PORT', default=''),
+#     }
+# }
 DATABASES = {
-    'default': {
-        'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', default='postgres'),
-        'USER': os.getenv('DB_USER', default=''),
-        'PASSWORD': os.getenv('DB_PASSWORD', default=''),
-        'HOST': os.getenv('DB_HOST', default=''),
-        'PORT': os.getenv('DB_PORT', default=''),
-    }
+    'default': dj_database_url.config(
+        default='postgres://linguachat_db_user:aIcx9CTPR7FLHgAeu4UXD6mJvwYieeVP@dpg-ckk650kl4vmc73801ua0-a/linguachat_db',
+        conn_max_age=600
+    )
 }
 
 AUTH_USER_MODEL = "users.User"
@@ -204,6 +215,16 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# Following settings only make sense on production and may break development environments.
+if not DEBUG:
+    # Tell Django to copy statics to the `staticfiles` directory
+    # in your application directory on Render.
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+    # Turn on WhiteNoise storage backend that takes care of compressing static files
+    # and creating unique names for each version so they can safely be cached forever.
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
