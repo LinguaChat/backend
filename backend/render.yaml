@@ -1,0 +1,31 @@
+databases:
+  - name: linguachat_db
+    databaseName: linguachat_db
+    user: linguachat_db_user
+
+services:
+  - type: web
+    name: linguachat
+    runtime: docker
+    repo: https://github.com/LinguaChat/backend.git
+    branch: develop
+    envVars:
+      - fromGroup: conc-settings
+      - key: DATABASE_URL
+        fromDatabase:
+          name: linguachat_db
+          property: connectionString
+
+envVarGroups:
+  - name: conc-settings
+    envVars:
+      - key: CONCURRENCY
+        value: 2
+      - key: SECRET
+        generateValue: true
+      - key: DEBUG
+        value: false
+  - name: stripe
+    envVars:
+      - key: STRIPE_API_URL
+        value: https://api.stripe.com/v2
