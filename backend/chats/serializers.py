@@ -1,5 +1,6 @@
 """Сериализаторы приложения chats."""
 
+
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
@@ -8,8 +9,14 @@ from chats.models import GroupChat, Message, PersonalChat
 from core.constants import MAX_MESSAGE_LENGTH
 from users.serializers import UserShortSerializer
 
-# from django.shortcuts import get_object_or_404
+from .validators import (validate_audio_extension, validate_file_size,
+                         validate_image_extension, validate_pdf_extension)
 
+# from django.shortcuts import get_object_or_404
+# from rest_framework.exceptions import PermissionDenied
+
+# from django.shortcuts import get_object_or_404
+# from .models import Chat
 User = get_user_model()
 
 
@@ -20,6 +27,7 @@ class MessageSerializer(serializers.ModelSerializer):
         allow_null=True,
         max_length=10000
     )
+    is_read = serializers.SerializerMethodField()
     read_by = UserShortSerializer(
         many=True,
         read_only=True
@@ -27,18 +35,38 @@ class MessageSerializer(serializers.ModelSerializer):
     file_to_send = serializers.FileField(
         write_only=False,
         required=False,
-        allow_empty_file=True
+        allow_empty_file=True,
+        validators=[validate_file_size, validate_pdf_extension]
     )
+
     photo_to_send = serializers.ImageField(
         write_only=False,
         required=False,
-        allow_empty_file=True
+        allow_empty_file=True,
+        validators=[validate_file_size, validate_image_extension]
     )
+    voice_message = serializers.FileField(
+        required=False,
+        allow_empty_file=True,
+        validators=[validate_file_size, validate_audio_extension]
+    )
+    emojis = serializers.CharField(max_length=255, required=False)
+
     sender = serializers.SlugRelatedField(
         slug_field='slug',
         read_only=True
     )
     chat = serializers.HiddenField(default=None)
+
+    def get_is_read(self, instance):
+        user = self.context.get(
+            'request').user if self.context.get('request') else None
+        if user is None:
+            return False
+        return (
+            instance.read_by.filter(id=user.id).exists() and
+            user != instance.sender
+        )
 
     class Meta:
         model = Message
@@ -48,6 +76,8 @@ class MessageSerializer(serializers.ModelSerializer):
             'text',
             'file_to_send',
             'photo_to_send',
+            'voice_message',
+            'emojis',
             'responding_to',
             'sender_keep',
             'is_read',
@@ -69,60 +99,91 @@ class MessageSerializer(serializers.ModelSerializer):
             'timestamp',
         )
 
-    # def create(self, validated_data):
-    #     file_to_send = validated_data.pop('file_to_send', None)
-    #     photo_to_send = validated_data.pop('photo_to_send', None)
+    def create(self, validated_data):
+
+        file_to_send = validated_data.get('file_to_send', None)
+        photo_to_send = validated_data.get('photo_to_send', None)
+        voice_message = validated_data.get('voice_message', None)
+        emojis = validated_data.get('emojis', None)
+        text = validated_data.get('text', '')
         # chatname = validated_data['chat']
-        # chat = get_object_or_404(Chat, name=chatname)
 
-        # if not chat.messages.exists() and (file_to_send or photo_to_send):
-        #     raise serializers.ValidationError(
-        #         "Нельзя отправить фото или файл первым сообщением"
-        #     )
+        validated_data['sender_keep'] = True
 
-        # validated_data['sender'] = self.context['request'].user
-        # message = Message.objects.create(**validated_data)
+        chat = self.context.get('chat')
 
-        # if file_to_send:
-        #     Attachment.objects.create(
-        #         name=file_to_send.name,
-        #         content=file_to_send.read(),
-        #         message=message
-        #     )
+        if not chat:
+            raise serializers.ValidationError(
+                "Chat object is missing in the context")
+        validated_data['chat'] = chat
+        if not chat.messages.exists() and (file_to_send or photo_to_send):
+            raise serializers.ValidationError(
+                "Нельзя отправить фото или файл первым сообщением"
+            )
+        if voice_message:
+            text = f'[Voice Message: {voice_message.name}]'
+        if emojis:
+            text += emojis
 
-        # if photo_to_send:
-        #     Attachment.objects.create(
-        #         name=photo_to_send.name,
-        #         content=photo_to_send.read(),
-        #         message=message
-        #     )
+        validated_data['sender'] = self.context['request'].user
+        message = Message.objects.create(**validated_data)
 
-        # return message
+        if file_to_send:
+            Attachment.objects.create(
+                name=file_to_send.name,
+                content=file_to_send.read(),
+                message=message
+            )
 
-    # def update(self, instance, validated_data):
-    #     file_to_send = validated_data.pop('file_to_send', None)
-    #     photo_to_send = validated_data.pop('photo_to_send', None)
+        if photo_to_send:
+            Attachment.objects.create(
+                name=photo_to_send.name,
+                content=photo_to_send.read(),
+                message=message
+            )
 
-    #     for key, value in validated_data.items():
-    #         setattr(instance, key, value)
+        message.text = text
+        message.save()
+        return message
 
-    #     if file_to_send:
-    #         Attachment.objects.create(
-    #             name=file_to_send.name,
-    #             content=file_to_send.read(),
-    #             message=instance
-    #         )
+    def update(self, instance, validated_data):
+        file_to_send = validated_data.get('file_to_send', None)
+        photo_to_send = validated_data.get('photo_to_send', None)
+        voice_message = validated_data.get('voice_message', None)
+        emojis = validated_data.get('emojis', None)
+        text = validated_data.get('text', '')
+        chat = self.context.get('chat')
+        if not chat:
+            raise serializers.ValidationError(
+                "Chat object is missing in the context")
 
-    #     if photo_to_send:
-    #         Attachment.objects.create(
-    #             name=photo_to_send.name,
-    #             content=photo_to_send.read(),
-    #             message=instance
-    #         )
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
 
-    #     instance.save()
+        if voice_message:
+            text = f'[Voice Message: {voice_message.name}]'
+        if emojis:
+            text += emojis
 
-    #     return instance
+        instance.text = text
+
+        if file_to_send:
+            Attachment.objects.create(
+                name=file_to_send.name,
+                content=file_to_send.read(),
+                message=instance
+            )
+
+        if photo_to_send:
+            Attachment.objects.create(
+                name=photo_to_send.name,
+                content=photo_to_send.read(),
+                message=instance
+            )
+
+        instance.save()
+
+        return instance
 
 
 class ChatListSerializer(serializers.ModelSerializer):

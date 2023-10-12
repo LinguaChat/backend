@@ -37,7 +37,7 @@ class GroupChatAdmin(ChatAdmin):
 
     display_members.short_description = 'Участники'
 
-
+    
 admin.site.register(Chat, ChatAdmin)
 admin.site.register(Attachment)
 admin.site.register(Message)

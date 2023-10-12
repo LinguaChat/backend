@@ -134,8 +134,9 @@ class ReportDescriptionValidator:
     """
 
     def __call__(self, value):
+
         valid_chars = re.compile(
-            r'^[0-9a-zA-ZА-Яа-я?!@#%^$*+&_\-\[\]{};:,./\s]*$')
+            r'^[0-9a-zA-ZА-Яа-я?!@#%^$*+&_\-\\();:,./\s]*$')
         if not valid_chars.match(value):
             raise ValidationError(
                 "Описание содержит недопустимые символы.")
@@ -144,6 +145,6 @@ class ReportDescriptionValidator:
             raise ValidationError(
                 "Описание слишком короткое. Минимум 6 символов.")
 
-        if len(value) > 6000:
+        if len(value) > 1000:
             raise ValidationError(
-                "Описание слишком длинное. Максимум 6000 символов.")
+                "Описание слишком длинное. Максимум 1000 символов.")
