@@ -12,7 +12,6 @@ RUN python manage.py collectstatic --no-input
 RUN python manage.py makemigrations users
 RUN python manage.py makemigrations
 RUN python manage.py migrate
-RUN python manage.py makesuperuser
 
 EXPOSE 80
 
