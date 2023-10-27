@@ -193,11 +193,10 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    'http://lingvogo.acceleratorpracticum.ru',
-    'http://5.181.255.3',
     'http://localhost:3000',
     'http://localhost',
     'https://conversation-exchange.github.io',
+    'https://linguachat-platform.onrender.com',
     # Дополнительные разрешенные источники, если есть
 ]
 
